@@ -31,6 +31,12 @@ Function.prototype.partial = function() {
     }
 }
 
+// same as +partial+, but doesn't append additional arguments
+Function.prototype.specialize = function() {
+    return this.partial.apply(this, arguments).nonary();
+}
+
+
 // adapted from http://www.coryhudson.com/blog/2007/03/10/javascript-currying-redux/
 Function.prototype.curry = function(/*args...*/) {
     var fn = this;
@@ -54,11 +60,6 @@ Function.prototype.nonary = function() {
         return method.apply(this, []);
     }
 }
-
-Function.prototype.specialize = function() {
-    return this.partial.apply(this, arguments).nonary();
-}
-
 
 function compose() {
     var fns = [].slice.call(arguments, 0);

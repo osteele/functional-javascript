@@ -26,15 +26,18 @@ function tests() {
     info(replaceVowels.call("change my vowels to underscorees", '_'));
     info(replaceWithCoronalFricatives.call("substitute my esses with tee-aitches", /s/g));
 
-    // use left and right curry to create 'halve' and 'double' functions
+    // use right curry to create 'halve' and 'double' functions
     function divide(a, b) {return a/b}
-    var halve = divide.curry(2); // = (/ 2)
-    var double = divide.curry(1/2);
+    var halve = divide.rcurry(2); // = (/ 2)
+    var double = divide.rcurry(1/2);
     info('halve 10', halve(10));
     info('double 10', double(10));
-
-    info(divide.curry(10)(2));  // = (10 /) 2
-    info(divide.rcurry(2)(10)); // = (/ 2) 10
+    
+    // partials are a superset of Haskell sections (without the nice syntax)
+    // (10 /) 2
+    info(divide.curry(10)(2));
+    // (/ 2) 10
+    info(divide.rcurry(2)(10));
     
     // Use with Prototype to define an 'onclick' that abbreviates
     // Event.observe(_, 'click', ...)

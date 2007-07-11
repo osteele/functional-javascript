@@ -8,14 +8,17 @@
     <style type="text/css">
       .output {color: blue}
       .comment {color: gray; font-style: italic; font-family: serif}
+      #footer {position:absolute;bottom:0; color:#888}
+      #footer a, #legend a {color:#888}
+      #footer a:hover, #legend a:hover {color:blue}
     </style>
   </head>
   <body>
     <pre id="output">
     </pre>
     <button id="e1">1. Event.observe</button>
-    <button id="e2">2. onclick (partial Event.observe)</button>
-    <button id="e3">3. onclick (partial Event.observe), and specialized alert</button>
+    <button id="e2">2. onclick</button>
+    <button id="e3">3. specialized alert too</button>
     <div id="footer">
       Copyright 2007 by Oliver Steele.  This work is licensed under the MIT license, and the <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution-Noncommercial-Share Alike 3.0 License</a>.  (Take your pick.)<br/>
       <a href="partial.js" target="_blank">View source</a>.
