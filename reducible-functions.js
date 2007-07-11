@@ -1,6 +1,7 @@
 /*
 Agenda:
 - fix bug
+- compose -> composen
 - parse reduction strings
 - add identity
 - trace to html page

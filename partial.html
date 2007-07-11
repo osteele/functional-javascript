@@ -3,11 +3,17 @@
   <head>
     <title>Partial</title>
     <script type="text/javascript" src="/javascripts/prototype.js"></script>
-    <script type="text/javascript" src="partial.js"></script>
+    <script id="src" type="text/javascript" src="partial.js"></script>
+    <style type="text/css">
+      .output {color: blue}
+      .comment {color: gray; font-style: italic; font-family: serif}
+    </style>
   </head>
   <body>
-    <div id="e1">1. Event.observe</div>
-    <div id="e2">2. onclick (partial Event.observe)</div>
-    <div id="e3">3. onclick (partial Event.observe), and specialized alert</div>
+    <pre id="output">
+    </pre>
+    <button id="e1">1. Event.observe</button>
+    <button id="e2">2. onclick (partial Event.observe)</button>
+    <button id="e3">3. onclick (partial Event.observe), and specialized alert</button>
   </body>
 </html>
