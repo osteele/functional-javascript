@@ -1,0 +1,158 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Memoization</title>
+    <script type="text/javascript" src="/sources/javascript/memoize.js"></script>
+    <style type="text/css">
+      td, th {text-align: right; vertical-align: bottom}
+      td, th {padding-left: 1em}
+      td {font-family: Courier New, monospace}
+      th.comment, td.comment {text-align: left}
+      td.comment {font-family: inherit; font-size: small; font-style: italic}
+      pre {font-size: small}
+    </style>
+  </head>
+  <body>
+    <h1>Memoization</h1>
+    <h2>Timings</h2>
+    <table id="tests">
+      <tr><th>Expression</th><th>Result</th><th>Time</th><th class="comment">Notes</th></tr>
+      <tr><td>rfib(15)</td><td class="comment">recursive function</td></tr>
+      <tr><td>mfib(15)</td><td class="comment">memoized recursive function</td></tr>
+      <tr><td>ifib(15)</td><td class="comment">iterative function (still faster)</td></tr>
+      <tr><td>a.lfib(15)</td><td class="comment">recursive method</td></tr>
+      <tr><td>a.mlfib(15)</td><td class="comment">memoized method</td></tr>
+      <tr><td>b.mlfib(15)</td><td class="comment">each object has its own cache...</td></tr>
+      <tr><td>b.mfact(5)</td><td class="comment">...and so does each method</td></tr>
+    </table>
+    
+    <h2>Setup</h2>
+    <pre id="setup">
+      // recursive fibonacci
+      function rfib(n) {
+        if (n &lt; 2) return 1;
+        return rfib(n-2)+rfib(n-1);
+      }
+      
+      // memoized recursive fibonacci
+      var mfib = function(n) {
+        if (n &lt; 2) return 1;
+        return mfib(n-2)+mfib(n-1);
+      }.memoize();
+      
+      // iterative fibonacci
+      function ifib(n) {
+        for (var a=1, b=1, t; n--; t=b,b+=a,a=t);
+        return a;
+      }
+      
+      // Carrier for the methods.  +label+ is injected into the
+      // result of lfib, to verify that memoization is scoped
+      // to the instance.
+      function C(label) {this.label = label}
+      
+      // Returns [label, fib(n)]
+      C.prototype.lfib = function(n) {
+        if (n &lt; 2) return [this.label, 1];
+        return [this.label, this.lfib(n-2)[1] + this.lfib(n-1)[1]];
+      }
+      
+      // Memoized version of C..lfib.
+      C.prototype.mlfib = function(n) {
+        if (n &lt; 2) return [this.label, 1];
+        return [this.label, this.mlfib(n-2)[1] + this.mlfib(n-1)[1]];
+      }.memoize();
+      
+      C.prototype.mfact = function(n) {
+        if (n &lt; 2) return 1;
+        return n * this.mfact(n-1);
+      }.memoize();
+      
+      var a = new C('a');
+      var b = new C('b');
+    </pre>
+    
+    <script type="text/javascript">//<![CDATA[
+      Function.prototype.time = function() {
+        var reps = 1, total = 0;
+	for (reps = 1, total = 0; total < 1 && reps < 10*1000; reps *= 10) {
+          var t0 = new Date().getTime();
+	  for (var i = 0; i < reps; i++) this.apply(arguments);
+	  total = new Date().getTime() - t0;
+	t0 = new Date().getTime();
+	for (var i = 0; i < reps; i++) nullfn.apply(arguments);
+	var tare = new Date().getTime() - t0;
+	total -= tare;
+	}
+        function nullfn() {}
+	return total / reps;
+      }
+      
+      String.prototype.unindent = function() {
+        var lines = this.split(/[\r\n]/);
+	var empty = /^\s*$/;
+	var min = Infinity;
+	while (lines.length && lines[0].match(empty))
+  	  lines.shift();
+	while (lines.length && lines[lines.length-1].match(empty))
+  	  lines.pop();
+	for (var i = 0; i < lines.length; i++)
+	  if (!lines[i].match(empty))
+	    if (lines[i].match(/^( *)/)[0].length < min)
+	      min = Math.min(min, lines[i].match(/^( *)/)[0].length);
+        if (min < Infinity) {
+	  for (var i = 0; i < lines.length; i++)
+	    if (!lines[i].match(empty))
+  	      lines[i] = lines[i].slice(min);
+	  return lines.join('\n');
+	}
+	return this;
+      }
+      
+      // because Firefox doesn't implement Element.innerText...
+      String.prototype.decodeHTML = function() {
+        return this.replace('&lt;', '<', 'g').replace('&amp;', '&', 'g');        
+      }
+      
+      document.getElementById('setup').innerHTML = document.getElementById('setup').innerHTML.unindent();
+      var setup = document.getElementById('setup').innerHTML.decodeHTML();
+
+      // Collect the tests
+      eval(setup);
+      var tests = [];
+      var testRows = document.getElementById('tests').getElementsByTagName('tr');
+      for (var i=0, row; row = testRows[i++]; ) {
+        var sourceCell = row.getElementsByTagName('td')[0];
+        if (!sourceCell) continue;
+        var source = sourceCell.innerHTML;
+	var fn = new Function('return ' + source);
+	tests.push({fn: fn, row: row, totalTime: 0});
+      }
+      
+      // Run the trials
+      var trials = 10;
+      for (var ti = 1; ti <= trials; ti++) {
+	for (var i = 0, test; test = tests[i++]; ) {
+	  var fn = test.fn;
+          eval(setup);
+	  var time = fn.time();
+	  if (ti) test.totalTime += time;
+	  test.result = fn();
+	}
+      }
+      
+      // Display the results
+      for (var i = 0, test; test = tests[i++]; ) {
+	var row = test.row;
+	var follower = row.getElementsByTagName('td')[1];
+	var insertCell = function(text) {
+	  var cell = document.createElement('td');
+	  cell.innerHTML = text;
+	  if (follower) row.insertBefore(cell, follower);
+	  else row.appendChild(cell);
+	}
+	insertCell(String(test.result));
+	insertCell(String(Math.round(1000 * test.totalTime/trials)) + 'ms');
+      }
+    //]]></script>
+  </body>
+</html>

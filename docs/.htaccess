@@ -1,0 +1,7 @@
+RewriteEngine On
+
+RewriteRule ^/?$ /sources/javascript/ [R]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.*)$ /sources/javascript/docs/$1.php

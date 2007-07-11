@@ -1,0 +1,32 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>DIV Canvas</title>
+    <script type="text/javascript" src="/javascripts/fvlogger/logger.js"></script>
+    <link rel="stylesheet" type="text/css" href="/javascripts/fvlogger/logger.css"/>
+    <script type="text/javascript" src="readable.js"></script>
+    <script type="text/javascript" src="inline-console.js"></script>
+    <script type="text/javascript" src="/javascripts/wz_jsgraphics.js"></script>
+    <script type="text/javascript" src="div-canvas.js"></script>
+  </head>
+  <body>
+    <div id="canvas" style="width:300; height: 300; position:relative"></div>
+    
+    <a href="#" onclick="eraseLog(); return false">clear</a>
+    <div id="fvlogger"></div>
+    
+    <script type="text/javascript">
+      var canvas = document.getElementById('canvas');
+      makeCanvas(canvas);
+      var ctx = canvas.getContext('2d');
+      ctx.strokeStyle = 'red';
+      ctx.moveTo(10,113);
+      ctx.lineTo(220,55);
+      ctx.lineTo(150,200);
+      ctx.fill();
+      //jg.fillRect(110, 120, 30, 60);
+      //jg2.drawEllipse(10, 50, 30, 100);
+    </script>
+
+  </body>
+</html>
+

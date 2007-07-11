@@ -1,0 +1,77 @@
+blog: where numbers come from, equivalence class of operations that create a number, why NaN != NaN but Infinity = Infinity
+
+
+
+Gradient:
+- fix for IE
+- use 100% if there's no radius
+- direction: horizontal, radial, bloom, diagonal
+- API to remove the gradient
+
+
+Graphview:
+- rename html-view
+- add copyrights
+- move to its own directory
+- unhardwire bin location
+- look at reanimator/notes.txt
+- delete temp files
+
+
+Divstyle:
+- quotes
+- pseudo-elements
+
+
+Bezier:
+(P3-P0+3P1-3P2)t^3+(3P0-6P1+3P2)t^2+(3P1-3P0)t+P0
+
+p0 + (3p1-3p0)t + (3p0-6p1+3p2)t^2 + (p3+3p1-3p2-p0)t^3
+
+p0(1-t) + p1*t = p0, p1-p0
+
+p0(1-t)^2 + 2t(1-t)p1 + p2 t^2 = p0, -2p0+2p1, p2-2p1+p0
+(p0(1-t)+p1 t)(1-t) + (p1(1-t) + p2 t)t = p0(1-t)^2 + 2 t(1-t)p1 +p2t2
+
+
+p0 -p0
+       p1
+
+0: p0
+1: p1-p0
+
+[p0, p1-p0]*[p1, p2-p1] =>
+=>
+[p0, p1-p0]
+[0,  -p0,    p0-p1]
+[0,  p1,      p2-p1]
+=>
+[p0, 2p1-2p0, p0+p2-2p1]
+
+
+[p0,p1-p0]*[p1,p2-p1]*[p2,p3-p2]
+=>
+[p0, 2p1-2p0, p0+p2-2p1]
+      [        -p0,2p0     -2p1, 2p1-p0-p2]
+                             [p2,       p3         -p2]
+=>
+[p0, 2p1-3p0, 3p0-4p1+2p2, p3+2p1-2p2-p0]
+
+
+for each remaining number at position n:
+  s.push(p)
+  for i=n-1 downto 1
+    s[i] -= s[i-1]
+
+[p0]
+
+[p0, p1-p0]
+[p0, p1-2p0, p2]
+[p0, p1-3p0, p2-p1-2p0, p3]
+[p0, p1-4p0, p2-2p1-6p0, p3-p2-p1-2p0, p4]
+
+p0 * p1 => [p0, p1-p0]
+p1 * p2 => [p1, p2-p1]
+
+[p0, p1-p0] * [p1, p2-p1] => [p0, p1-p1+p0, p2-p1] = [p0, p0, p2-p1]
+

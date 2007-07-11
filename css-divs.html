@@ -1,0 +1,34 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Gradients</title>
+    <script type="text/javascript" src="/javascripts/fvlogger/logger.js"></script>
+    <link rel="stylesheet" type="text/css" href="/javascripts/fvlogger/logger.css"/>
+    <script type="text/javascript" src="readable.js"></script>
+    <script type="text/javascript" src="inline-console.js"></script>
+    <script type="text/javascript" src="css-divs.js"></script>
+  </head>
+  <body>
+    <div id="box" style="width:300; height: 300; position:relative">
+      <!-- style="gradient-start-color: #ff0000; gradient-end-color: #0000ff; border-radius: 25"-->
+      <div>More text.</div>
+      <div>Some text.</div>
+    </div>
+    
+    <div class="style">
+      .roundrect {border-radius: 25; gradient-stop-color: #000}
+      .roundrect.red {gradient-start-color: #f00}
+      .roundrect.green {gradient-start-color: #0f0}
+      .roundrect.blue {gradient-start-color: #00f}
+      .roundrect.gray {gradient-start-color: #444}
+    </div>
+    
+    <div class="red roundrect">
+      some text
+    </div>
+    
+    <a href="#" onclick="eraseLog(); return false">clear</a>
+    <div id="fvlogger"></div>
+
+  </body>
+</html>
+
