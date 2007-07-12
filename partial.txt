@@ -1,24 +1,30 @@
 Procedural programming manipulates values, applying a sequence of builtin operations and other functions to the inputs to produce an output.  Functional programming manipulates functions, applying operations to them and combining them to create a synthetic function which is applied to the input.  A function that takes a function as an argument or returns a function as a result is called a "functional" (there, the word's a noun).
 
 Functional is a JavaScript library for functional programming.  It
-includes the standard stuff (map, reduce, curry, etc.), but it's also
+includes the standard stuff (map, reduce, curry, etc.) that you can read about anywhere
+on the web.  I'm not going to describe them here..  But it's also
 go a couple of innovations: string lambda expressions, and partial function application.
+
 I've summarized the innovations
-below; see the "example page":/sources/javascripts/partials-demo.html
-for more examples and for the documentation.
-Get it "here":/sources/javascripts/partials.js.
+below.  See the "example page":/sources/javascripts/partials-demo.html
+for more examples and for the documentation.  Get the file "here":/sources/javascripts/partials.js.
+
+This works in Firefox 2.0 and Safari 3.0.  I didn't intentionally use any non-standard constructs, but meta-programming such as this tends to turn up corners in the browser implementations.
 
 h4. String lambda expressions
 
-Isn't this a pain?
-  map(lambda(x){return x+1}, [1,2,3]);
-  select(lambda(x){return x>2}, [1,2,3,4]}
-  some(lambda(w){w.length < 3}, 'are there any short words?'.split(' '));
+So you've got your +map+ and +select+ now.  Try using them.  Isn't this a pain?:
+  map(function(x){return x+1}, [1,2,3])
+    -> [2,3,4]
+  select(function(x){return x>2}, [1,2,3,4]]
+    -> [3,4]
+  some(function(w){return w.length < 3}, 'are there any short words?'.split(' '))
+    ->false
 
-String lambdas let you do this:
-  map('x+1', [1,2,3]);
-  select('x>2', [1,2,3,4]}
-  some('w.length < 3', 'are there any short words?'.split(' '));
+String lambdas let you write this instead:
+  map('x+1', [1,2,3])
+  select('x>2', [1,2,3,4])
+  some('_.length < 3', 'are there any short words?'.split(' '))
 
 A string lambda can take any of these forms (the example page and documentation discuss the tradeoffs):
   x+1
@@ -26,27 +32,34 @@ A string lambda can take any of these forms (the example page and documentation 
   _+1
   x -> x+1
   x, y -> x + y
-And the last form lets you chain them:
+And '->' chains, to create function-returning functions:
   x -> y -> x + y
 
 Some more examples:
   // halve the items in a list
   map('_/2', [1,2,3,4])
+  # -> [0.5, 1, 1.5, 2]
   // find the length of the longest word
   reduce(Math.max, 0, map('_.length', 'how long is the longest word?'.split(' ')))
-  // convert a binary array
-  trace(reduce('2*x+y', 0, [1,0,1,0]));
-  // convert a decimal string
+  # -> 7
+  // parse a binary array
+  reduce('2*x+y', 0, [1,0,1,0])
+  # -> 10
+  // parse a decimal string
   reduce('x y -> x*10+y.charCodeAt(0)-48', 0, '123'.split(/(?=.)/))
+  # -> 123
   
-Here's how to use compose and curry to generalize some of thes examples
+Here's how to use +compose+ and +curry+ to generalize some of these examples
 into reusable functions.  I'm betting you'll like/hate these function definitions to the
 extent that you like/hate Haskell.
   var longest = compose(reduce.curry(Math.max, 0), map.curry('_.length'), "_.split(' ')");
   longest("how long is the longest word?");
-  longest("I bet that floccinaucinihilipipification is longer.");
+  # ->
+  longest("I bet floccinaucinihilipipification is longer.");
+  # -> 29
   var parseUnsignedInt = compose(reduce.curry('x y -> x*10+y.charCodeAt(0)-48', 0), '_.split(/(?=.)/)')
   parseUnsignedInt('123')
+  # -> 123
 
 
 h4. Partial function application
@@ -54,40 +67,65 @@ h4. Partial function application
 Partial functional application, or function specialization, creates a new
 function out of an old one.  For example, given a division function:
   function div(a, b) {return a/b}
-here's a partial application that divides by two:
+here's a partial application that divides its argument by two:
   var halve = div.partial(_, 2);
-Now halve(10) is the same as div(10, 2).  This is especially useful with the functionals such as map, where, given a function div, we can apply it without an explicit wrapper.
+Now halve(10) is the same as div(10, 2).  This is especially useful as an argument to the functionals such as +map+, where, given a function +div+, we can apply it (the first line below) without an explicit wrapper (the second).
+  map(div.partial(_, 10), [10, 20, 30])
+  map(lambda(n) {return div(n, 10)}, [10, 20, 30])
 
-This example could have been handled via curry (which is a form of partial function
-application).  Partial function application in all its generality when you're specializing
-not just on all the arguments on the left, or all the arguments on the right, but
-on some distribution of arguments with holes in the middle.  This requires a function
-with more than two parameters.
+This example could have been handled via +curry+, which is a just a
+specialized form of partial function application.  Partial function
+application in all its generality is necessary when you're
+specializing not just on all the arguments on the left, or all the
+arguments on the right, but some distribution of arguments with holes
+in the middle.  To illustrate this requires a function with more than two
+parameters.
 
-JavaScript doesn't have many functions with more two parameters (it has +splice+,
-but this isn't very functional), so I'll use a contrived example.  (More realistic ones
-show up with programming libraries.)
+JavaScript doesn't have many functions with more than two parameters (it has +splice+,
+but +splice+ isn't very functional).  I'll use a contrived example.  More realistic ones
+show up with programming libraries.
 
   function increasing(a, b, c) {
     return a < b && b < c;
   }
   var positive = increasing.partial(0, _, Infinity);
-  map(positive, [-1, 0, 1]) # -> [false, false, true]
+  map(positive, [-1, 0, 1])
+    -> [false, false, true]
   var negative = increasing.partial(-Infinity, _, 0);
-  map(negative, [-1, 0, 1]) # -> [true, false, false]
-  var zero = every('typeof _ == "Number"', not(positive), not(negative));
+  map(negative, [-1, 0, 1]) 
+    -> [true, false, false]
 
-If you're using Prototype, you can replace the first line below by the second:
+A real-world example:  If you're using Prototype, you can replace the first line below by the second:
   Event.observe('myobj', 'click', function() {...})
   onclick(''myobj', function() {...})
 by defining a specialized version of Event.observe:
     var onclick = Event.observe.bind(Event).partial(_, 'click');
-Is this better than:
+
+Is this better than the following?
   function onclick(element, handler) {
     Event.observe(elenent, 'click', handler);
   }
-Is it worth it in this case?  It depends on your style.  The functional version is less efficient; on the
-other hand, it doesn't include as much plumbing, with its attendent opportunities
-for errors.  (The second function has two; the second is subtle.)
+It's a matter of taste, with some performance considerations as well.  The functional version is less efficient; on the
+other hand, it doesn't include as much plumbing, with its attendent opportunity
+for error.  (The second definition of +onclick+ has two such errors.  One shows
+up as soon as you use it; the second is considerably more subtle.)
 
 h4. Future Directions
+
+Functional programming doesn't always mesh well with OO, especially with Javascript's in the absence ofbound methods.  There are currently two sets of methods to partially apply a function: +bind+ sets its receiver (the first argument to +apply+); and [r][n]curry and +partial+ bind the other arguments (the arguments to +call+, which list is the second argument to +apply+).
+
+One problem with this is the syntax.  If you want to specialize both the receiver and the parameters, such as in the example with Event.observe above, you need two chained function calls.  This is a tradeoff: it's because each of +bind+ and +partial+ does a single thing.  I considered adding a single mondo function that bound everything, but it looked just as verbose, and more confusing, than the present solution.
+
+The other problem is performance.  Invoking the function returned by fn.bind(a) goes through one extra function call beyond the cost of invoking fn().  That's unavoidable.  Invoking the function returned by fn.partial(b,c) also goes through one extra function call (as well as a loop and some conditionals to merge the argument lists).  That's unavoidable too.  But a call to the function returned by fn.bind(a).partial(b,c) or fn.partial(b,c).bind(a) goes through *two* extra function calls.  It only needs one.
+
+Next week I'll publish fast-functional.js, which patches functional.js to fix this problem.  It modifies fn.bind(a).partial(b,c) and fn.partial(b,c).bind(a) to return a function that calls the underlying function directly, instead of trampolining once for each method in the chain.  The following week I'll describe a generalization of this technique, for defining function algebras with combinatoric reductions.
+
+Agenda:
+- fix the zero example
+- receiver -> something else (in the docs too)
+- references?
+
+fusion rule:
+here's a trick for applying a set of functions to a single number:
+map('_(1)', map('_.lambda()', ['x+1', 'x-1']))
+map(compose('_(1)', '_.lambda()'), ['x+1', 'x-1'])

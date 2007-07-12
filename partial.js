@@ -16,10 +16,10 @@
 
 /*
  * Agenda:
- * - 'x+1'.apply(null, [2]) doesn't work
- * - not, and, or
+ * - 'x+1'.apply(null, [2]) returns '21'
  * - foldr, foldl, flip (with args), fst, snd, pair
  * - remove toFunction?
+ * - remove only?
  * - rename partial -> specialize?
  * - rename to functional.js
  * - change license
@@ -225,7 +225,7 @@ Functional.some = function(fn, sequence, receiver) {
     var len = sequence.length;
     var result = [];
     for (var i = 0; i < len; i++)
-        if (!fn.apply(receiver, [sequence[i]]))
+        if (fn.apply(receiver, [sequence[i]]))
             return true;
     return false;
 }
@@ -238,11 +238,13 @@ Functional.every = function(fn, sequence, receiver) {
     var len = sequence.length;
     var result = [];
     for (var i = 0; i < len; i++)
-        if (fn.apply(receiver, [sequence[i]]))
+        if (!fn.apply(receiver, [sequence[i]]))
             return false;
     return true;
 }
 
+// Returns true when +fn()+ returns false.
+// :: (x -> boolean) -> (x -> boolean)
 Functional.not = function(fn) {
     fn = Function.toFunction(fn);
     return function() {  

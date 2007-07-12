@@ -70,10 +70,11 @@ function examples() {
     trace(divide.curry(10)(2));
     // (/ 2) 10
     trace(divide.rcurry(2)(10));
-    // while partials are like math function syntax
-    // (10 / _) 2
+    // while partials are like math function syntax (used more in higher algebra
+    // than in base-level expressions such as these)
+    // (10 / -) 2
     trace(divide.partial(10, _)(2));
-    // (_ / 2) 10
+    // (- / 2) 10
     trace(divide.partial(_, 2)(10));
     
     // An application: use with Prototype to define an 'onclick' that abbreviates
