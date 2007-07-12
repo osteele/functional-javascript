@@ -12,40 +12,64 @@ function tests() {
 
     // specialize the first and third parameters
     var f2 = list.partial(1,_,2);
-    info('f2 3 ->', f2(3));
-    info('f2 4, 5 ->', f2(4,5));
+    trace('f2 3 ->', f2(3));
+    trace('f2 4, 5 ->', f2(4,5));
 
     // specialize the first two parameters (same as currying)
     var f3 = list.partial(1,2);
-    info('f3 4, 5 -> ', f3(4,5));
+    trace('f3 4, 5 -> ', f3(4,5));
 
     // create some specialized versions of String replace
     var replaceVowels = "".replace.partial(/[aeiou]/g, _);
     var replaceWithCoronalFricatives = "".replace.partial(_, 'th');
     // have to use call, since we're binding it to a different object
-    info(replaceVowels.call("change my vowels to underscorees", '_'));
-    info(replaceWithCoronalFricatives.call("substitute my esses with tee-aitches", /s/g));
+    trace(replaceVowels.call("change my vowels to underscorees", '_'));
+    trace(replaceWithCoronalFricatives.call("substitute my esses with tee-aitches", /s/g));
 
     // use right curry to create 'halve' and 'double' functions
     function divide(a, b) {return a/b}
     var halve = divide.rcurry(2); // = (/ 2)
     var double = divide.rcurry(1/2);
-    info('halve 10', halve(10));
-    info('double 10', double(10));
+    trace('halve 10', halve(10));
+    trace('double 10', double(10));
     
-    // partials are a superset of Haskell sections (without the nice syntax)
+    // curries are analogous to Haskell sections (without the nice syntax)
     // (10 /) 2
-    info(divide.curry(10)(2));
+    trace(divide.curry(10)(2));
     // (/ 2) 10
-    info(divide.rcurry(2)(10));
+    trace(divide.rcurry(2)(10));
+    // partials are like math function syntax
+    // (10 / _) 2
+    trace(divide.partial(10, _)(2));
+    // (_ / 2) 10
+    trace(divide.partial(_, 2)(10));
+    
+    // ncurry and rncurry wait until they're fully saturated before
+    // applying the function.  ([r]curry can't because it doesn't
+    // know the polyadicity of the underlying function.)
+    trace(list.curry(1,2)(3));
+    trace(list.ncurry(4,1,2)(3));
+    trace(list.ncurry(4,1,2)(3)(4));
+    trace(list.ncurry(4,1,2)(3,4));
+    trace(list.rncurry(4,1,2)(3));
+    trace(list.rncurry(4,1,2)(3,4));
     
     // Use with Prototype to define an 'onclick' that abbreviates
     // Event.observe(_, 'click', ...)
     var onclick = Event.observe.bind(Event).partial(_, 'click');
     Event.observe('e1', 'click', function(){alert('1')});
     onclick('e2', function(){alert('2')});
-    onclick('e3', alert.bind(null).specialize('3'));
+    onclick('e3', alert.bind(null).only('3'));
+    
+    // pluck and reverse
+    trace(pluck('length')("a string"));
+    trace(invoke('reverse')([1,2,3,4]));
+    
+    trace(list.ncurry(4,1,2)(3)(4));
 }
+
+    //trace(compose([].length, [].concat)(
+    //trace(list.curry(
 
 Event.observe(window, 'load', initialize);
 
@@ -75,33 +99,42 @@ function extractLines(string) {
 }
 
 function runTests(tests) {
-    var s = info;
+    var saved = window.trace;
     var results = [];
     try {
-        info = function() {
-            results.push([].slice.call(arguments, 0).join(' '));
+        trace = function() {
+            var args = $A(arguments).map(function(x) {
+                switch (typeof(x)) {
+                case 'function': return 'function';
+                case 'string': return '"' + x + '"';
+                default: return x;
+                }
+            });
+            results.push(args.join(' '));
         }
         tests();
+    } catch (e) {
+        console.error(e);
     } finally {
-        info = s;
+        trace = saved;
     }
     return results;
 }
 
 function displayTestResults(string) {
-    var programLines = extractLines(string).escapeHTML().split('info(');
+    var programLines = extractLines(string).escapeHTML().split('trace(');
     var outputs = runTests(tests);
     var lines = [programLines.shift()];
     programLines.each(function(segment, ix) {
         var output = outputs[ix].escapeHTML();
         var m = segment.match(/'(.*)', /);
-        if (m && m[1] == output.slice(0, m[1].length)) {
+        if (m && '"' + m[1] + '"' == output.slice(0, m[1].length+2)) {
+            output = output.slice(m[1].length+2);
             segment = segment.slice(m[0].length);
-            output = output.slice(m[1].length);
         }
         var m = segment.indexOf(');');
         lines.push(segment.slice(0, m));
-        lines.push(';\n <span class="output">&rarr;');
+        lines.push(';\n <span class="output">&rarr; ');
         lines.push(output);
         lines.push('</span>');
         lines.push(segment.slice(m+2));
