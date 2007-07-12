@@ -17,9 +17,12 @@
 /*
  * Agenda:
  * - 'x+1'.apply(null, [2]) doesn't work
- * - foldr, foldl, flip
+ * - not, and, or
+ * - foldr, foldl, flip (with args), fst, snd, pair
  * - remove toFunction?
+ * - rename partial -> specialize?
  * - rename to functional.js
+ * - change license
  */
 
 // The identity function: x -> x.
@@ -238,6 +241,13 @@ Functional.every = function(fn, sequence, receiver) {
         if (fn.apply(receiver, [sequence[i]]))
             return false;
     return true;
+}
+
+Functional.not = function(fn) {
+    fn = Function.toFunction(fn);
+    return function() {  
+        return !fn.apply(null, arguments);
+    }
 }
 
 // Returns a function that takes an object as an argument, and applies

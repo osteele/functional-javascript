@@ -18,20 +18,23 @@ function examples() {
     var finterleave = list.partial(1,_,2,_);
     trace('f2 3 ->', finterleave(3, 4));
 
-    // Specialize the outer two parameters.
-    var finner = list.partial(1,_,_,2);
-    trace('f3 4, 5 -> ', finner(3, 4));
+    // Specialize the outer two parameters, to produce a function that
+    // plugs in the inners.
+    var finners = list.partial(1,_,_,2);
+    trace('f3 4, 5 -> ', finners(3, 4));
     
     // if not all the parameters are supplied, the result is a function...
     trace(finterleave(4));
     // ...which can be applied until the argument list is saturated.
     trace('f2 4, 5 ->', finterleave(3)(4));
-    trace(finner(_,3));
-    trace(finner(_,3)(4));
-    trace(finner(3)(4));
+    trace(finners(_,3));
+    trace(finners(_,3)(4));
+    trace(finners(3)(4));
     trace(list.partial(_,_,_,1)(2,_,3)(4));
 
-    // An application: create some specialized versions of String replace
+    // An application: create some specialized versions of String replace.
+    // The first function replaces vowels with its argument; the second
+    // replaces spans that match its argument with 'th'.
     var replaceVowels = "".replace.partial(/[aeiou]/g, _);
     var replaceWithCoronalFricatives = "".replace.partial(_, 'th');
     // invoke methods with call() (could use bind() and then call normally)
@@ -76,7 +79,7 @@ function examples() {
     // An application: use with Prototype to define an 'onclick' that abbreviates
     // Event.observe(_, 'click', ...)
     var onclick = Event.observe.bind(Event).partial(_, 'click');
-    // These next three lines are equivalent.
+    // These next three lines are equivalent, except they act on different elements.
     Event.observe('e1', 'click', function(){alert('1')});
     onclick('e2', function(){alert('2')});
     onclick('e3', alert.bind(null).only('3'));
@@ -84,24 +87,33 @@ function examples() {
     // Use lambda to create single-expression functions from strings.
     // If the expression contains a '_', that's the argument.
     // Otherwise, the symbols are the arguments, in the order
-    // they occur.
+    // they occur.  (lambda's not smart about keywords, property names,
+    // and symbols in strings.  Use -> to tell it about these, or
+    // _ for a unary function.)
     var square = 'x*x'.lambda();
     trace(square(3));
     trace('_+1'.lambda()(2));
     trace('x+1'.lambda()(2));
     trace('x+2*y'.lambda()(2, 3));
     // Use -> to name the variables when the expression contains symbols
-    // that aren't variables (e.g. Math.sin), or you want to use them
-    // in a different order.
+    // that aren't variables (e.g. Math.sin), or you want to bind the
+    // arguments in a different order from their occurrence in the expression.
     trace('x, y -> x+2*y'.lambda()(2, 3));
     trace('y, x -> x+2*y'.lambda()(2, 3));
     // You can chain -> to create curried functions.
     trace('x -> y -> x+y'.lambda()(2));
     trace('x -> y -> x+y'.lambda()(2)(3));
     
-    // Lambda are useful in conjunction with functionals (map, reduce, select).
-    // Functional.install() brings these into the global namespace, so that
-    // we don't have to qualify them with Functional.map each time.
+    // The Functional namespace defines the functionals: map, reduce, select,
+    // some, every.  Google will tell you all about these.
+    trace(Functional.map(function(x){return x+1}, [1,2,3]));
+    // Lambda is useful in conjunction with functionals.
+    trace(Functional.map('_+1'.lambda(), [1,2,3]));
+    // The functionals use lambda implicitly to convert strings in function
+    // position into functions.
+    trace(Functional.map('_+1', [1,2,3]));
+    // Functional.install() imports the functionals into the global namespace,
+    // so that we don't have to qualify them with Functional.* each time.
     Functional.install();
     trace(map('_+1', [1,2,3]));
     trace(map('_.length', 'here are some words'.split(' ')));
@@ -121,6 +133,7 @@ function examples() {
     trace(compose.apply(null, map('x -> y -> x+"("+y+")"', ['hemi', 'demi', 'semi']))('quaver'));
     // The last few could have been handled by reduce
     trace(reduce('x y -> y+x', 'quaver', ['hemi', 'demi', 'semi'].reverse()));
+    trace(reduce.partial('x y -> y+x', _, ['hemi', 'demi', 'semi'].reverse())('quaver'));
     
     // pluck and invoke turn methods into functions
     trace(map(pluck('length'), ["a string", "another string"]));

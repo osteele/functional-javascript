@@ -1,0 +1,93 @@
+Procedural programming manipulates values, applying a sequence of builtin operations and other functions to the inputs to produce an output.  Functional programming manipulates functions, applying operations to them and combining them to create a synthetic function which is applied to the input.  A function that takes a function as an argument or returns a function as a result is called a "functional" (there, the word's a noun).
+
+Functional is a JavaScript library for functional programming.  It
+includes the standard stuff (map, reduce, curry, etc.), but it's also
+go a couple of innovations: string lambda expressions, and partial function application.
+I've summarized the innovations
+below; see the "example page":/sources/javascripts/partials-demo.html
+for more examples and for the documentation.
+Get it "here":/sources/javascripts/partials.js.
+
+h4. String lambda expressions
+
+Isn't this a pain?
+  map(lambda(x){return x+1}, [1,2,3]);
+  select(lambda(x){return x>2}, [1,2,3,4]}
+  some(lambda(w){w.length < 3}, 'are there any short words?'.split(' '));
+
+String lambdas let you do this:
+  map('x+1', [1,2,3]);
+  select('x>2', [1,2,3,4]}
+  some('w.length < 3', 'are there any short words?'.split(' '));
+
+A string lambda can take any of these forms (the example page and documentation discuss the tradeoffs):
+  x+1
+  x + y
+  _+1
+  x -> x+1
+  x, y -> x + y
+And the last form lets you chain them:
+  x -> y -> x + y
+
+Some more examples:
+  // halve the items in a list
+  map('_/2', [1,2,3,4])
+  // find the length of the longest word
+  reduce(Math.max, 0, map('_.length', 'how long is the longest word?'.split(' ')))
+  // convert a binary array
+  trace(reduce('2*x+y', 0, [1,0,1,0]));
+  // convert a decimal string
+  reduce('x y -> x*10+y.charCodeAt(0)-48', 0, '123'.split(/(?=.)/))
+  
+Here's how to use compose and curry to generalize some of thes examples
+into reusable functions.  I'm betting you'll like/hate these function definitions to the
+extent that you like/hate Haskell.
+  var longest = compose(reduce.curry(Math.max, 0), map.curry('_.length'), "_.split(' ')");
+  longest("how long is the longest word?");
+  longest("I bet that floccinaucinihilipipification is longer.");
+  var parseUnsignedInt = compose(reduce.curry('x y -> x*10+y.charCodeAt(0)-48', 0), '_.split(/(?=.)/)')
+  parseUnsignedInt('123')
+
+
+h4. Partial function application
+
+Partial functional application, or function specialization, creates a new
+function out of an old one.  For example, given a division function:
+  function div(a, b) {return a/b}
+here's a partial application that divides by two:
+  var halve = div.partial(_, 2);
+Now halve(10) is the same as div(10, 2).  This is especially useful with the functionals such as map, where, given a function div, we can apply it without an explicit wrapper.
+
+This example could have been handled via curry (which is a form of partial function
+application).  Partial function application in all its generality when you're specializing
+not just on all the arguments on the left, or all the arguments on the right, but
+on some distribution of arguments with holes in the middle.  This requires a function
+with more than two parameters.
+
+JavaScript doesn't have many functions with more two parameters (it has +splice+,
+but this isn't very functional), so I'll use a contrived example.  (More realistic ones
+show up with programming libraries.)
+
+  function increasing(a, b, c) {
+    return a < b && b < c;
+  }
+  var positive = increasing.partial(0, _, Infinity);
+  map(positive, [-1, 0, 1]) # -> [false, false, true]
+  var negative = increasing.partial(-Infinity, _, 0);
+  map(negative, [-1, 0, 1]) # -> [true, false, false]
+  var zero = every('typeof _ == "Number"', not(positive), not(negative));
+
+If you're using Prototype, you can replace the first line below by the second:
+  Event.observe('myobj', 'click', function() {...})
+  onclick(''myobj', function() {...})
+by defining a specialized version of Event.observe:
+    var onclick = Event.observe.bind(Event).partial(_, 'click');
+Is this better than:
+  function onclick(element, handler) {
+    Event.observe(elenent, 'click', handler);
+  }
+Is it worth it in this case?  It depends on your style.  The functional version is less efficient; on the
+other hand, it doesn't include as much plumbing, with its attendent opportunities
+for errors.  (The second function has two; the second is subtle.)
+
+h4. Future Directions
