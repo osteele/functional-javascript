@@ -3,35 +3,69 @@
  * Alike 3.0 License. http://creativecommons.org/licenses/by-nc-sa/3.0/
  */
 
-Event.observe(window, 'load', initialize);
 
-function initialize() {
-    Functional.install();
+var JSShow = window.JSShow || {};
+
+JSShow.Examples = function() {};
+
+JSShow.Examples.load = function(url, exampleFunction) {
+    var examples = new JSShow.Examples;
+    examples.exampleFunction = exampleFunction;
     new Ajax.Request(
-        $('output').innerHTML,
-        {method: 'GET', onSuccess: 'displayExamples(_.responseText)'.lambda()});
+        url,
+        {method: 'GET',
+         onSuccess: Functional.compose(examples.parse.bind(examples), '_.responseText').reporting()});
+    return examples;
 }
 
-function unindent(lines) {
-    var min = lines.grep(/\S/).map(function(line) {
-        return line.match(/^\s*/)[0].length; 
-    }).min();
-    return lines.map(function(line) {
-        return line.slice(min);
+JSShow.Examples.prototype.parse = function(text) {
+    this.text = text;
+    this.runExamples();
+    this.loaded = true;
+    this.target && this.updateTarget();
+}
+
+JSShow.Examples.prototype.replace = function(target) {
+    this.target = target;
+    this.loaded && this.updateTarget();
+}
+
+JSShow.Examples.prototype.updateTarget = function() {
+    this.target.innerHTML = this.toHTML();
+    done('docs');
+}
+
+JSShow.Examples.prototype.toHTML = function() {
+    var chunks = (extractLines(this.text, /function examples/, /^\}/)
+                  .escapeHTML()
+                  .split('trace('));
+    var outputs = this.trace;
+    var lines = [chunks.shift()];
+    chunks.each(function(segment, ix) {
+        var output = outputs[ix].escapeHTML();
+        var m = segment.match(/'(.*)', /);
+        if (m && '"' + m[1] + '"' == output.slice(0, m[1].length+2)) {
+            output = output.slice(m[1].length+2);
+            segment = segment.slice(m[0].length);
+        }
+        m = segment.indexOf(');');
+        lines.push(segment.slice(0, m));
+        lines.push(';\n <span class="output">&rarr; ');
+        lines.push(output.strip());
+        lines.push('</span>');
+        lines.push(segment.slice(m+2));
     });
+    //var html = lines.join('').replace(/(\/\/.*)/g, '<span class="comment">$1</span>');
+    var html = lines.join('').replace(/(\/\/.*)/g, function(line) {
+        line = line.replace(/\+(\S+)\+/g, '<span class="formatted">$1</span>');
+        return '<span class="comment">'+line+'</span>';
+    });
+    done('examples');
+    return html;
 }
 
-function extractLines(string, startPattern, endPattern) {
-    var lines = string.split('\n');
-    var start = 1 + lines.indexOf(lines.grep(startPattern)[0]);
-    var segment = lines.slice(start);
-    var end = start + segment.indexOf(segment.grep(endPattern)[0]);
-    return unindent(lines.slice(start, end)).map(function(line) {
-        return line || ' ';
-    }).join('\n');
-}
-
-function runExamples(examples) {
+JSShow.Examples.prototype.runExamples = function() {
+    var examples = this.exampleFunction;
     var saved = window.trace;
     var results = [];
     try {
@@ -51,34 +85,22 @@ function runExamples(examples) {
     } finally {
         trace = saved;
     }
-    return results;
+    this.trace = results;
 }
 
-function displayExamples(string) {
-    var chunks = (extractLines(string, /function examples/, /^\}/)
-                  .escapeHTML()
-                  .split('trace('));
-    var outputs = runExamples(examples);
-    var lines = [chunks.shift()];
-    chunks.each(function(segment, ix) {
-        var output = outputs[ix].escapeHTML();
-        var m = segment.match(/'(.*)', /);
-        if (m && '"' + m[1] + '"' == output.slice(0, m[1].length+2)) {
-            output = output.slice(m[1].length+2);
-            segment = segment.slice(m[0].length);
-        }
-        var m = segment.indexOf(');');
-        lines.push(segment.slice(0, m));
-        lines.push(';\n <span class="output">&rarr; ');
-        lines.push(output.strip());
-        lines.push('</span>');
-        lines.push(segment.slice(m+2));
+function unindent(lines) {
+    var min = lines.grep(/\S/).map('_.match(/^\\s*/)[0].length'.lambda()).min();
+    return lines.map(function(line) {
+        return line.slice(min);
     });
-    //var html = lines.join('').replace(/(\/\/.*)/g, '<span class="comment">$1</span>');
-    var html = lines.join('').replace(/(\/\/.*)/g, function(line) {
-        line = line.replace(/\+(\S+)\+/g, '<span class="formatted">$1</span>');
-        return '<span class="comment">'+line+'</span>';
-    });
-    $('output').innerHTML = html;
-    done('examples');
+}
+
+function extractLines(string, startPattern, endPattern) {
+    var lines = string.split('\n');
+    var start = 1 + lines.indexOf(lines.grep(startPattern)[0]);
+    var segment = lines.slice(start);
+    var end = start + segment.indexOf(segment.grep(endPattern)[0]);
+    return unindent(lines.slice(start, end)).map(function(line) {
+        return line || ' ';
+    }).join('\n');
 }

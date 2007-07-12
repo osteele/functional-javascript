@@ -46,7 +46,10 @@
       <tr>
         <td id="examples" valign="top">
           <h2>Examples</h2>
-          <pre id="output">functional-examples.js</pre>
+          <pre id="output"> </pre>
+          <script type="text/javascript">
+            JSShow.Examples.load('functional-examples.js', examples).replace($('output'));
+          </script>
           <button id="e1">1. Event.observe</button>
           <button id="e2">2. onclick</button>
           <button id="e3">3. specialized alert fn</button>
