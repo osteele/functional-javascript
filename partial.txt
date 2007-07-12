@@ -1,9 +1,10 @@
-Procedural programming manipulates values, applying a sequence of builtin operations and other functions to the inputs to produce an output.  Functional programming manipulates functions, applying operations to them and combining them to create a synthetic function which is applied to the input.  A function that takes a function as an argument or returns a function as a result is called a "functional" (there, the word's a noun).
+Procedural programming manipulates values, applying a sequence of builtin operations and other functions to the inputs to produce an output.  Functional programming manipulates functions, applying operations to them and combining them to create a synthetic function which is applied to the input.  A function that takes a function as an argument or returns a function as a result is called (in functional programming) a higher-order function or (in math) a functional.
 
 Functional is a JavaScript library for functional programming.  It
-includes the standard stuff (map, reduce, curry, etc.) that you can read about anywhere
-on the web.  I'm not going to describe them here..  But it's also
-go a couple of innovations: string lambda expressions, and partial function application.
+includes the standard higher-order functions (map, reduce, curry,
+etc.) that you can read about anywhere on the web.  I'm not going to
+describe them here..  But it's also go a couple of innovations: string
+lambda expressions, and partial function application.
 
 I've summarized the innovations
 below.  See the "example page":/sources/javascripts/partials-demo.html
@@ -71,12 +72,12 @@ extent that you like/hate Haskell.
 
 h4. Partial function application
 
-Partial functional application, or function specialization, creates a new
+Partial function application, or function specialization, creates a new
 function out of an old one.  For example, given a division function:
   function div(a, b) {return a/b}
 here's a partial application that divides its argument by two:
   var halve = div.partial(_, 2);
-Now halve(10) is the same as div(10, 2).  This is especially useful as an argument to the functionals such as +map+, where, given a function +div+, we can apply it (the first line below) without an explicit wrapper (the second).
+Now halve(10) is the same as div(10, 2).  This is especially useful as an argument to the higher-order functions such as +map+, where, given a function +div+, we can apply it (the first line below) without an explicit wrapper (the second).
   map(div.partial(_, 10), [10, 20, 30])
   map(lambda(n) {return div(n, 10)}, [10, 20, 30])
 
@@ -125,7 +126,7 @@ One problem with this is the syntax.  If you want to specialize both the receive
 
 The other problem is performance.  Invoking the function returned by fn.bind(a) goes through one extra function call beyond the cost of invoking fn().  That's unavoidable.  Invoking the function returned by fn.partial(b,c) also goes through one extra function call (as well as a loop and some conditionals to merge the argument lists).  That's unavoidable too.  But a call to the function returned by fn.bind(a).partial(b,c) or fn.partial(b,c).bind(a) goes through *two* extra function calls.  It only needs one.
 
-Next week I'll publish fast-functional.js, which patches functional.js to fix this problem.  It modifies fn.bind(a).partial(b,c) and fn.partial(b,c).bind(a) to return a function that calls the underlying function directly, instead of trampolining once for each method in the chain.  The following week I'll describe a generalization of this technique, for defining function algebras with combinatoric reductions.
+Soon I'll publish fast-functional.js, which patches functional.js to fix this problem.  It modifies fn.bind(a).partial(b,c) and fn.partial(b,c).bind(a) to return a function that calls the underlying function directly, instead of trampolining once for each method in the chain.  Later I'll describe a generalization of this technique, for defining function algebras with combinatoric reductions.
 
 h4. Credits
 

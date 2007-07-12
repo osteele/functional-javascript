@@ -6,18 +6,17 @@
  * Take your pick.
  *
  * Source: http://osteele.com/javascripts/partial.js
- * Demo: http://osteele.com/javascripts/partials-demo.html
+ * Description: http://osteele.com/javascripts/partials-demo.html
  *
- * This file defines some functionals for partial function application, as
- * well as some other utilities for functional programming.  It doesn't
- * include collection functions (map, reduce, each, select), since
- * most other libraries define them.
+ * This file defines some higher-order functions for partial function
+ * application, as well as some other utilities for functional programming.
+ * It also defines methods that allow a string such as 'x+1' or
+ * 'x -> x+1' to be used as though it were a function.
  */
 
 /*
  * Agenda:
- * - foldr, foldl, flip (with args), fst, snd, pair
- * - remove toFunction?
+ * - foldr, foldl, fst, snd, pair
  * - remove only?
  * - rename partial -> specialize?
  * - rename to functional.js
@@ -44,17 +43,23 @@ Function.prototype.bind = function(object/*, args...*/) {
 // a unique value for use in +partial()+ (below)
 var _ = {};
 
-// Returns a function +f2+ that applies the original function to a combination
-// of +arguments+ and the arguments +args2+ to +f2+.  Where +arguments+ contains any
-// value except +_+, this value is used.  Where +arguments+ contains a +_+, the
-// next argument from the +args2+ is used.  If any values remain in +args2+
-// once all the +_+ have been filled in, they are appended to the end of
-// +arguments+.  Finally, the underlying function is applied to the modified
-// +arguments+.
+// Returns a function +f+ such that +f(args2)+ is equivalent to
+// this function applied to a combination of +args+ and +args2+:
 // 
-// If argument combination produces a list with any +_+, a new partial function
-// is returned, and the underlying function is not invoked.
-Function.prototype.partial = function(/*arguments*/) {
+// +args+ is a partially-specified argument: it's a list with 'holes',
+// specified by the special value +_+.  It is combined with +args2+ as
+// follows:
+// 
+// From left to right, each value in +args2+ fills in the leftmost
+// remaining hole in +args+.  Any remaining values
+// in +args2+ are appended to the result of the filling-in process
+// to produce the combined argument list.
+// 
+// If the combined argument list contains any occurrences of +_+, the result
+// of the application of +f+ is another partial function.  Otherwise, the
+// result is the same as the result of applying the underlying function to
+// the combined argument list.
+Function.prototype.partial = function(/*args*/) {
     var fn = this;
     var args = [].slice.call(arguments, 0);
     // substitution positions
@@ -72,7 +77,7 @@ Function.prototype.partial = function(/*arguments*/) {
     }
 }
 
-// Curry.  Returns a function that, applied to an argument list +arg2+,
+// Returns a function that, applied to an argument list +arg2+,
 // applyies the underlying function to +args+ + +arg2+.
 // Adapted from http://www.coryhudson.com/blog/2007/03/10/javascript-currying-redux/
 // :: f args... -> args2... -> f args... args2...
@@ -85,7 +90,7 @@ Function.prototype.curry = function(/*args...*/) {
 }
 
 // Right curry.  Returns a function that, applied to an argumen list +args2+,
-// appies the underlying function to +args2+ + +args+.
+// applies the underlying function to +args2+ + +args+.
 // :: f args... -> args2... -> f args2... args...
 Function.prototype.rcurry = function(/*args...*/) {
     var fn = this;
@@ -95,7 +100,7 @@ Function.prototype.rcurry = function(/*args...*/) {
     };
 }
 
-// Same as curry, except only applies the function when all
+// Same as +curry+, except only applies the function when all
 // +n+ arguments are saturated.
 Function.prototype.ncurry = function(n/*, args...*/) {
     var fn = this;
@@ -110,7 +115,7 @@ Function.prototype.ncurry = function(n/*, args...*/) {
     };
 }
 
-// Same as rcurry, except only applies the function when all
+// Same as +rcurry+, except only applies the function when all
 // +n+ arguments are saturated.
 Function.prototype.rncurry = function(n/*, args...*/) {
     var fn = this;
@@ -125,10 +130,15 @@ Function.prototype.rncurry = function(n/*, args...*/) {
     };
 }
 
+// Returns a function that swaps its first two arguments before
+// passing them to the original function.
 Function.prototype.flip = function() {
     var fn = this;
     return function() {
-        return fn.apply(this, arguments[1], [arguments[0]].concat([].slice.call(arguments, 2)));
+        var args = [].slice.call(arguments, 0);
+        args = args.slice(1,2).concat(args.slice(0,1)).concat(args.slice(2));
+        info(args);
+        return fn.apply(this, args);
     }
 }
 
@@ -144,11 +154,12 @@ Function.prototype.only = function() {
 
 var Functional = window.Functional || {};
 
-// Install all the functions in +Functional+ (except this one)
-// in the global namespace.
+// Copies all the functions in +Functional+ (except this one)
+// into the global namespace.
 Functional.install = function() {
     var source = Functional;
     var target = window;
+    // the {}[name] works around Prototype
     for (var name in source)
         name == 'install' || {}[name] || (target[name] = source[name]);
 }
@@ -216,7 +227,7 @@ Functional.select = function(fn, sequence, receiver) {
     return result;
 }
 
-// Is +fn()+ return true for some element of +sequence+?
+// Returns true when +fn(x)+ returns true for some element +x+ of +sequence+.
 // :: (x -> boolean) [x] -> [x]
 Functional.some = function(fn, sequence, receiver) {
     arguments.length < 3 && (receiver = this);
@@ -229,7 +240,7 @@ Functional.some = function(fn, sequence, receiver) {
     return false;
 }
 
-// Is +fn()+ return true for every element of +sequence+?
+// Returns true when +fn(x)+ is true for every element +x+ of +sequence+.
 // :: (x -> boolean) [x] -> [x]
 Functional.every = function(fn, sequence, receiver) {
     arguments.length < 3 && (receiver = this);
@@ -242,7 +253,7 @@ Functional.every = function(fn, sequence, receiver) {
     return true;
 }
 
-// Returns true when +fn()+ returns false.
+// Returns a function that returns true when +fn()+ returns false.
 // :: (x -> boolean) -> (x -> boolean)
 Functional.not = function(fn) {
     fn = Function.toFunction(fn);
@@ -271,7 +282,7 @@ Functional.pluck = function(name) {
 }
 
 // Turns an expression into a function that returns its application.
-// If there is a '->', this separates the parameters from the body
+// If the string contains a '->', this separates the parameters from the body
 //   x, y -> x + y
 //   x y -> x + y
 // Otherwise, if the expression contains a '_', this is the argument:
@@ -280,8 +291,9 @@ Functional.pluck = function(name) {
 //   x + y
 // This last case won't do what you want if the expression contains
 // symbols that aren't variables.  In that case,
-// use '->'
+// use '_' or '->':
 //   Math.pow(_, 2)
+//   x -> Math.pow(x, 2)
 //
 // You can chain '->' to create a function in uncurried form:
 //   x -> y -> x + y
@@ -305,16 +317,16 @@ String.prototype.lambda = function() {
     return new Function(params, 'return (' + body + ')');
 }
 
-// Make a string look like a function:
+// Coerce the string to a function and then apply it.
 //   'x+1'.apply(null, [2]) -> 3
 String.prototype.apply = function(thisArg, args) {
-    return this.lambda().apply(thisArg, args);
+    return this.toFunction().apply(thisArg, args);
 }
 
-// Make a string callable:
+// Coerce the string to a function and then call it.
 //   'x+1'.call(2) -> 3
 String.prototype.call = function() {
-    return this.lambda().apply(arguments[0], [].slice.call(arguments, 1));
+    return this.toFunction().apply(arguments[0], [].slice.call(arguments, 1));
 }
 
 // Return a Function that perfoms the action described by this
