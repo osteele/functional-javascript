@@ -11,7 +11,7 @@ for more examples and for the documentation.  Get the file "here":/sources/javas
 
 This works in Firefox 2.0 and Safari 3.0.  I didn't intentionally use any non-standard constructs, but meta-programming such as this tends to turn up corners in the browser implementations.
 
-h4. String lambda expressions
+h4. String lambdas
 
 So you've got your +map+ and +select+ now.  Try using them.  Isn't this a pain?:
   map(function(x){return x+1}, [1,2,3])
@@ -25,6 +25,13 @@ String lambdas let you write this instead:
   map('x+1', [1,2,3])
   select('x>2', [1,2,3,4])
   some('_.length < 3', 'are there any short words?'.split(' '))
+
+The implementation of string lambdas makes strings callable:
+  'x+1'.call(null, 2)
+    -> 3
+  'x+y*2'.call(null, 2, 3)
+    -> 8
+  'x+y*2'.apply(null, [2, 3])
 
 A string lambda can take any of these forms (the example page and documentation discuss the tradeoffs):
   x+1
@@ -112,7 +119,7 @@ up as soon as you use it; the second is considerably more subtle.)
 
 h4. Future Directions
 
-Functional programming doesn't always mesh well with OO, especially with Javascript's in the absence ofbound methods.  There are currently two sets of methods to partially apply a function: +bind+ sets its receiver (the first argument to +apply+); and [r][n]curry and +partial+ bind the other arguments (the arguments to +call+, which list is the second argument to +apply+).
+Functional programming doesn't always mesh well with OO, especially with Javascript's absence of bound methods.  There are currently two sets of methods to partially apply a function: +bind+ binds its receiver (the first argument to +apply+); and [r][n]curry and +partial+ bind the other arguments (the arguments to +call+, which list is the second argument to +apply+).
 
 One problem with this is the syntax.  If you want to specialize both the receiver and the parameters, such as in the example with Event.observe above, you need two chained function calls.  This is a tradeoff: it's because each of +bind+ and +partial+ does a single thing.  I considered adding a single mondo function that bound everything, but it looked just as verbose, and more confusing, than the present solution.
 
@@ -120,8 +127,12 @@ The other problem is performance.  Invoking the function returned by fn.bind(a) 
 
 Next week I'll publish fast-functional.js, which patches functional.js to fix this problem.  It modifies fn.bind(a).partial(b,c) and fn.partial(b,c).bind(a) to return a function that calls the underlying function directly, instead of trampolining once for each method in the chain.  The following week I'll describe a generalization of this technique, for defining function algebras with combinatoric reductions.
 
+h4. Credits
+
+I bummed the +[].slice.call(arguments, 0)+ idiom from http://www.coryhudson.com/blog/2007/03/10/javascript-currying-redux, and used it all over the place to avoid an iteratio or a non-native function call.  The ECMAScript Language Specification is careful to define +slice+ in such a way that this works, but I don't think I would have thought of it.
+
+
 Agenda:
-- fix the zero example
 - receiver -> something else (in the docs too)
 - references?
 

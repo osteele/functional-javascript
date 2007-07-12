@@ -33,31 +33,31 @@ function examples() {
     trace(list.partial(_,_,_,1)(2,_,3)(4));
 
     // An application: create some specialized versions of String replace.
-    // The first function replaces vowels with its argument; the second
-    // replaces spans that match its argument with 'th'.
+    // The first function replaces vowels with its argument:
     var replaceVowels = "".replace.partial(/[aeiou]/g, _);
-    var replaceWithCoronalFricatives = "".replace.partial(_, 'th');
-    // invoke methods with call() (could use bind() and then call normally)
+    // This is a method, so use +call+ to invoke it:
     trace(replaceVowels.call("change my vowels to underscores", '_'));
+    // The second function replaces spans that match its argument with 'th'.
+    var replaceWithCoronalFricatives = "".replace.partial(_, 'th');
     trace(replaceWithCoronalFricatives.call("substitute my esses with tee-aitches", /s/g));
 
-    // curry creates a new function that applies the original arguments, and
+    // +curry+ creates a new function that applies the original arguments, and
     // then the new arguments
     var right = list.curry(1, 2);
     trace(right(3,4));
     var left = list.rcurry(1, 2);
     trace(left(3, 4));
 
-    // use right curry to create 'halve' and 'double' functions from divide
+    // use +rcurry+ ("right curry") to create +halve+ and +double+ functions from +divide+
     function divide(a, b) {return a/b}
     var halve = divide.rcurry(2);
     var double = divide.rcurry(1/2);
     trace('halve 10', halve(10));
     trace('double 10', double(10));
     
-    // ncurry and rncurry wait until they're fully saturated before
+    // +ncurry+ and +rncurry+ wait until they're fully saturated before
     // applying the function.  [r]curry can't because it doesn't
-    // know the polyadicity of the underlying function.
+    // in general know the polyadicity of the underlying function.
     trace(list.curry(1,2)(3));
     trace(list.ncurry(4,1,2)(3));
     trace(list.ncurry(4,1,2)(3)(4));
@@ -65,30 +65,30 @@ function examples() {
     trace(list.rncurry(4,1,2)(3));
     trace(list.rncurry(4,1,2)(3,4));
     
-    // Curry and partial overlap in their use, but curries are like Haskell sections
+    // +curry+ and +partial+ overlap in their use, but curries are like Haskell sections:
     // (10 /) 2
     trace(divide.curry(10)(2));
     // (/ 2) 10
     trace(divide.rcurry(2)(10));
-    // while partials are like math function syntax (used more in higher algebra
-    // than in base-level expressions such as these)
+    // while partials are like the hyphens used in abstract algebra
+    // (e.g. Hom(F-, -) ~ Hom(-, G-)), here put to more concrete use:
     // (10 / -) 2
     trace(divide.partial(10, _)(2));
     // (- / 2) 10
     trace(divide.partial(_, 2)(10));
     
-    // An application: use with Prototype to define an 'onclick' that abbreviates
-    // Event.observe(_, 'click', ...)
+    // An application: use with Prototype to define an +onclick+ function
+    // that abbreviates Event.observe(_, 'click', ...)
     var onclick = Event.observe.bind(Event).partial(_, 'click');
     // These next three lines are equivalent, except they act on different elements.
     Event.observe('e1', 'click', function(){alert('1')});
     onclick('e2', function(){alert('2')});
     onclick('e3', alert.bind(null).only('3'));
     
-    // Use lambda to create single-expression functions from strings.
+    // +lambda+ creates a single-expression functions from a strings.
     // If the expression contains a '_', that's the argument.
     // Otherwise, the symbols are the arguments, in the order
-    // they occur.  (lambda's not smart about keywords, property names,
+    // they occur.  (+lambda+ doesn't know about keywords, property names,
     // and symbols in strings.  Use -> to tell it about these, or
     // _ for a unary function.)
     var square = 'x*x'.lambda();
@@ -96,8 +96,12 @@ function examples() {
     trace('_+1'.lambda()(2));
     trace('x+1'.lambda()(2));
     trace('x+2*y'.lambda()(2, 3));
+    // You can just call a string directly, if you're only using it once
+    // (and don't need to cache the conversion to a function).
+    trace('_+1'.call(null, 2));
+    trace('_+1'.apply(null, [2]));
     // Use -> to name the variables when the expression contains symbols
-    // that aren't variables (e.g. Math.sin), or you want to bind the
+    // that aren't variables (e.g. +Math.sin+), or you want to bind the
     // arguments in a different order from their occurrence in the expression.
     trace('x, y -> x+2*y'.lambda()(2, 3));
     trace('y, x -> x+2*y'.lambda()(2, 3));
@@ -105,25 +109,23 @@ function examples() {
     trace('x -> y -> x+y'.lambda()(2));
     trace('x -> y -> x+y'.lambda()(2)(3));
     
-    // The Functional namespace defines the functionals: map, reduce, select,
-    // some, every.  Google will tell you all about these.
+    // The +Functional+ namespace defines the functionals: +map+, +reduce+, +select+,
+    // +some+, +every+.  Google will tell you all about these.
     trace(Functional.map(function(x){return x+1}, [1,2,3]));
-    // Lambda is useful in conjunction with functionals.
-    trace(Functional.map('_+1'.lambda(), [1,2,3]));
-    // The functionals use lambda implicitly to convert strings in function
-    // position into functions.
+    // Lambda strings are useful as arguments to functionals.  The functionals
+    // convert the string to a function once per call, not once per application.
     trace(Functional.map('_+1', [1,2,3]));
-    // Functional.install() imports the functionals into the global namespace,
+    // +Functional.install()+ imports the functionals into the global namespace,
     // so that we don't have to qualify them with Functional.* each time.
     Functional.install();
     trace(map('_+1', [1,2,3]));
     trace(map('_.length', 'here are some words'.split(' ')));
-    trace(select('_>2', [1,2,3,4]));
+    trace(select('x>2', [1,2,3,4]));
     trace(reduce('2*x+y', 0, [1,0,1,0]));
-    trace(some('_>2', [1,2,3,4]));
-    trace(every('_>2', [1,2,3,4]));
+    trace(some('x>2', [1,2,3,4]));
+    trace(every('x>2', [1,2,3,4]));
     
-    // compose() and sequence() compose sequences of functions
+    // +compose+ and +sequence+ compose sequences of functions
     // backwards and forwards, respectively
     trace(compose('_+1', '_*2')(1));
     trace(sequence('_+1', '_*2')(1));
@@ -132,16 +134,16 @@ function examples() {
     trace(compose.apply(null, map('x -> y -> x+y', ['hemi', 'demi', 'semi']))('quaver'));
     trace(compose.apply(null, map('x -> y -> x+"-"+y', ['hemi', 'demi', 'semi']))('quaver'));
     trace(compose.apply(null, map('x -> y -> x+"("+y+")"', ['hemi', 'demi', 'semi']))('quaver'));
-    // The last few could have been handled by reduce
+    // +reduce+ could have handled the last few examples, e.g.:
     trace(reduce('x y -> y+x', 'quaver', ['hemi', 'demi', 'semi'].reverse()));
     trace(reduce.partial('x y -> y+x', _, ['hemi', 'demi', 'semi'].reverse())('quaver'));
     
-    // pluck and invoke turn methods into functions
-    trace(map(pluck('length'), ["a string", "another string"]));
-    trace(map(invoke('toUpperCase'), ["a string", "another string"]));
-    // We can use lambda instead.
-    trace(map('_.length', ["a string", "another string"]));
-    trace(map('_.toUpperCase()', ["a string", "another string"]));
+    // +pluck+ and +invoke+ turn methods into functions:
+    trace(map(pluck('length'), ['two', 'words']));
+    trace(map(invoke('toUpperCase'), ['two', 'words']));
+    // We could use +lambda+ instead:
+    trace(map('_.length', ['two', 'words']));
+    trace(map('_.toUpperCase()', ['two', 'words']));
 }
 
 Event.observe(window, 'load', initialize);
@@ -150,7 +152,7 @@ function initialize() {
     Functional.install();
     new Ajax.Request(
         $('output').innerHTML,
-        {method: 'GET', onSuccess: 'displayTestResults(_.responseText)'.lambda()});
+        {method: 'GET', onSuccess: 'displayExamples(_.responseText)'.lambda()});
     new Ajax.Request(
         $('docs').innerHTML,
         {method: 'GET', onSuccess: compose(displayDocs, '_.responseText')});
@@ -165,11 +167,11 @@ function unindent(lines) {
     });
 }
 
-function extractLines(string) {
+function extractLines(string, startPattern, endPattern) {
     var lines = string.split('\n');
-    var start = 1 + lines.indexOf(lines.grep(/function examples/)[0]);
+    var start = 1 + lines.indexOf(lines.grep(startPattern)[0]);
     var segment = lines.slice(start);
-    var end = start + segment.indexOf(segment.grep(/^\}/)[0]);
+    var end = start + segment.indexOf(segment.grep(endPattern)[0]);
     return unindent(lines.slice(start, end)).map(function(line) {
         return line || ' ';
     }).join('\n');
@@ -180,11 +182,11 @@ function runExamples(examples) {
     var results = [];
     try {
         trace = function() {
-            var args = $A(arguments).map(function(x) {
-                switch (typeof(x)) {
+            var args = $A(arguments).map(function(value) {
+                switch (typeof(value)) {
                 case 'function': return 'function';
-                case 'string': return '"' + x + '"';
-                default: return x;
+                case 'string': return '"' + value + '"';
+                default: return value;
                 }
             });
             results.push(args.join(' '));
@@ -198,11 +200,13 @@ function runExamples(examples) {
     return results;
 }
 
-function displayTestResults(string) {
-    var programLines = extractLines(string).escapeHTML().split('trace(');
+function displayExamples(string) {
+    var chunks = (extractLines(string, /function examples/, /^\}/)
+                  .escapeHTML()
+                  .split('trace('));
     var outputs = runExamples(examples);
-    var lines = [programLines.shift()];
-    programLines.each(function(segment, ix) {
+    var lines = [chunks.shift()];
+    chunks.each(function(segment, ix) {
         var output = outputs[ix].escapeHTML();
         var m = segment.match(/'(.*)', /);
         if (m && '"' + m[1] + '"' == output.slice(0, m[1].length+2)) {
@@ -216,7 +220,11 @@ function displayTestResults(string) {
         lines.push('</span>');
         lines.push(segment.slice(m+2));
     });
-    var html = lines.join('').replace(/(\/\/.*)/g, '<span class="comment">$1</span>');
+    //var html = lines.join('').replace(/(\/\/.*)/g, '<span class="comment">$1</span>');
+    var html = lines.join('').replace(/(\/\/.*)/g, function(line) {
+        line = line.replace(/\+(\S+)\+/g, '<span class="formatted">$1</span>');
+        return '<span class="comment">'+line+'</span>';
+    });
     $('output').innerHTML = html;
     done('examples');
 }
@@ -229,7 +237,7 @@ function Doc() {
 Doc.prototype.addDescriptionLine = function(line) {
     var match;
     if (match = line.match(/^\s+(.*)/))
-        line = '<span class="formatted">&nbsp;&nbsp;' + match[1] + '</span>';
+        line = '<div class="formatted">&nbsp;&nbsp;' + match[1] + '</div>';
     else if (line.match(/^\s*$/))
         line = '<div class="br"> </div>';
     else
@@ -284,7 +292,7 @@ Doc.prototype.toHTML = function() {
     spans.push('<span class="fname">' + this.name + '</span>');
     this.params != null && spans.push('(<var>' + this.params + '</var>)');
     this.signature && spans.push('<div class="signature"><span class="label">Signature:</span> '+this.signature.escapeHTML()+'</div>');
-    spans = spans.concat(['<div class="description">',this.lines.join('<br/>'), '</div>', '<br/>']);
+    spans = spans.concat(['<div class="description">',this.lines.join(' '), '</div>', '<br/>']);
     return spans.join('');
 }
 
