@@ -18,7 +18,7 @@
  * Agenda:
  * - foldr, foldl, fst, snd, pair
  * - remove only?
- * - rename partial -> specialize?
+ * - split files?
  * - rename to functional.js
  * - change license
  */
@@ -131,7 +131,7 @@ Function.prototype.rncurry = function(n/*, args...*/) {
 }
 
 // Returns a function that swaps its first two arguments before
-// passing them to the original function.
+// passing them to the underlying function.
 Function.prototype.flip = function() {
     var fn = this;
     return function() {
@@ -143,7 +143,7 @@ Function.prototype.flip = function() {
 }
 
 // :: f args... -> args2... -> f args...
-// Returns a function that ignores arguments.
+// Returns a function that ignores its arguments.
 Function.prototype.only = function() {
     var fn = this;
     var args = [].slice.call(arguments, 0);

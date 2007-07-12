@@ -7,8 +7,8 @@ describe them here..  But it's also go a couple of innovations: string
 lambda expressions, and partial function application.
 
 I've summarized the innovations
-below.  See the "example page":/sources/javascripts/partials-demo.html
-for more examples and for the documentation.  Get the file "here":/sources/javascripts/partials.js.
+below.  See the "example page":/sources/javascripts/functional.html
+for more examples and for the documentation.  Get the file "here":/sources/javascripts/functional.js.
 
 This works in Firefox 2.0 and Safari 3.0.  I didn't intentionally use any non-standard constructs, but meta-programming such as this tends to turn up corners in the browser implementations.
 
