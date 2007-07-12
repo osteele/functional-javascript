@@ -11,19 +11,26 @@ function tests() {
     function list(a,b,c,d) {return [a,b,c,d]};
 
     // specialize the first and third parameters
-    var f2 = list.partial(1,_,2);
-    trace('f2 3 ->', f2(3));
-    trace('f2 4, 5 ->', f2(4,5));
+    var f2 = list.partial(1,_,2,_);
+    trace('f2 3 ->', f2(3, 4));
 
     // specialize the first two parameters (same as currying)
-    var f3 = list.partial(1,2);
+    var f3 = list.partial(1,2, _, _);
     trace('f3 4, 5 -> ', f3(4,5));
+    
+    // if not all the parameters are supplied, the result is a function...
+    trace(f2(4));
+    // ...which can be applied until all the parameters are saturated
+    trace('f2 4, 5 ->', f2(3)(4));
+    trace(f3(_,3)(4));
+    trace(f3(3)(4));
+    trace(list.partial(_, _, _, 1)(2, _, 3)(4));
 
     // create some specialized versions of String replace
     var replaceVowels = "".replace.partial(/[aeiou]/g, _);
     var replaceWithCoronalFricatives = "".replace.partial(_, 'th');
-    // have to use call, since we're binding it to a different object
-    trace(replaceVowels.call("change my vowels to underscorees", '_'));
+    // have to invoke methods with call() (could use bind() and then call normally)
+    trace(replaceVowels.call("change my vowels to underscores", '_'));
     trace(replaceWithCoronalFricatives.call("substitute my esses with tee-aitches", /s/g));
 
     // use right curry to create 'halve' and 'double' functions
@@ -45,8 +52,8 @@ function tests() {
     trace(divide.partial(_, 2)(10));
     
     // ncurry and rncurry wait until they're fully saturated before
-    // applying the function.  ([r]curry can't because it doesn't
-    // know the polyadicity of the underlying function.)
+    // applying the function.  [r]curry can't because it doesn't
+    // know the polyadicity of the underlying function.
     trace(list.curry(1,2)(3));
     trace(list.ncurry(4,1,2)(3));
     trace(list.ncurry(4,1,2)(3)(4));
@@ -65,11 +72,15 @@ function tests() {
     trace(pluck('length')("a string"));
     trace(invoke('reverse')([1,2,3,4]));
     
-    trace(list.ncurry(4,1,2)(3)(4));
+    // compose() and sequence() compose sequences of functions
+    // (backwards and forwards, respectively)
+    function prepender(prefix) {return ''.concat.bind(prefix)}
+    trace(prepender('im')('possible'));
+    trace(compose(prepender('hemi'), prepender('demi'))('quaver'));
+    trace(sequence(prepender('hemi'), prepender('demi'))('quaver'));
+    // this uses map() from Prototype
+    trace(compose.apply(null, ['hemi', 'demi', 'semi'].map(prepender))('quaver'));
 }
-
-    //trace(compose([].length, [].concat)(
-    //trace(list.curry(
 
 Event.observe(window, 'load', initialize);
 

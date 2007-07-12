@@ -14,13 +14,6 @@
  * most other libraries define them.
  */
 
-/*
- * Agenda:
- * - test the outtakes from partials-demo.js
- * - rename -> partials.js
- * - wait until fully saturated?
- */
-
 // id function: x -> x
 Function.I = function(x) {return x};
 
@@ -48,8 +41,11 @@ Function.prototype.partial = function() {
         arguments[i] == _ && subpos.push(i);
     return function() {
         var specialized = args.concat([].slice.call(arguments, subpos.length));
-        for (var i = 0; i < subpos.length; i++)
+        for (var i = 0; i < Math.min(subpos.length, arguments.length); i++)
             specialized[subpos[i]] = arguments[i];
+        for (var i = 0; i < specialized.length; i++)
+            if (specialized[i] == _)
+                return fn.partial.apply(fn, specialized);
         return fn.apply(this, specialized);
     }
 }
