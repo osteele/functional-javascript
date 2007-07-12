@@ -17,6 +17,7 @@
 /*
  * Agenda:
  * - 'x+1'.apply(null, [2]) doesn't work
+ * - foldr, foldl, flip
  * - remove toFunction?
  * - rename to functional.js
  */
@@ -38,8 +39,8 @@ Function.prototype.bind = function(object/*, args...*/) {
     }
 }
 
-// a unique value that prints as '_', for use in +partial()+ (below)
-var _ = new (function() {this.toString = function() {return '_'}});
+// a unique value for use in +partial()+ (below)
+var _ = {};
 
 // Returns a function +f2+ that applies the original function to a combination
 // of +arguments+ and the arguments +args2+ to +f2+.  Where +arguments+ contains any
@@ -120,6 +121,13 @@ Function.prototype.rncurry = function(n/*, args...*/) {
         }
         return fn.apply(this, args);
     };
+}
+
+Function.prototype.flip = function() {
+    var fn = this;
+    return function() {
+        return fn.apply(this, arguments[1], [arguments[0]].concat([].slice.call(arguments, 2)));
+    }
 }
 
 // :: f args... -> args2... -> f args...

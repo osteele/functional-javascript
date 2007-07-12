@@ -24,7 +24,7 @@ function examples() {
     
     // if not all the parameters are supplied, the result is a function...
     trace(finterleave(4));
-    // ...which can be applied until the parameters are saturated.
+    // ...which can be applied until the argument list is saturated.
     trace('f2 4, 5 ->', finterleave(3)(4));
     trace(finner(_,3));
     trace(finner(_,3)(4));
@@ -62,7 +62,7 @@ function examples() {
     trace(list.rncurry(4,1,2)(3));
     trace(list.rncurry(4,1,2)(3,4));
     
-    // curries are like Haskell sections
+    // Curry and partial overlap in their use, but curries are like Haskell sections
     // (10 /) 2
     trace(divide.curry(10)(2));
     // (/ 2) 10
@@ -99,7 +99,7 @@ function examples() {
     trace('x -> y -> x+y'.lambda()(2));
     trace('x -> y -> x+y'.lambda()(2)(3));
     
-    // This is most useful in conjunction with functionals (map, reduce, select).
+    // Lambda are useful in conjunction with functionals (map, reduce, select).
     // Functional.install() brings these into the global namespace, so that
     // we don't have to qualify them with Functional.map each time.
     Functional.install();
@@ -109,14 +109,18 @@ function examples() {
     trace(reduce('2*x+y', 0, [1,0,1,0]));
     trace(some('_>2', [1,2,3,4]));
     trace(every('_>2', [1,2,3,4]));
-    trace(compose.apply(null, map('x -> y -> x*y', [2,3,4]))(1));
-    trace(compose.apply(null, map('x -> y -> x+y', ['hemi', 'demi', 'semi']))('quaver'));
     
     // compose() and sequence() compose sequences of functions
     // backwards and forwards, respectively
     trace(compose('_+1', '_*2')(1));
     trace(sequence('_+1', '_*2')(1));
     trace(compose('_+1', '_*2', '_.length')('a string'));
+    trace(compose.apply(null, map('x -> y -> x*y+1', [2,3,4]))(1));
+    trace(compose.apply(null, map('x -> y -> x+y', ['hemi', 'demi', 'semi']))('quaver'));
+    trace(compose.apply(null, map('x -> y -> x+"-"+y', ['hemi', 'demi', 'semi']))('quaver'));
+    trace(compose.apply(null, map('x -> y -> x+"("+y+")"', ['hemi', 'demi', 'semi']))('quaver'));
+    // The last few could have been handled by reduce
+    trace(reduce('x y -> y+x', 'quaver', ['hemi', 'demi', 'semi'].reverse()));
     
     // pluck and invoke turn methods into functions
     trace(map(pluck('length'), ["a string", "another string"]));
