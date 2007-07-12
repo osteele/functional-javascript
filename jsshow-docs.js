@@ -20,16 +20,24 @@ JSShow.Docs.prototype.parse = function(string) {
     this.records = (new JSShow.DocParser).parse(string);
     this.loaded = true;
     this.target && this.updateTarget();
+    return this;
 }
 
 JSShow.Docs.prototype.replace = function(target) {
     this.target = target;
     this.loaded && this.updateTarget();
+    return this;
+}
+
+JSShow.Docs.prototype.onSuccess = function(fn) {
+    this.onSuccessFn = fn;
+    return this;
 }
 
 JSShow.Docs.prototype.updateTarget = function() {
     this.target.innerHTML = this.toHTML();
-    done('docs');
+    this.onSuccessFn && this.onSuccessFn();
+    return this;
 }
 
 JSShow.Docs.prototype.toHTML = function(string) {

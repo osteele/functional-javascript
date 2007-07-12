@@ -17,9 +17,9 @@
 /*
  * Agenda:
  * - foldr, foldl, fst, snd, pair
- * - remove only?
+ * - vet against proto, prelude
+ * - introduce synonym for reduce, args; doc synonyms
  * - split files?
- * - rename to functional.js
  * - change license
  */
 
@@ -143,8 +143,9 @@ Function.prototype.flip = function() {
 }
 
 // :: f args... -> args2... -> f args...
-// Returns a function that ignores its arguments.
-Function.prototype.only = function() {
+// Bind +f+ to +args+.  The returned function will ignore it's arguments.
+// +fn.bind(args)(args2)+ is equivalent to +fn(args)+.
+Function.prototype.args = function(/*args*/) {
     var fn = this;
     var args = [].slice.call(arguments, 0);
     return function() {

@@ -48,7 +48,7 @@
           <h2>Examples</h2>
           <pre id="output"> </pre>
           <script type="text/javascript">
-            JSShow.Examples.load('functional-examples.js', examples).replace($('output'));
+            JSShow.Examples.load('functional-examples.js', examples).onSuccess(done.args('examples')).replace($('output'));
           </script>
           <button id="e1">1. Event.observe</button>
           <button id="e2">2. onclick</button>
@@ -58,7 +58,7 @@
           <h2>Documentation</h2>
           <div id="docs"> </div>
           <script type="text/javascript">
-            JSShow.Docs.load('functional.js').replace($('docs'));
+            JSShow.Docs.load('functional.js').onSuccess(done.args('docs')).replace($('docs'));
           </script>
         </td>
       </tr>

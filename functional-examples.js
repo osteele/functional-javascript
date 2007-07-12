@@ -80,10 +80,11 @@ function examples() {
     // An application: use with Prototype to define an +onclick+ function
     // that abbreviates Event.observe(_, 'click', ...)
     var onclick = Event.observe.bind(Event).partial(_, 'click');
-    // These next three lines are equivalent, except they act on different elements.
+    // These next three lines are equivalent, except they act on
+    // different elements.
     Event.observe('e1', 'click', function(){alert('1')});
     onclick('e2', function(){alert('2')});
-    onclick('e3', alert.bind(null).only('3'));
+    onclick('e3', alert.bind(null).args('3'));
     
     // +lambda+ creates a single-expression functions from a strings.
     // If the expression contains a '_', that's the argument.

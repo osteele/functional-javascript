@@ -23,16 +23,24 @@ JSShow.Examples.prototype.parse = function(text) {
     this.runExamples();
     this.loaded = true;
     this.target && this.updateTarget();
+    return this;
 }
 
 JSShow.Examples.prototype.replace = function(target) {
     this.target = target;
     this.loaded && this.updateTarget();
+    return this;
+}
+
+JSShow.Examples.prototype.onSuccess = function(fn) {
+    this.onSuccessFn = fn;
+    return this;
 }
 
 JSShow.Examples.prototype.updateTarget = function() {
     this.target.innerHTML = this.toHTML();
-    done('docs');
+    this.onSuccessFn && this.onSuccessFn();
+    return this;
 }
 
 JSShow.Examples.prototype.toHTML = function() {
@@ -60,7 +68,6 @@ JSShow.Examples.prototype.toHTML = function() {
         line = line.replace(/\+(\S+)\+/g, '<span class="formatted">$1</span>');
         return '<span class="comment">'+line+'</span>';
     });
-    done('examples');
     return html;
 }
 
