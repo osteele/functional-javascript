@@ -24,14 +24,17 @@
  */
 
 // The identity function: x -> x.
+//   I(x) == x.
 // :: x -> x
 Function.I = function(x) {return x};
 
 // Returns a constant function that returns +x+.
+//   K(x)(y) == x
 // :: x -> _ -> x
 Function.K = function(x) {return function() {return x}}
 
 // Returns a bound method on +object+; optionally currying +args+.
+//   fn.bind(obj)(args...) == fn.apply(obj, [args...])
 Function.prototype.bind = function(object/*, args...*/) {
     var fn = this;
     var args = [].slice.call(arguments, 1);
@@ -40,11 +43,11 @@ Function.prototype.bind = function(object/*, args...*/) {
     }
 }
 
-// a unique value for use in +partial()+ (below)
+// +_+ (underscore) is a unique value for use in +partial()+, below.
 var _ = {};
 
 // Returns a function +f+ such that +f(args2)+ is equivalent to
-// this function applied to a combination of +args+ and +args2+:
+// the underlying function applied to a combination of +args+ and +args2+:
 // 
 // +args+ is a partially-specified argument: it's a list with 'holes',
 // specified by the special value +_+.  It is combined with +args2+ as
@@ -78,7 +81,8 @@ Function.prototype.partial = function(/*args*/) {
 }
 
 // Returns a function that, applied to an argument list +arg2+,
-// applyies the underlying function to +args+ + +arg2+.
+// applies the underlying function to +args+ ++ +arg2+.
+//   fn.curry(args...)(args2...) == fn(args..., args2...)
 // Adapted from http://www.coryhudson.com/blog/2007/03/10/javascript-currying-redux/
 // :: f args... -> args2... -> f args... args2...
 Function.prototype.curry = function(/*args...*/) {
@@ -91,6 +95,7 @@ Function.prototype.curry = function(/*args...*/) {
 
 // Right curry.  Returns a function that, applied to an argumen list +args2+,
 // applies the underlying function to +args2+ + +args+.
+//   fn.curry(args...)(args2...) == fn(args2..., args...)
 // :: f args... -> args2... -> f args2... args...
 Function.prototype.rcurry = function(/*args...*/) {
     var fn = this;
@@ -132,6 +137,7 @@ Function.prototype.rncurry = function(n/*, args...*/) {
 
 // Returns a function that swaps its first two arguments before
 // passing them to the underlying function.
+//   fn.flip()(n1, n2, n3...) == fn(n2, n1, n3...)
 Function.prototype.flip = function() {
     var fn = this;
     return function() {
@@ -142,9 +148,9 @@ Function.prototype.flip = function() {
     }
 }
 
-// :: f args... -> args2... -> f args...
 // Bind +f+ to +args+.  The returned function will ignore it's arguments.
-// +fn.bind(args)(args2)+ is equivalent to +fn(args)+.
+//   fn.bind(args...)(args2..) == fn(args...)
+// :: f args... -> args2... -> f args...
 Function.prototype.args = function(/*args*/) {
     var fn = this;
     var args = [].slice.call(arguments, 0);
@@ -189,7 +195,7 @@ Functional.sequence = function(/*fn...*/) {
     }
 }
 
-// Apply +fn()+ to each elements of +sequence+.
+// Apply +fn()+ to each element of +sequence+.
 // :: (x -> boolean) [x] -> [x]
 Functional.map = function(fn, sequence, receiver) {
     arguments.length < 3 && (receiver = this);
@@ -202,7 +208,7 @@ Functional.map = function(fn, sequence, receiver) {
 }
 
 // Apply +fn()+ to +init+ and the first element of +sequence+,
-// and then the result and the second element, and so on.
+// and then to the result and the second element, and so on.
 // :: (a b -> b) a [b] -> b
 Functional.reduce = function(fn, init, sequence, receiver) {
     arguments.length < 4 && (receiver = this);
@@ -214,7 +220,7 @@ Functional.reduce = function(fn, init, sequence, receiver) {
     return result;
 }
 
-// Return those elements of +sequence+ such that +fn()+ returns true.
+// Return those elements +x+ of +sequence+ such that +fn(x)+ returns true.
 // :: (x -> boolean) [x] -> [x]
 Functional.select = function(fn, sequence, receiver) {
     arguments.length < 3 && (receiver = this);
@@ -255,6 +261,7 @@ Functional.every = function(fn, sequence, receiver) {
 }
 
 // Returns a function that returns true when +fn()+ returns false.
+//   fn.not()(args...) == !fn(args...)
 // :: (x -> boolean) -> (x -> boolean)
 Functional.not = function(fn) {
     fn = Function.toFunction(fn);
@@ -265,6 +272,7 @@ Functional.not = function(fn) {
 
 // Returns a function that takes an object as an argument, and applies
 // +object+'s +methodName+ method to +arguments+.
+//   fn(name)(object, args...) == object[name](args...)
 // :: name args.. -> object args2... -> object[name](args... args2...)
 Functional.invoke = function(methodName/*, arguments*/) {
     var args = [].slice.call(arguments, 1);
@@ -275,6 +283,7 @@ Functional.invoke = function(methodName/*, arguments*/) {
 
 // Returns a function that takes an object, and returns the value of its
 // +name+ property.  pluck(name) is the same as '_.name'.lambda().
+//   fn.pluck(name)(object) == object[name]
 // :: name -> object -> object[name]
 Functional.pluck = function(name) {
     return function(object) {
