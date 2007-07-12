@@ -16,9 +16,8 @@
 
 /*
  * Agenda:
- * - add comments for new functions
- * - reduce, some, every, find, select, reject
- * - docs for x -> y -> x+y; find, select, etc.
+ * - 'x+1'.apply(null, [2]) doesn't work
+ * - remove toFunction?
  * - rename to functional.js
  */
 
@@ -49,6 +48,7 @@ var _ = new (function() {this.toString = function() {return '_'}});
 // once all the +_+ have been filled in, they are appended to the end of
 // +arguments+.  Finally, the underlying function is applied to the modified
 // +arguments+.
+// 
 // If argument combination produces a list with any +_+, a new partial function
 // is returned, and the underlying function is not invoked.
 Function.prototype.partial = function(/*arguments*/) {
@@ -134,6 +134,15 @@ Function.prototype.only = function() {
 
 var Functional = window.Functional || {};
 
+// Install all the functions in +Functional+ (except this one)
+// in the global namespace.
+Functional.install = function() {
+    var source = Functional;
+    var target = window;
+    for (var name in source)
+        name == 'install' || {}[name] || (target[name] = source[name]);
+}
+
 // Return a function that applied the last argument of this
 // function to its input, and the penultimate argument to this,
 // and so on.
@@ -158,6 +167,8 @@ Functional.sequence = function(/*fn...*/) {
     }
 }
 
+// Apply +fn()+ to each elements of +sequence+.
+// :: (x -> boolean) [x] -> [x]
 Functional.map = function(fn, sequence, receiver) {
     arguments.length < 3 && (receiver = this);
     fn = Function.toFunction(fn);
@@ -168,21 +179,26 @@ Functional.map = function(fn, sequence, receiver) {
     return result;
 }
 
+// Apply +fn()+ to +init+ and the first element of +sequence+,
+// and then the result and the second element, and so on.
+// :: (a b -> b) a [b] -> b
 Functional.reduce = function(fn, init, sequence, receiver) {
     arguments.length < 4 && (receiver = this);
     fn = Function.toFunction(fn);
     var len = sequence.length;
-    var result = [];
+    var result = init;
     for (var i = 0; i < len; i++)
-        result = fn.apply(receiver, [init, sequence[i]]);
+        result = fn.apply(receiver, [result, sequence[i]]);
     return result;
 }
 
+// Return those elements of +sequence+ such that +fn()+ returns true.
+// :: (x -> boolean) [x] -> [x]
 Functional.select = function(fn, sequence, receiver) {
     arguments.length < 3 && (receiver = this);
     fn = Function.toFunction(fn);
     var len = sequence.length;
-    var result = {}
+    var result = [];
     for (var i = 0; i < len; i++) {
         var x = sequence[i];
         fn.apply(receiver, [x, i]) && result.push(x);
@@ -190,17 +206,36 @@ Functional.select = function(fn, sequence, receiver) {
     return result;
 }
 
-Functional.install = function() {
-    var source = Functional;
-    var target = window;
-    for (var name in source)
-        name == 'install' || {}[name] || (target[name] = source[name]);
+// Is +fn()+ return true for some element of +sequence+?
+// :: (x -> boolean) [x] -> [x]
+Functional.some = function(fn, sequence, receiver) {
+    arguments.length < 3 && (receiver = this);
+    fn = Function.toFunction(fn);
+    var len = sequence.length;
+    var result = [];
+    for (var i = 0; i < len; i++)
+        if (!fn.apply(receiver, [sequence[i]]))
+            return true;
+    return false;
+}
+
+// Is +fn()+ return true for every element of +sequence+?
+// :: (x -> boolean) [x] -> [x]
+Functional.every = function(fn, sequence, receiver) {
+    arguments.length < 3 && (receiver = this);
+    fn = Function.toFunction(fn);
+    var len = sequence.length;
+    var result = [];
+    for (var i = 0; i < len; i++)
+        if (fn.apply(receiver, [sequence[i]]))
+            return false;
+    return true;
 }
 
 // Returns a function that takes an object as an argument, and applies
 // +object+'s +methodName+ method to +arguments+.
 // :: name args.. -> object args2... -> object[name](args... args2...)
-function invoke(methodName/*, arguments*/) {
+Functional.invoke = function(methodName/*, arguments*/) {
     var args = [].slice.call(arguments, 1);
     return function(object) {
         return object[methodName].apply(object, [].slice.call(arguments, 1).concat(args));
@@ -208,16 +243,12 @@ function invoke(methodName/*, arguments*/) {
 }
 
 // Returns a function that takes an object, and returns the value of its
-// +name+ property.
+// +name+ property.  pluck(name) is the same as '_.name'.lambda().
 // :: name -> object -> object[name]
-function pluck(name) {
+Functional.pluck = function(name) {
     return function(object) {
         return object[name];
     }
-}
-
-Function.toFunction = function(fn) {
-    return typeof fn == 'function' ? fn : fn.toFunction();
 }
 
 // Turns an expression into a function that returns its application.
@@ -226,10 +257,10 @@ Function.toFunction = function(fn) {
 //   x y -> x + y
 // Otherwise, if the expression contains a '_', this is the argument:
 //   _ + 1
-// Otherwise, each variable is a parameter:
+// Otherwise, each symbol is a parameter:
 //   x + y
 // This last case won't do what you want if the expression contains
-// non-local variables, such as global variables.  In that case,
+// symbols that aren't variables.  In that case,
 // use '->'
 //   Math.pow(_, 2)
 //
@@ -255,9 +286,30 @@ String.prototype.lambda = function() {
     return new Function(params, 'return (' + body + ')');
 }
 
+// Make a string look like a function:
+//   'x+1'.apply(null, [2]) -> 3
+String.prototype.apply = function() {
+    return this.lambda().apply(arguments[0], [].slice.call(arguments, 1));
+}
+
+// Make a string callable:
+//   'x+1'.call(2) -> 3
+String.prototype.call = function() {
+    return this.lambda().apply(null, arguments);
+}
+
+// Return a Function that perfoms the action described by this
+// string.  If the string contains a 'return', applies
+// 'new Function' to it.  Otherwise, calls +lambda+.
 String.prototype.toFunction = function() {
     var body = this;
     if (body.match(/\breturn\b/))
         return new Function(this);
     return this.lambda();
+}
+
+// Coerces +fn+ into a function if it is not already one,
+// by calling its +toFunction+ method.
+Function.toFunction = function(fn) {
+    return typeof fn == 'function' ? fn : fn.toFunction();
 }

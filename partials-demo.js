@@ -8,40 +8,59 @@ var trace = info;
 
 // Examples
 function examples() {
-    Functional.install();
-    
-    // create an unspecialized function that just lists its (four) arguments
+    // Create an unspecialized function that just lists its (four) arguments.
+    // We'll create partially applied (specialized) versions of this function
+    // below.
     function list(a,b,c,d) {return [a,b,c,d]};
 
-    // specialize the first and third parameters
-    var f2 = list.partial(1,_,2,_);
-    trace('f2 3 ->', f2(3, 4));
+    // Specialize the first and third parameters.  This creates a new
+    // function, that interleaves its arguments with the 1 and 2.
+    var finterleave = list.partial(1,_,2,_);
+    trace('f2 3 ->', finterleave(3, 4));
 
-    // specialize the first two parameters (same as currying)
-    var f3 = list.partial(1,2,_,_);
-    trace('f3 4, 5 -> ', f3(4,5));
+    // Specialize the outer two parameters.
+    var finner = list.partial(1,_,_,2);
+    trace('f3 4, 5 -> ', finner(3, 4));
     
     // if not all the parameters are supplied, the result is a function...
-    trace(f2(4));
-    // ...which can be applied until the function is saturated.
-    trace('f2 4, 5 ->', f2(3)(4));
-    trace(f3(_,3)(4));
-    trace(f3(3)(4));
+    trace(finterleave(4));
+    // ...which can be applied until the parameters are saturated.
+    trace('f2 4, 5 ->', finterleave(3)(4));
+    trace(finner(_,3));
+    trace(finner(_,3)(4));
+    trace(finner(3)(4));
     trace(list.partial(_,_,_,1)(2,_,3)(4));
 
-    // create some specialized versions of String replace
+    // An application: create some specialized versions of String replace
     var replaceVowels = "".replace.partial(/[aeiou]/g, _);
     var replaceWithCoronalFricatives = "".replace.partial(_, 'th');
-    // have to invoke methods with call() (could use bind() and then call normally)
+    // invoke methods with call() (could use bind() and then call normally)
     trace(replaceVowels.call("change my vowels to underscores", '_'));
     trace(replaceWithCoronalFricatives.call("substitute my esses with tee-aitches", /s/g));
 
-    // use right curry to create 'halve' and 'double' functions out of divide
+    // curry creates a new function that applies the original arguments, and
+    // then the new arguments
+    var right = list.curry(1, 2);
+    trace(right(3,4));
+    var left = list.rcurry(1, 2);
+    trace(left(3, 4));
+
+    // use right curry to create 'halve' and 'double' functions from divide
     function divide(a, b) {return a/b}
     var halve = divide.rcurry(2);
     var double = divide.rcurry(1/2);
     trace('halve 10', halve(10));
     trace('double 10', double(10));
+    
+    // ncurry and rncurry wait until they're fully saturated before
+    // applying the function.  [r]curry can't because it doesn't
+    // know the polyadicity of the underlying function.
+    trace(list.curry(1,2)(3));
+    trace(list.ncurry(4,1,2)(3));
+    trace(list.ncurry(4,1,2)(3)(4));
+    trace(list.ncurry(4,1,2)(3,4));
+    trace(list.rncurry(4,1,2)(3));
+    trace(list.rncurry(4,1,2)(3,4));
     
     // curries are like Haskell sections
     // (10 /) 2
@@ -54,48 +73,57 @@ function examples() {
     // (_ / 2) 10
     trace(divide.partial(_, 2)(10));
     
-    // ncurry and rncurry wait until they're fully saturated before
-    // applying the function.  [r]curry can't because it doesn't
-    // know the polyadicity of the underlying function.
-    trace(list.curry(1,2)(3));
-    trace(list.ncurry(4,1,2)(3));
-    trace(list.ncurry(4,1,2)(3)(4));
-    trace(list.ncurry(4,1,2)(3,4));
-    trace(list.rncurry(4,1,2)(3));
-    trace(list.rncurry(4,1,2)(3,4));
-    
-    // Use with Prototype to define an 'onclick' that abbreviates
+    // An application: use with Prototype to define an 'onclick' that abbreviates
     // Event.observe(_, 'click', ...)
-    Event.observe('e1', 'click', function(){alert('1')});
     var onclick = Event.observe.bind(Event).partial(_, 'click');
+    // These next three lines are equivalent.
+    Event.observe('e1', 'click', function(){alert('1')});
     onclick('e2', function(){alert('2')});
     onclick('e3', alert.bind(null).only('3'));
     
-    // pluck and reverse
-    trace(pluck('length')("a string"));
-    trace(invoke('reverse')([1,2,3,4]));
-
-    // Use strings to create tiny functions
+    // Use lambda to create single-expression functions from strings.
+    // If the expression contains a '_', that's the argument.
+    // Otherwise, the symbols are the arguments, in the order
+    // they occur.
+    var square = 'x*x'.lambda();
+    trace(square(3));
     trace('_+1'.lambda()(2));
     trace('x+1'.lambda()(2));
     trace('x+2*y'.lambda()(2, 3));
+    // Use -> to name the variables when the expression contains symbols
+    // that aren't variables (e.g. Math.sin), or you want to use them
+    // in a different order.
     trace('x, y -> x+2*y'.lambda()(2, 3));
+    trace('y, x -> x+2*y'.lambda()(2, 3));
+    // You can chain -> to create curried functions.
+    trace('x -> y -> x+y'.lambda()(2));
+    trace('x -> y -> x+y'.lambda()(2)(3));
     
-    // This is most useful in conjunction with functionals
-    trace(compose('_+1', '_*2', '_.length')('a string'));
-    trace(compose('x->x+1', 'x->x*2')(1));
-    trace(sequence('_->_+1', '_->_*2')(1));
-    trace(compose('x+1', 'x*2')(1));
+    // This is most useful in conjunction with functionals (map, reduce, select).
+    // Functional.install() brings these into the global namespace, so that
+    // we don't have to qualify them with Functional.map each time.
+    Functional.install();
+    trace(map('_+1', [1,2,3]));
+    trace(map('_.length', 'here are some words'.split(' ')));
+    trace(select('_>2', [1,2,3,4]));
+    trace(reduce('2*x+y', 0, [1,0,1,0]));
+    trace(some('_>2', [1,2,3,4]));
+    trace(every('_>2', [1,2,3,4]));
+    trace(compose.apply(null, map('x -> y -> x*y', [2,3,4]))(1));
+    trace(compose.apply(null, map('x -> y -> x+y', ['hemi', 'demi', 'semi']))('quaver'));
     
     // compose() and sequence() compose sequences of functions
     // backwards and forwards, respectively
+    trace(compose('_+1', '_*2')(1));
+    trace(sequence('_+1', '_*2')(1));
+    trace(compose('_+1', '_*2', '_.length')('a string'));
     
-    function prepender(prefix) {return ''.concat.bind(prefix)}
-    trace(prepender('im')('possible'));
-    trace(compose(prepender('hemi'), prepender('demi'))('quaver'));
-    trace(sequence(prepender('hemi'), prepender('demi'))('quaver'));
-    // this uses map() from Prototype
-    trace(compose.apply(null, ['hemi', 'demi', 'semi'].map(prepender))('quaver'));
+    // pluck and invoke turn methods into functions
+    trace(map(pluck('length'), ["a string", "another string"]));
+    trace(map(invoke('toUpperCase'), ["a string", "another string"]));
+    // We can use lambda instead.
+    trace(map('_.length', ["a string", "another string"]));
+    trace(map('_.toUpperCase()', ["a string", "another string"]));
 }
 
 Event.observe(window, 'load', initialize);
@@ -184,6 +212,8 @@ Doc.prototype.addDescriptionLine = function(line) {
     var match;
     if (match = line.match(/^\s+(.*)/))
         line = '<span class="formatted">&nbsp;&nbsp;' + match[1] + '</span>';
+    else if (line.match(/^\s*$/))
+        line = '<div class="br"> </div>';
     else
         line = line.escapeHTML().replace(/\+([\w()_]+)\+/g, '<var>$1</var>').replace(/\*(\w+)\*/g, '<em>$1</em>');
     this.lines.push(line);
@@ -212,7 +242,7 @@ Doc.findRecords = function(text) {
             } else if ((match = line.match(/^var\s+(\w+)\s+=/))) {
                 name = match[1];
             } else {
-                info('no match', line);
+                //info('no match', line);
                 records.pop();
                 return;
             }
@@ -221,7 +251,7 @@ Doc.findRecords = function(text) {
                 rec.target = match[1];
             }
             rec.name = name;
-            params && (rec.params = params.replace(/\/\*/g, '').replace(/\*\//g, ''));
+            rec.params = params && params.replace(/\/\*/g, '').replace(/\*\//g, '');
             records.push(rec);
             rec = null;
         }
