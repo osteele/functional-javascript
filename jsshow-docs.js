@@ -3,10 +3,12 @@
  * Alike 3.0 License. http://creativecommons.org/licenses/by-nc-sa/3.0/
  */
 
-function Docs() {};
+var JSShow = window.JSShow || {};
 
-Docs.load = function(url) {
-    var docs = new Docs();
+JSShow.Docs = function() {};
+
+JSShow.Docs.load = function(url) {
+    var docs = new JSShow.Docs();
     new Ajax.Request(
         url,
         {method: 'GET',
@@ -14,23 +16,23 @@ Docs.load = function(url) {
     return docs;
 }
 
-Docs.prototype.parse = function(string) {
-    this.records = (new DocParser).parse(string);
+JSShow.Docs.prototype.parse = function(string) {
+    this.records = (new JSShow.DocParser).parse(string);
     this.loaded = true;
     this.target && this.updateTarget();
 }
 
-Docs.prototype.replace = function(elt) {
-    this.target = elt;
+JSShow.Docs.prototype.replace = function(target) {
+    this.target = target;
     this.loaded && this.updateTarget();
 }
 
-Docs.prototype.updateTarget = function() {
+JSShow.Docs.prototype.updateTarget = function() {
     this.target.innerHTML = this.toHTML();
     done('docs');
 }
 
-Docs.prototype.toHTML = function(string) {
+JSShow.Docs.prototype.toHTML = function(string) {
     var spans = [];
     this.records.each(function(rec) {
         spans.push(rec.toHTML());
@@ -38,12 +40,12 @@ Docs.prototype.toHTML = function(string) {
     return spans.join('\n');
 }
 
-function Doc() {
+JSShow.Doc = function() {
     this.target = this.params = null;
     this.lines = [];
 }
 
-Doc.prototype.addDescriptionLine = function(line) {
+JSShow.Doc.prototype.addDescriptionLine = function(line) {
     var match;
     if (match = line.match(/^\s+(.*)/))
         line = '<div class="formatted">&nbsp;&nbsp;' + match[1] + '</div>';
@@ -54,21 +56,21 @@ Doc.prototype.addDescriptionLine = function(line) {
     this.lines.push(line);
 }
 
-function DocParser() {}
+JSShow.DocParser = function() {};
 
-DocParser.prototype.parse = function(text) {
+JSShow.DocParser.prototype.parse = function(text) {
     this.records = [];
     this.current = null;
     text.split('\n').each(this.parseLine.bind(this));
     return this.records;
 }
 
-DocParser.prototype.parseLine = function(line) {
+JSShow.DocParser.prototype.parseLine = function(line) {
     var rec = this.current;
     var match;
     if (match = line.match(/^\/\/ (.*)/)) {
         line = match[1];
-        rec || (rec = this.current = new Doc());
+        rec || (rec = this.current = new JSShow.Doc());
         if (match = line.match(/\s*::\s*(.*)/))
             rec.signature = match[1];
         else
@@ -100,7 +102,7 @@ DocParser.prototype.parseLine = function(line) {
     }
 }
 
-Doc.prototype.toHTML = function() {
+JSShow.Doc.prototype.toHTML = function() {
     var spans = [];
     var target = '';
     this.target && spans.push('<span class="target">' + this.target + '</span>');
