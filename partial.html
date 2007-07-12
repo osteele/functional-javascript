@@ -1,16 +1,19 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <title>Partial</title>
+    <title>JavaScript Partial Function Application</title>
     <script type="text/javascript" src="/javascripts/prototype.js"></script>
     <script type="text/javascript" src="partial.js"></script>
     <script type="text/javascript" src="partials-demo.js"></script>
     <style type="text/css">
+      h1 {text-align:center}
       #output {}
-      #documentation {float:right; max-width: 50%}
       #docs .target {color:gray}
       #docs .fname {font-weight:bold}
-      #docs .type {font-family:monospace; font-size:smaller}
+      #docs .description {color:#666}
+      #docs .signature {font-family:monospace; font-size:smaller}
+      #docs .signature .label {font-family:serif}
+      #docs .target {color:gray}
       .output {color: blue}
       .comment {color: gray; font-style: italic; font-family: serif}
       #footer {color:#888}
@@ -19,19 +22,24 @@
     </style>
   </head>
   <body>
-    <div id="documentation">
-      <h1>Documentation</h1>
-      <div id="docs">partial.js</div>
-    </div>
-    <div id="examples">
-      <h1>Examples</h1>
-      <pre id="output">partials-demo.js</pre>
-    </div>
-    <button id="e1">1. Event.observe</button>
-    <button id="e2">2. onclick</button>
-    <button id="e3">3. specialized alert too</button>
+    <h1>JavaScript Partial Function Application</h1>
+    <table>
+      <tr>
+        <td id="examples" valign="top">
+          <h2>Examples</h2>
+          <pre id="output">partials-demo.js</pre>
+          <button id="e1">1. Event.observe</button>
+          <button id="e2">2. onclick</button>
+          <button id="e3">3. specialized alert too</button>
+        </td>
+        <td id="documentation" valign="top">
+          <h2>Documentation</h2>
+          <div id="docs">partial.js</div>
+        </td>
+      </tr>
+    </table>
     <div id="footer">
-      Copyright 2007 by Oliver Steele.  This work is licensed under the MIT license, and the <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution-Noncommercial-Share Alike 3.0 License</a>.  (Take your pick.)<br/>
+      Copyright 2007 by Oliver Steele.  This work is licensed under the <a href="MIT-LICENSE">MIT license</a>, and the <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution-Noncommercial-Share Alike 3.0 License</a>.  (Take your pick.)<br/>
       <a href="partial.js" target="_blank">View source</a>.
     </div>
   </body>

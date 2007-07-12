@@ -62,7 +62,7 @@ Function.prototype.partial = function(/*arguments*/) {
 }
 
 // Curry.  Returns a function that, applied to an argument list +arg2+,
-// has the effect of applying the underlying function to +args+ + +arg2+.
+// applyies the underlying function to +args+ + +arg2+.
 // Adapted from http://www.coryhudson.com/blog/2007/03/10/javascript-currying-redux/
 // :: f args... -> args2... -> f args... args2...
 Function.prototype.curry = function(/*args...*/) {
@@ -73,9 +73,8 @@ Function.prototype.curry = function(/*args...*/) {
     };
 }
 
-// Curry on the right.  +args+ are concatenated to the right
-// of the argument list that this function's return value is
-// applied to.
+// Right curry.  Returns a function that, applied to an argumen list +args2+,
+// appies the underlying function to +args2+ + +args+.
 // :: f args... -> args2... -> f args2... args...
 Function.prototype.rcurry = function(/*args...*/) {
     var fn = this;

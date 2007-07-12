@@ -33,19 +33,19 @@ function examples() {
     trace(replaceVowels.call("change my vowels to underscores", '_'));
     trace(replaceWithCoronalFricatives.call("substitute my esses with tee-aitches", /s/g));
 
-    // use right curry to create 'halve' and 'double' functions
+    // use right curry to create 'halve' and 'double' functions out of divide
     function divide(a, b) {return a/b}
-    var halve = divide.rcurry(2); // = (/ 2)
+    var halve = divide.rcurry(2);
     var double = divide.rcurry(1/2);
     trace('halve 10', halve(10));
     trace('double 10', double(10));
     
-    // curries are like to Haskell sections
+    // curries are like Haskell sections
     // (10 /) 2
     trace(divide.curry(10)(2));
     // (/ 2) 10
     trace(divide.rcurry(2)(10));
-    // partials are like math function syntax
+    // while partials are like math function syntax
     // (10 / _) 2
     trace(divide.partial(10, _)(2));
     // (_ / 2) 10
@@ -164,12 +164,13 @@ function findCommentSpans(lines) {
         var match = line.match(/^\/\/\s*(.*)/);
         if (match) {
             line = match[1];
-            if (match = line.match(/\s*::\s*(.*)/))
-                line = 'Signature: <span class="type">'+match[1].escapeHTML()+'</span>';
-            else
-                line = line.escapeHTML().replace(/\+([\w()_]+)\+/g, '<var>$1</var>').replace(/\*(\w+)\*/g, '<em>$1</em>');
             rec || records.push(rec = {lines: [], toHTML: formatComment});
-            rec.lines.push(line);
+            if (match = line.match(/\s*::\s*(.*)/))
+                rec.signature = '<div class="signature"><span class="label">Signature:</span> '+match[1].escapeHTML()+'</div>';
+            else {
+                line = line.escapeHTML().replace(/\+([\w()_]+)\+/g, '<var>$1</var>').replace(/\*(\w+)\*/g, '<em>$1</em>');
+                rec.lines.push(line);
+            }
         } else if (rec) {
             match = line.match(/^((?:\w+\.)*\w+)\s*=\s*function\s*\((.*?)\)/);
             rec.target = rec.args = null;
@@ -205,7 +206,8 @@ function formatComment() {
     this.target && spans.push('<span class="target">' + this.target + '</span>');
     spans.push('<span class="fname">' + this.fname + '</span>');
     this.args != null && spans.push('(<var>' + this.args + '</var>)');
-    spans = spans.concat(['<div>',this.lines.join('<br/>'), '</div>', '<br/>']);
+    this.signature && spans.push(this.signature);
+    spans = spans.concat(['<div class="description">',this.lines.join('<br/>'), '</div>', '<br/>']);
     return spans.join('');
 }
 
