@@ -220,8 +220,21 @@ Function.toFunction = function(fn) {
     return typeof fn == 'function' ? fn : fn.toFunction();
 }
 
-// Doesn't actually parse; you can use it for x -> y -> x+y,
-// but not x -> (y -> x+y).
+// Turns an expression into a function that returns its application.
+// If there is a '->', this separates the parameters from the body
+//   x, y -> x + y
+//   x y -> x + y
+// Otherwise, if the expression contains a '_', this is the argument:
+//   _ + 1
+// Otherwise, each variable is a parameter:
+//   x + y
+// This last case won't do what you want if the expression contains
+// non-local variables, such as global variables.  In that case,
+// use '->'
+//   Math.pow(_, 2)
+//
+// You can chain '->' to create a function in uncurried form:
+//   x -> y -> x + y
 String.prototype.lambda = function() {
     var params = [];
     var body = this;

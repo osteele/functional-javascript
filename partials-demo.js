@@ -175,63 +175,74 @@ function displayTestResults(string) {
     done('examples');
 }
 
-function findCommentSpans(lines) {
+function Doc() {
+    this.target = this.params = null;
+    this.lines = [];
+}
+
+Doc.prototype.addDescriptionLine = function(line) {
+    var match;
+    if (match = line.match(/^\s+(.*)/))
+        line = '<span class="formatted">&nbsp;&nbsp;' + match[1] + '</span>';
+    else
+        line = line.escapeHTML().replace(/\+([\w()_]+)\+/g, '<var>$1</var>').replace(/\*(\w+)\*/g, '<em>$1</em>');
+    this.lines.push(line);
+}
+
+Doc.findRecords = function(text) {
     var records = [];
     var rec = null;
-    lines.each(function(line) {
-        var match = line.match(/^\/\/\s*(.*)/);
-        if (match) {
+    text.split('\n').each(function(line) {
+        var match;
+        if (match = line.match(/^\/\/ (.*)/)) {
             line = match[1];
-            rec || records.push(rec = {lines: [], toHTML: formatComment});
+            rec || (rec = new Doc());
             if (match = line.match(/\s*::\s*(.*)/))
-                rec.signature = '<div class="signature"><span class="label">Signature:</span> '+match[1].escapeHTML()+'</div>';
-            else {
-                line = line.escapeHTML().replace(/\+([\w()_]+)\+/g, '<var>$1</var>').replace(/\*(\w+)\*/g, '<em>$1</em>');
-                rec.lines.push(line);
-            }
+                rec.signature = match[1];
+            else
+                rec.addDescriptionLine(line);
         } else if (rec) {
-            match = line.match(/^((?:\w+\.)*\w+)\s*=\s*function\s*\((.*?)\)/);
-            rec.target = rec.args = null;
-            if (match) {
-                rec.fname = match[1];
-                rec.args = match[2];
+            var name, params;
+            if (match = line.match(/^((?:\w+\.)*\w+)\s*=\s*function\s*\((.*?)\)/)) {
+                name = match[1];
+                params = match[2];
             } else if ((match = line.match(/^function\s+(\w+)\s*\((.*?)\)/))) {
-                rec.fname = match[1];
-                rec.args = match[2];
+                name = match[1];
+                params = match[2];
             } else if ((match = line.match(/^var\s+(\w+)\s+=/))) {
-                rec.fname = match[1];
+                name = match[1];
             } else {
                 info('no match', line);
                 records.pop();
                 return;
             }
-            var match = rec.fname.match(/(.*\.)(\w+)/);
-            if (match) {
+            if (match = name.match(/(.*\.)(\w+)/)) {
+                name = match[2];
                 rec.target = match[1];
-                rec.fname = match[2];
             }
-            rec.args = rec.args && rec.args.replace(/\/\*/g, '').replace(/\*\//g, '');
+            rec.name = name;
+            params && (rec.params = params.replace(/\/\*/g, '').replace(/\*\//g, ''));
+            records.push(rec);
             rec = null;
         }
     });
     return records;
 }
 
-function formatComment() {
+Doc.prototype.toHTML = function() {
     var spans = [];
     var target = '';
-    var fname = this.fn;
     this.target && spans.push('<span class="target">' + this.target + '</span>');
-    spans.push('<span class="fname">' + this.fname + '</span>');
-    this.args != null && spans.push('(<var>' + this.args + '</var>)');
-    this.signature && spans.push(this.signature);
+    spans.push('<span class="fname">' + this.name + '</span>');
+    this.params != null && spans.push('(<var>' + this.params + '</var>)');
+    this.signature && spans.push('<div class="signature"><span class="label">Signature:</span> '+this.signature.escapeHTML()+'</div>');
     spans = spans.concat(['<div class="description">',this.lines.join('<br/>'), '</div>', '<br/>']);
     return spans.join('');
 }
 
 function displayDocs(string) {
     try {
-        recs = findCommentSpans(string.split('\n'));
+        recs = Doc.findRecords(string);
         var lines = [];
         recs.each(function(rec) {
             lines.push(rec.toHTML());
