@@ -153,9 +153,6 @@ function initialize() {
     new Ajax.Request(
         $('output').innerHTML,
         {method: 'GET', onSuccess: 'displayExamples(_.responseText)'.lambda()});
-    new Ajax.Request(
-        $('docs').innerHTML,
-        {method: 'GET', onSuccess: compose(displayDocs, '_.responseText')});
 }
 
 function unindent(lines) {
@@ -229,6 +226,53 @@ function displayExamples(string) {
     done('examples');
 }
 
+Function.prototype.reporting = function() {
+    var fn = this;
+    return function() {
+        try {
+            fn.apply(this, arguments);
+        } catch (e) {
+            info(e);
+            throw e;
+        }
+    }
+}       
+
+function Docs() {};
+
+Docs.load = function(url) {
+    var docs = new Docs();
+    new Ajax.Request(
+        url,
+        {method: 'GET',
+         onSuccess: Functional.compose(docs.parse.bind(docs), '_.responseText').reporting()});
+    return docs;
+}
+
+Docs.prototype.parse = function(string) {
+    this.records = (new DocParser).parse(string);
+    this.loaded = true;
+    this.target && this.updateTarget();
+}
+
+Docs.prototype.replace = function(elt) {
+    this.target = elt;
+    this.loaded && this.updateTarget();
+}
+
+Docs.prototype.updateTarget = function() {
+    this.target.innerHTML = this.toHTML();
+    done('docs');
+}
+
+Docs.prototype.toHTML = function(string) {
+    var spans = [];
+    this.records.each(function(rec) {
+        spans.push(rec.toHTML());
+    });
+    return spans.join('\n');
+}
+
 function Doc() {
     this.target = this.params = null;
     this.lines = [];
@@ -245,44 +289,50 @@ Doc.prototype.addDescriptionLine = function(line) {
     this.lines.push(line);
 }
 
-Doc.findRecords = function(text) {
-    var records = [];
-    var rec = null;
-    text.split('\n').each(function(line) {
-        var match;
-        if (match = line.match(/^\/\/ (.*)/)) {
-            line = match[1];
-            rec || (rec = new Doc());
-            if (match = line.match(/\s*::\s*(.*)/))
-                rec.signature = match[1];
-            else
-                rec.addDescriptionLine(line);
-        } else if (rec) {
-            var name, params;
-            if (match = line.match(/^((?:\w+\.)*\w+)\s*=\s*function\s*\((.*?)\)/)) {
-                name = match[1];
-                params = match[2];
-            } else if ((match = line.match(/^function\s+(\w+)\s*\((.*?)\)/))) {
-                name = match[1];
-                params = match[2];
-            } else if ((match = line.match(/^var\s+(\w+)\s+=/))) {
-                name = match[1];
-            } else {
-                //info('no match', line);
-                records.pop();
-                return;
-            }
-            if (match = name.match(/(.*\.)(\w+)/)) {
-                name = match[2];
-                rec.target = match[1];
-            }
-            rec.name = name;
-            rec.params = params && params.replace(/\/\*/g, '').replace(/\*\//g, '');
-            records.push(rec);
-            rec = null;
+function DocParser() {}
+
+DocParser.prototype.parse = function(text) {
+    this.records = [];
+    this.current = null;
+    text.split('\n').each(this.parseLine.bind(this));
+    return this.records;
+}
+
+DocParser.prototype.parseLine = function(line) {
+    var rec = this.current;
+    var match;
+    if (match = line.match(/^\/\/ (.*)/)) {
+        line = match[1];
+        rec || (rec = this.current = new Doc());
+        if (match = line.match(/\s*::\s*(.*)/))
+            rec.signature = match[1];
+        else
+            rec.addDescriptionLine(line);
+    } else if (rec) {
+        var name, params;
+        if (match = line.match(/^((?:\w+\.)*\w+)\s*=\s*function\s*\((.*?)\)/)) {
+            name = match[1];
+            params = match[2];
+        } else if ((match = line.match(/^function\s+(\w+)\s*\((.*?)\)/))) {
+            name = match[1];
+            params = match[2];
+        } else if ((match = line.match(/^var\s+(\w+)\s+=/))) {
+            name = match[1];
+        } else {
+            //info('no match', line);
+            this.records.pop();
+            this.current = null;
+            return;
         }
-    });
-    return records;
+        if (match = name.match(/(.*\.)(\w+)/)) {
+            name = match[2];
+            rec.target = match[1];
+        }
+        rec.name = name;
+        rec.params = params && params.replace(/\/\*/g, '').replace(/\*\//g, '');
+        this.records.push(rec);
+        this.current = null;
+    }
 }
 
 Doc.prototype.toHTML = function() {
@@ -294,20 +344,6 @@ Doc.prototype.toHTML = function() {
     this.signature && spans.push('<div class="signature"><span class="label">Signature:</span> '+this.signature.escapeHTML()+'</div>');
     spans = spans.concat(['<div class="description">',this.lines.join(' '), '</div>', '<br/>']);
     return spans.join('');
-}
-
-function displayDocs(string) {
-    try {
-        recs = Doc.findRecords(string);
-        var lines = [];
-        recs.each(function(rec) {
-            lines.push(rec.toHTML());
-        });
-       $('docs').innerHTML = lines.join('\n');
-    } catch (e) {
-        console.error(e);
-    }
-    done('docs');
 }
 
 function done(name) {
