@@ -18,8 +18,7 @@
  * Agenda:
  * - add comments for new functions
  * - reduce, some, every, find, select, reject
- * - x -> y -> x+y
- * - make String.toFunction more liberal
+ * - docs for x -> y -> x+y; find, select, etc.
  * - rename to functional.js
  */
 
@@ -221,13 +220,18 @@ Function.toFunction = function(fn) {
     return typeof fn == 'function' ? fn : fn.toFunction();
 }
 
+// Doesn't actually parse; you can use it for x -> y -> x+y,
+// but not x -> (y -> x+y).
 String.prototype.lambda = function() {
     var params = [];
     var body = this;
-    var split = body.split(/\s*->\s*/, 2);
-    if (split.length > 1) {
-        params = split[0].split(/\s*,\s*|\s+/);
-        body = split[1];
+    var sections = body.split(/\s*->\s*/);
+    if (sections.length > 1) {
+        while (sections.length) {
+            body = sections.pop();
+            params = sections.pop().split(/\s*,\s*|\s+/);
+            sections.length && sections.push('(function('+params+'){return ('+body+')})');
+        }
     } else if (body.match(/\b_\b/)) {
         params = '_';
     } else {
