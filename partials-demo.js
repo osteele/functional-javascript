@@ -3,7 +3,7 @@
  * Alike 3.0 License. http://creativecommons.org/licenses/by-nc-sa/3.0/
  */
 
-var info = console.info;
+var info = window.console && console.info || function(){};
 
 // Examples
 function examples() {
@@ -15,7 +15,7 @@ function examples() {
     trace('f2 3 ->', f2(3, 4));
 
     // specialize the first two parameters (same as currying)
-    var f3 = list.partial(1,2, _, _);
+    var f3 = list.partial(1,2,_,_);
     trace('f3 4, 5 -> ', f3(4,5));
     
     // if not all the parameters are supplied, the result is a function...
@@ -24,7 +24,7 @@ function examples() {
     trace('f2 4, 5 ->', f2(3)(4));
     trace(f3(_,3)(4));
     trace(f3(3)(4));
-    trace(list.partial(_, _, _, 1)(2, _, 3)(4));
+    trace(list.partial(_,_,_,1)(2,_,3)(4));
 
     // create some specialized versions of String replace
     var replaceVowels = "".replace.partial(/[aeiou]/g, _);
@@ -63,8 +63,8 @@ function examples() {
     
     // Use with Prototype to define an 'onclick' that abbreviates
     // Event.observe(_, 'click', ...)
-    var onclick = Event.observe.bind(Event).partial(_, 'click');
     Event.observe('e1', 'click', function(){alert('1')});
+    var onclick = Event.observe.bind(Event).partial(_, 'click');
     onclick('e2', function(){alert('2')});
     onclick('e3', alert.bind(null).only('3'));
     
@@ -155,6 +155,7 @@ function displayTestResults(string) {
     });
     var html = lines.join('').replace(/(\/\/.*)/g, '<span class="comment">$1</span>');
     $('output').innerHTML = html;
+    done('examples');
 }
 
 function findCommentSpans(lines) {
@@ -214,14 +215,20 @@ function formatComment() {
 function displayDocs(string) {
     try {
         recs = findCommentSpans(string.split('\n'));
-        info(recs);
         var lines = [];
         recs.each(function(rec) {
             lines.push(rec.toHTML());
         });
-        info('l', lines);
        $('docs').innerHTML = lines.join('\n');
     } catch (e) {
         console.error(e);
     }
+    done('docs');
+}
+
+function done(name) {
+    var me = arguments.callee;
+    me[name] = true;
+    if (me.docs && me.examples)
+        $('noscript').hide();
 }
