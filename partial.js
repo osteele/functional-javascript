@@ -16,7 +16,6 @@
 
 /*
  * Agenda:
- * - 'x+1'.apply(null, [2]) returns '21'
  * - foldr, foldl, flip (with args), fst, snd, pair
  * - remove toFunction?
  * - remove only?
@@ -308,14 +307,14 @@ String.prototype.lambda = function() {
 
 // Make a string look like a function:
 //   'x+1'.apply(null, [2]) -> 3
-String.prototype.apply = function() {
-    return this.lambda().apply(arguments[0], [].slice.call(arguments, 1));
+String.prototype.apply = function(thisArg, args) {
+    return this.lambda().apply(thisArg, args);
 }
 
 // Make a string callable:
 //   'x+1'.call(2) -> 3
 String.prototype.call = function() {
-    return this.lambda().apply(null, arguments);
+    return this.lambda().apply(arguments[0], [].slice.call(arguments, 1));
 }
 
 // Return a Function that perfoms the action described by this
