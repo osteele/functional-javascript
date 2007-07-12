@@ -5,8 +5,8 @@
 
 var info = console.info;
 
-// Tests
-function tests() {
+// Examples
+function examples() {
     // create an unspecialized function that just lists its (four) arguments
     function list(a,b,c,d) {return [a,b,c,d]};
 
@@ -20,7 +20,7 @@ function tests() {
     
     // if not all the parameters are supplied, the result is a function...
     trace(f2(4));
-    // ...which can be applied until all the parameters are saturated
+    // ...which can be applied until the function is saturated.
     trace('f2 4, 5 ->', f2(3)(4));
     trace(f3(_,3)(4));
     trace(f3(3)(4));
@@ -40,7 +40,7 @@ function tests() {
     trace('halve 10', halve(10));
     trace('double 10', double(10));
     
-    // curries are analogous to Haskell sections (without the nice syntax)
+    // curries are like to Haskell sections
     // (10 /) 2
     trace(divide.curry(10)(2));
     // (/ 2) 10
@@ -73,7 +73,7 @@ function tests() {
     trace(invoke('reverse')([1,2,3,4]));
     
     // compose() and sequence() compose sequences of functions
-    // (backwards and forwards, respectively)
+    // backwards and forwards, respectively
     function prepender(prefix) {return ''.concat.bind(prefix)}
     trace(prepender('im')('possible'));
     trace(compose(prepender('hemi'), prepender('demi'))('quaver'));
@@ -86,8 +86,11 @@ Event.observe(window, 'load', initialize);
 
 function initialize() {
     new Ajax.Request(
-        $('src').src,
+        $('output').innerHTML,
         {method: 'GET', onSuccess: compose(displayTestResults, pluck('responseText'))});
+    new Ajax.Request(
+        $('docs').innerHTML,
+        {method: 'GET', onSuccess: compose(displayDocs, pluck('responseText'))});
 }
 
 function unindent(lines) {
@@ -101,7 +104,7 @@ function unindent(lines) {
 
 function extractLines(string) {
     var lines = string.split('\n');
-    var start = 1 + lines.indexOf(lines.grep(/function tests/)[0]);
+    var start = 1 + lines.indexOf(lines.grep(/function examples/)[0]);
     var segment = lines.slice(start);
     var end = start + segment.indexOf(segment.grep(/^\}/)[0]);
     return unindent(lines.slice(start, end)).map(function(line) {
@@ -109,7 +112,7 @@ function extractLines(string) {
     }).join('\n');
 }
 
-function runTests(tests) {
+function runExamples(examples) {
     var saved = window.trace;
     var results = [];
     try {
@@ -123,7 +126,7 @@ function runTests(tests) {
             });
             results.push(args.join(' '));
         }
-        tests();
+        examples();
     } catch (e) {
         console.error(e);
     } finally {
@@ -134,7 +137,7 @@ function runTests(tests) {
 
 function displayTestResults(string) {
     var programLines = extractLines(string).escapeHTML().split('trace(');
-    var outputs = runTests(tests);
+    var outputs = runExamples(examples);
     var lines = [programLines.shift()];
     programLines.each(function(segment, ix) {
         var output = outputs[ix].escapeHTML();
@@ -146,10 +149,77 @@ function displayTestResults(string) {
         var m = segment.indexOf(');');
         lines.push(segment.slice(0, m));
         lines.push(';\n <span class="output">&rarr; ');
-        lines.push(output);
+        lines.push(output.strip());
         lines.push('</span>');
         lines.push(segment.slice(m+2));
     });
     var html = lines.join('').replace(/(\/\/.*)/g, '<span class="comment">$1</span>');
     $('output').innerHTML = html;
+}
+
+function findCommentSpans(lines) {
+    var records = [];
+    var rec = null;
+    lines.each(function(line) {
+        var match = line.match(/^\/\/\s*(.*)/);
+        if (match) {
+            line = match[1];
+            if (match = line.match(/\s*::\s*(.*)/))
+                line = 'Signature: <span class="type">'+match[1].escapeHTML()+'</span>';
+            else
+                line = line.escapeHTML().replace(/\+([\w()_]+)\+/g, '<var>$1</var>').replace(/\*(\w+)\*/g, '<em>$1</em>');
+            rec || records.push(rec = {lines: [], toHTML: formatComment});
+            rec.lines.push(line);
+        } else if (rec) {
+            match = line.match(/^((?:\w+\.)*\w+)\s*=\s*function\s*\((.*?)\)/);
+            rec.target = rec.args = null;
+            if (match) {
+                rec.fname = match[1];
+                rec.args = match[2];
+            } else if ((match = line.match(/^function\s+(\w+)\s*\((.*?)\)/))) {
+                rec.fname = match[1];
+                rec.args = match[2];
+            } else if ((match = line.match(/^var\s+(\w+)\s+=/))) {
+                rec.fname = match[1];
+            } else {
+                info('no match', line);
+                records.pop();
+                return;
+            }
+            var match = rec.fname.match(/(.*\.)(\w+)/);
+            if (match) {
+                rec.target = match[1];
+                rec.fname = match[2];
+            }
+            rec.args = rec.args && rec.args.replace(/\/\*/g, '').replace(/\*\//g, '');
+            rec = null;
+        }
+    });
+    return records;
+}
+
+function formatComment() {
+    var spans = [];
+    var target = '';
+    var fname = this.fn;
+    this.target && spans.push('<span class="target">' + this.target + '</span>');
+    spans.push('<span class="fname">' + this.fname + '</span>');
+    this.args != null && spans.push('(<var>' + this.args + '</var>)');
+    spans = spans.concat(['<div>',this.lines.join('<br/>'), '</div>', '<br/>']);
+    return spans.join('');
+}
+
+function displayDocs(string) {
+    try {
+        recs = findCommentSpans(string.split('\n'));
+        info(recs);
+        var lines = [];
+        recs.each(function(rec) {
+            lines.push(rec.toHTML());
+        });
+        info('l', lines);
+       $('docs').innerHTML = lines.join('\n');
+    } catch (e) {
+        console.error(e);
+    }
 }

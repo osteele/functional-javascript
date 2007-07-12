@@ -4,8 +4,13 @@
     <title>Partial</title>
     <script type="text/javascript" src="/javascripts/prototype.js"></script>
     <script type="text/javascript" src="partial.js"></script>
-    <script id="src" type="text/javascript" src="partials-demo.js"></script>
+    <script type="text/javascript" src="partials-demo.js"></script>
     <style type="text/css">
+      #output {}
+      #documentation {float:right; max-width: 50%}
+      #docs .target {color:gray}
+      #docs .fname {font-weight:bold}
+      #docs .type {font-family:monospace; font-size:smaller}
       .output {color: blue}
       .comment {color: gray; font-style: italic; font-family: serif}
       #footer {color:#888}
@@ -14,8 +19,14 @@
     </style>
   </head>
   <body>
-    <pre id="output">
-    </pre>
+    <div id="documentation">
+      <h1>Documentation</h1>
+      <div id="docs">partial.js</div>
+    </div>
+    <div id="examples">
+      <h1>Examples</h1>
+      <pre id="output">partials-demo.js</pre>
+    </div>
     <button id="e1">1. Event.observe</button>
     <button id="e2">2. onclick</button>
     <button id="e3">3. specialized alert too</button>
