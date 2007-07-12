@@ -4,9 +4,12 @@
  */
 
 var info = window.console && console.info || function(){};
+var trace = info;
 
 // Examples
 function examples() {
+    Functional.install();
+    
     // create an unspecialized function that just lists its (four) arguments
     function list(a,b,c,d) {return [a,b,c,d]};
 
@@ -71,9 +74,22 @@ function examples() {
     // pluck and reverse
     trace(pluck('length')("a string"));
     trace(invoke('reverse')([1,2,3,4]));
+
+    // Use strings to create tiny functions
+    trace('_+1'.lambda()(2));
+    trace('x+1'.lambda()(2));
+    trace('x+2*y'.lambda()(2, 3));
+    trace('x, y -> x+2*y'.lambda()(2, 3));
+    
+    // This is most useful in conjunction with functionals
+    trace(compose('_+1', '_*2', '_.length')('a string'));
+    trace(compose('x->x+1', 'x->x*2')(1));
+    trace(sequence('_->_+1', '_->_*2')(1));
+    trace(compose('x+1', 'x*2')(1));
     
     // compose() and sequence() compose sequences of functions
     // backwards and forwards, respectively
+    
     function prepender(prefix) {return ''.concat.bind(prefix)}
     trace(prepender('im')('possible'));
     trace(compose(prepender('hemi'), prepender('demi'))('quaver'));
@@ -85,12 +101,13 @@ function examples() {
 Event.observe(window, 'load', initialize);
 
 function initialize() {
+    Functional.install();
     new Ajax.Request(
         $('output').innerHTML,
-        {method: 'GET', onSuccess: compose(displayTestResults, pluck('responseText'))});
+        {method: 'GET', onSuccess: 'displayTestResults(_.responseText)'.lambda()});
     new Ajax.Request(
         $('docs').innerHTML,
-        {method: 'GET', onSuccess: compose(displayDocs, pluck('responseText'))});
+        {method: 'GET', onSuccess: compose(displayDocs, '_.responseText')});
 }
 
 function unindent(lines) {

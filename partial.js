@@ -14,6 +14,15 @@
  * most other libraries define them.
  */
 
+/*
+ * Agenda:
+ * - add comments for new functions
+ * - reduce, some, every, find, select, reject
+ * - x -> y -> x+y
+ * - make String.toFunction more liberal
+ * - rename to functional.js
+ */
+
 // The identity function: x -> x.
 // :: x -> x
 Function.I = function(x) {return x};
@@ -124,12 +133,14 @@ Function.prototype.only = function() {
     }
 }
 
+var Functional = window.Functional || {};
+
 // Return a function that applied the last argument of this
 // function to its input, and the penultimate argument to this,
 // and so on.
 // :: f1 f2 f3... fn -> args -> f1(f2(f3(...(fn(*args)))))
-function compose(/*fn...*/) {
-    var fns = [].slice.call(arguments, 0);
+Functional.compose = function(/*fn...*/) {
+    var fns = Functional.map(Function.toFunction, arguments);
     return function() {
         for (var i = fns.length; --i >= 0; )
             arguments = [fns[i].apply(this, arguments)];
@@ -138,15 +149,53 @@ function compose(/*fn...*/) {
 }
 
 // Same as +compose+ only applies the functions from front to back.
-// (Equivalent to compose(sequence, invoke('reverse')).)
 // :: f1 f2 f3... fn -> args -> fn(...(f3(f2(f1(*args)))))
-function sequence(/*fn...*/) {
-    var fns = [].slice.call(arguments, 0);
+Functional.sequence = function(/*fn...*/) {
+    var fns = Functional.map(Function.toFunction, arguments);
     return function() {
         for (var i = 0; i < fns.length; i++)
             arguments = [fns[i].apply(this, arguments)];
         return arguments[0];
     }
+}
+
+Functional.map = function(fn, sequence, receiver) {
+    arguments.length < 3 && (receiver = this);
+    fn = Function.toFunction(fn);
+    var len = sequence.length;
+    var result = new Array(len);
+    for (var i = 0; i < len; i++)
+        result[i] = fn.apply(receiver, [sequence[i], i]);
+    return result;
+}
+
+Functional.reduce = function(fn, init, sequence, receiver) {
+    arguments.length < 4 && (receiver = this);
+    fn = Function.toFunction(fn);
+    var len = sequence.length;
+    var result = [];
+    for (var i = 0; i < len; i++)
+        result = fn.apply(receiver, [init, sequence[i]]);
+    return result;
+}
+
+Functional.select = function(fn, sequence, receiver) {
+    arguments.length < 3 && (receiver = this);
+    fn = Function.toFunction(fn);
+    var len = sequence.length;
+    var result = {}
+    for (var i = 0; i < len; i++) {
+        var x = sequence[i];
+        fn.apply(receiver, [x, i]) && result.push(x);
+    }
+    return result;
+}
+
+Functional.install = function() {
+    var source = Functional;
+    var target = window;
+    for (var name in source)
+        name == 'install' || {}[name] || (target[name] = source[name]);
 }
 
 // Returns a function that takes an object as an argument, and applies
@@ -166,4 +215,32 @@ function pluck(name) {
     return function(object) {
         return object[name];
     }
+}
+
+Function.toFunction = function(fn) {
+    return typeof fn == 'function' ? fn : fn.toFunction();
+}
+
+String.prototype.lambda = function() {
+    var params = [];
+    var body = this;
+    var split = body.split(/\s*->\s*/, 2);
+    if (split.length > 1) {
+        params = split[0].split(/\s*,\s*|\s+/);
+        body = split[1];
+    } else if (body.match(/\b_\b/)) {
+        params = '_';
+    } else {
+        var vars = this.match(/([a-z_$][a-z_$\d]*)/gi);
+        for (var i = 0, v; v = vars[i++]; )
+            params.indexOf(v) >= 0 || params.push(v);
+    }
+    return new Function(params, 'return (' + body + ')');
+}
+
+String.prototype.toFunction = function() {
+    var body = this;
+    if (body.match(/\breturn\b/))
+        return new Function(this);
+    return this.lambda();
 }
