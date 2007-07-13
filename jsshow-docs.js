@@ -61,7 +61,13 @@ JSShow.Doc.prototype.addDescriptionLine = function(line) {
     var paragraphs = this.paragraphs;
     var match;
     if (match = line.match(/^\s+(.*)/)) {
-        paragraphs.push('<div class="formatted">&nbsp;&nbsp;' + match[1] + '</div>');
+        var prev = paragraphs[paragraphs.length - 2];
+        var match2;
+        if (typeof prev == 'string' && (match2 = prev.match(/<pre>(.*)<\/pre>/)))
+            return paragraphs[paragraphs.length-2] = '<pre>' + match2[1] + '\n' + line + '</pre>';
+        //info(prev);
+        paragraphs.push('<pre>&nbsp;&nbsp;' + match[1] + '</pre>');
+        //paragraphs.push('<div class="formatted">&nbsp;&nbsp;' + match[1] + '</div>');
         paragraphs.push([]);
     } else if (line.match(/^\s*$/))
         paragraphs.push([]);
