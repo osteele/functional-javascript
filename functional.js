@@ -16,12 +16,12 @@
 // ^ First-order combinators
 
 // The identity function: x -> x.
-//   I(x) == x.
+// == I(x) == x
 // :: x -> x
 Function.I = function(x) {return x};
 
 // Returns a constant function that returns +x+.
-//   K(x)(y) == x
+// == K(x)(y) == x
 // :: x -> _ -> x
 Function.K = function(x) {return function() {return x}}
 
@@ -29,7 +29,7 @@ Function.K = function(x) {return function() {return x}}
 
 // Returns a function that swaps its first two arguments before
 // passing them to the underlying function.
-//   fn.flip()(n1, n2, n3...) == fn(n2, n1, n3...)
+// == fn.flip()(n1, n2, n3...) == fn(n2, n1, n3...)
 Function.prototype.flip = function() {
     var fn = this;
     return function() {
@@ -52,7 +52,7 @@ Function.prototype.prefilter = function(pos, filter) {
 // ^^ Partial function application
 
 // Returns a bound method on +object+; optionally currying +args+.
-//   fn.bind(obj)(args...) == fn.apply(obj, [args...])
+// == fn.bind(obj)(args...) == fn.apply(obj, [args...])
 Function.prototype.bind = function(object/*, args...*/) {
     var fn = this;
     var args = [].slice.call(arguments, 1);
@@ -63,7 +63,7 @@ Function.prototype.bind = function(object/*, args...*/) {
 
 // Binds this function to +args+.  The returned function ignores
 // its arguments.
-//   fn.bind(args...)(args2..) == fn(args...)
+// == fn.bind(args...)(args2..) == fn(args...)
 // :: f args... -> args2... -> f args...
 Function.prototype.args = function(/*args*/) {
     var fn = this;
@@ -88,7 +88,7 @@ Function.prototype.curry = function(/*args...*/) {
 
 // Right curry.  Returns a function that, applied to an argumen list +args2+,
 // applies the underlying function to +args2+ + +args+.
-//   fn.curry(args...)(args2...) == fn(args2..., args...)
+// == fn.curry(args...)(args2...) == fn(args2..., args...)
 // :: f args... -> args2... -> f args2... args...
 Function.prototype.rcurry = function(/*args...*/) {
     var fn = this;
@@ -183,8 +183,8 @@ Functional.install = function() {
 // Returns a function that applies the last argument of this
 // function to its input, and the penultimate argument to this,
 // and so on.
-//   compose(f1, f2, f3..., fn)(args) = f1(f2(f3(...(fn(args...)))))
-// :: (t2 -> t1) (t3 -> t2) ... (args... -> tn) -> args... -> t1
+// == compose(f1, f2, f3..., fn)(args) == f1(f2(f3(...(fn(args...)))))
+// :: (a2 -> a1) (a3 -> a2) ... (args... -> an) -> args... -> a1
 Functional.compose = function(/*fn...*/) {
     var fns = Functional.map(Function.toFunction, arguments);
     return function() {
@@ -195,8 +195,8 @@ Functional.compose = function(/*fn...*/) {
 }
 
 // Same as +compose+, except applies the functions from front to back.
-//   sequence(f1, f2, f3..., fn)(args) == fn(...(f3(f2(f1(args...)))))
-// :: (args... -> t1) (t1 -> t2) (t2 -> t3) ... (t_{n-1} -> tn)  -> args... -> tn
+// == sequence(f1, f2, f3..., fn)(args) == fn(...(f3(f2(f1(args...)))))
+// :: (args... -> a1) (a1 -> a2) (a2 -> a3) ... (a[n-1] -> an)  -> args... -> an
 Functional.sequence = function(/*fn...*/) {
     var fns = Functional.map(Function.toFunction, arguments);
     return function() {
@@ -207,7 +207,7 @@ Functional.sequence = function(/*fn...*/) {
 }
 
 // Applies +fn+ to each element of +sequence+.
-//   map(f, [x1, x2...]) = [f(x, 0), f(x2, 1), ...]
+// == map(f, [x1, x2...]) = [f(x, 0), f(x2, 1), ...]
 // :: (a ix -> boolean) [a] -> [a]
 Functional.map = function(fn, sequence, object) {
     arguments.length < 3 && (receiver = this);
@@ -221,7 +221,7 @@ Functional.map = function(fn, sequence, object) {
 
 // Applies +fn+ to +init+ and the first element of +sequence+,
 // and then to the result and the second element, and so on.
-//   reduce(fn, init, [x1, x2, x3]) == fn(fn(fn(init, x1), x2), x3)
+// == reduce(fn, init, [x1, x2, x3]) == fn(fn(fn(init, x1), x2), x3)
 // :: (a b -> b) a [b] -> b
 Functional.reduce = function(fn, init, sequence, object) {
     arguments.length < 4 && (receiver = this);
@@ -255,7 +255,7 @@ Functional.filter = Functional.select;
 
 // Returns true when +fn(x)+ returns true for some element +x+ of
 // +sequence+.
-//   some(fn, [x1, x2, x3]) == fn(x1) || fn(x2) || fn(x3)
+// == some(fn, [x1, x2, x3]) == fn(x1) || fn(x2) || fn(x3)
 // :: (a -> boolean) [a] -> [a]
 Functional.some = function(fn, sequence, receiver) {
     arguments.length < 3 && (receiver = this);
@@ -272,7 +272,7 @@ Functional.some = function(fn, sequence, receiver) {
 
 // Returns true when +fn(x)+ is true for every element +x+ of
 // +sequence+.
-//   every(fn, [x1, x2, x3]) == fn(x1) && fn(x2) && fn(x3)
+// == every(fn, [x1, x2, x3]) == fn(x1) && fn(x2) && fn(x3)
 // :: (a -> boolean) [a] -> [a]
 Functional.every = function(fn, sequence, receiver) {
     arguments.length < 3 && (receiver = this);
@@ -288,7 +288,7 @@ Functional.every = function(fn, sequence, receiver) {
 }
 
 // Returns a function that returns true when +fn()+ returns false.
-//   fn.not()(args...) == !fn(args...)
+// == fn.not()(args...) == !fn(args...)
 // :: (a -> boolean) -> (a -> boolean)
 Functional.not = function(fn) {
     fn = Function.toFunction(fn);
@@ -301,7 +301,7 @@ Functional.not = function(fn) {
 
 // Returns a function that takes an object as an argument, and applies
 // +object+'s +methodName+ method to +arguments+.
-//   fn(name)(object, args...) == object[name](args...)
+// == fn(name)(object, args...) == object[name](args...)
 // :: name args.. -> object args2... -> object[name](args... args2...)
 Functional.invoke = function(methodName/*, arguments*/) {
     var args = [].slice.call(arguments, 1);
@@ -312,7 +312,7 @@ Functional.invoke = function(methodName/*, arguments*/) {
 
 // Returns a function that takes an object, and returns the value of its
 // +name+ property.  pluck(name) is the same as '_.name'.lambda().
-//   fn.pluck(name)(object) == object[name]
+// == fn.pluck(name)(object) == object[name]
 // :: name -> object -> object[name]
 Functional.pluck = function(name) {
     return function(object) {
@@ -376,13 +376,13 @@ String.prototype.lambda = function() {
 }
 
 // Coerce the string to a function and then apply it.
-//   'x+1'.apply(null, [2]) -> 3
+// >>> 'x+1'.apply(null, [2]) -> 3
 String.prototype.apply = function(thisArg, args) {
     return this.toFunction().apply(thisArg, args);
 }
 
 // Coerce the string to a function and then call it.
-//   'x+1'.call(2) -> 3
+// >>> 'x+1'.call(2) -> 3
 String.prototype.call = function() {
     return this.toFunction().apply(arguments[0], [].slice.call(arguments, 1));
 }

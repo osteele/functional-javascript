@@ -74,6 +74,7 @@ JSShow.Examples.prototype.toHTML = function() {
             return '<h3>'+match[1]+'</h3>';
         return '<span class="comment">'+line+'</span>';
     });
+    //html = html.replace(/<\/span>\s*<span class="comment">/g, '');
     return html;
 }
 

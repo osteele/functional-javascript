@@ -9,22 +9,27 @@
     <script type="text/javascript" src="jsshow-examples.js"></script>
     <style type="text/css">
       h1 {text-align:center}
+      .output {color:blue}
       #output {line-height:1.2em}
+      #output .comment {white-space:normal}
       #output .formatted {font-family:monospace; font-style: normal}
+      #output .output {color:blue}
       #docs .record {margin-bottom: 1em}
       #docs .signature {color:gray; font-family:monospace; margin-bottom:.25em}
       #docs .type {color:gray; font-family:monospace; font-size:smaller; margin-bottom:.25em}
       #docs .name {font-weight:bold; color:black}
+      #docs .target {color:gray}
       #docs .type .label {font-family:serif}
       #docs .description {color:#444; line-height:1.2em}
       #docs .description p {margin:0; margin-bottom:.5em}
-      #docs .description pre {font-family:monospace; line-height:1.1em; margin-top:-.5em}
-      #docs .target {color:gray}
+      #docs .description pre {font-family:monospace; line-height:1.2em; margin-top:-.5em}
+      #docs .output {color:blue}
+      #docs sub {font-size: small; font-family:serif; font-style:italic}
       .comment {color: gray; font-style: italic; font-family: serif}
       #output h3 {font-family:serif; margin:0; padding:0;}
       #footer {color:#888; border-top:1px solid; font-size:small}
-      #footer a, #legend a {color:#888}
-      #footer a:hover, #legend a:hover {color:blue}
+      a {color:#888}
+      a:hover {color:blue}
     </style>
   </head>
   <body>
@@ -40,27 +45,25 @@
     verbose Javascript expressions such as <code>function(x) {return
     x+1}</code>.</p>
     
-    <p>In short, for better or worse, Functional lets you write
-    expressions such as these:</p>
+    <p>Functional enables expressions such as these:</p>
     <pre>
       map('x*x', [1,2,3,4]);
-        &rarr; [1,4,9,16]
+        <span class="output">&rarr; [1,4,9,16]</span>
       some('x>2', [1,2,3,4]);
-        &rarr; true
+        <span class="output">&rarr; true</span>
       until('x>10', 'x*x')(2);
-        &rarr; 16
+        <span class="output">&rarr; 16</span>
       map(pluck('length'), ['two', 'words']);
-        &rarr; [3,5]
+        <span class="output">&rarr; [3,5]</span>
       map(invoke('toUpperCase'), ['two', 'words']);
-        &rarr; ["TWO", "WORDS"]
+        <span class="output">&rarr; ["TWO", "WORDS"]</span>
     </pre>
 
     <p>Functional doesn't define as many collection functions as a
     library such as <a
     href="http://www.prototypejs.org/">Prototype</a>.  It can,
     however, be used in conjunction with such a library.  The code
-    that generates the documentation and examples that are displayed
-    below does this.</p>
+    that generates this page is an example of this.</p>
     
     <div id="noscript">
       If you can read this, you either have JavaScript turned off

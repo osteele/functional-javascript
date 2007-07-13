@@ -60,14 +60,20 @@ JSShow.Doc = function() {
 JSShow.Doc.prototype.addDescriptionLine = function(line) {
     var paragraphs = this.paragraphs;
     var match;
-    if (match = line.match(/^\s+(.*)/)) {
+    if (match = line.match(/^>>>\s*(.*)/)) {
+        line = '  ' + match[1].replace(/->(.*)/, '<span class="output">&rarr;$1</span>');
+    }
+    if ((match = line.match(/^==\s*(.*)/))) {
+        line = '  ' + match[1].replace(/\.\.\./g, '&hellip;');
+        line = line.replace(/==/, '=<sub>def</sub>');
+        paragraphs.push('<pre>' + line + '</pre>');
+        paragraphs.push([]);
+    } else if (match = line.match(/^\s+(.*)/)) {
         var prev = paragraphs[paragraphs.length - 2];
         var match2;
         if (typeof prev == 'string' && (match2 = prev.match(/<pre>(.*)<\/pre>/)))
             return paragraphs[paragraphs.length-2] = '<pre>' + match2[1] + '\n' + line + '</pre>';
-        //info(prev);
         paragraphs.push('<pre>&nbsp;&nbsp;' + match[1] + '</pre>');
-        //paragraphs.push('<div class="formatted">&nbsp;&nbsp;' + match[1] + '</div>');
         paragraphs.push([]);
     } else if (line.match(/^\s*$/))
         paragraphs.push([]);
