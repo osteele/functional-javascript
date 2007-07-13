@@ -10,13 +10,14 @@
     <style type="text/css">
       h1 {text-align:center}
       #output .formatted {font-family:monospace; font-style: normal}
-      #docs .target {color:gray}
-      #docs .fname {font-weight:bold}
-      #docs .description {color:#666}
-      #docs .description .br {height:-1em;}
-      #docs .description .formatted {font-family:monospace}
-      #docs .signature {font-family:monospace; font-size:smaller}
-      #docs .signature .label {font-family:serif}
+      #docs .record {margin-bottom: 1em}
+      #docs .signature {color:gray; font-family:monospace; margin-bottom:.25em}
+      #docs .type {color:gray; font-family:monospace; font-size:smaller; margin-bottom:.25em}
+      #docs .name {font-weight:bold; color:black}
+      #docs .type .label {font-family:serif}
+      #docs .description {color:#444}
+      #docs .description p {margin:0; margin-bottom:.5em; line-height:1.2em}
+      #docs .description .formatted {font-family:monospace; margin-top:-.5em}
       #docs .target {color:gray}
       .output {color: blue}
       .comment {color: gray; font-style: italic; font-family: serif}
@@ -36,6 +37,10 @@
     accepts strings that define lambda expressions, such as <code>'x
     -> x+1'</code> or <code>'x+1'</code>, as synonyms for the more
     verbose Javascript expression <code>function(x) {return x+1}</code>.</p>
+    <p>Functional doesn't define as many collection functions as
+    a library such as Prototype.  It can, however, be used in conjunction
+    with such a library.  The code that generates the documentation and
+    examples, below, does this.</p>
     <div id="noscript">
       If you can read this, you either have JavaScript turned off
       or you're using a browser I haven't tested.  Either way,

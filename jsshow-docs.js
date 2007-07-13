@@ -51,6 +51,7 @@ JSShow.Docs.prototype.toHTML = function(string) {
 JSShow.Doc = function() {
     this.target = this.params = null;
     this.lines = [];
+    this.paragraphs = [[]];
 }
 
 JSShow.Doc.prototype.addDescriptionLine = function(line) {
@@ -64,59 +65,84 @@ JSShow.Doc.prototype.addDescriptionLine = function(line) {
     this.lines.push(line);
 }
 
+JSShow.Doc.prototype.addDescriptionLine = function(line) {
+    var paragraphs = this.paragraphs;
+    var match;
+    if (match = line.match(/^\s+(.*)/)) {
+        paragraphs.push('<div class="formatted">&nbsp;&nbsp;' + match[1] + '</div>');
+        paragraphs.push([]);
+    } else if (line.match(/^\s*$/))
+        paragraphs.push([]);
+    else {
+        line = line.escapeHTML().replace(/\+([\w()_]+)\+/g, '<var>$1</var>').replace(/\*(\w+)\*/g, '<em>$1</em>');
+        paragraphs[paragraphs.length-1].push(line);
+    }
+}
+
 JSShow.DocParser = function() {};
 
 JSShow.DocParser.prototype.parse = function(text) {
     this.records = [];
     this.current = null;
-    text.split('\n').each(this.parseLine.bind(this));
+    text.split('\n').each(this.processNextLine.bind(this));
     return this.records;
 }
 
-JSShow.DocParser.prototype.parseLine = function(line) {
-    var rec = this.current;
+JSShow.DocParser.prototype.processNextLine = function(line) {
+    var self = this;
+    var record = this.current;
     var match;
     if (match = line.match(/^\/\/ (.*)/)) {
-        line = match[1];
-        rec || (rec = this.current = new JSShow.Doc());
-        if (match = line.match(/\s*::\s*(.*)/))
-            rec.signature = match[1];
-        else
-            rec.addDescriptionLine(line);
-    } else if (rec) {
-        var name, params;
+        processCommentLine(match[1]);
+    } else if (record) {
         if (match = line.match(/^((?:\w+\.)*\w+)\s*=\s*function\s*\((.*?)\)/)) {
-            name = match[1];
-            params = match[2];
+            recordFunction(match[1], match[2]);
         } else if ((match = line.match(/^function\s+(\w+)\s*\((.*?)\)/))) {
-            name = match[1];
-            params = match[2];
+            recordFunction(match[1], match[2]);
         } else if ((match = line.match(/^var\s+(\w+)\s+=/))) {
-            name = match[1];
+            recordFunction(match[1]);
         } else {
             //info('no match', line);
-            this.records.pop();
             this.current = null;
-            return;
         }
+    }
+    function processCommentLine(line) {
+        var match;
+        record || (record = self.current = new JSShow.Doc());
+        if (match = line.match(/\s*::\s*(.*)/))
+            record.signature = match[1];
+        else
+            record.addDescriptionLine(line);
+    }
+    function recordFunction(name, params) {
+        var match;
         if (match = name.match(/(.*\.)(\w+)/)) {
             name = match[2];
-            rec.target = match[1];
+            record.target = match[1];
         }
-        rec.name = name;
-        rec.params = params && params.replace(/\/\*/g, '').replace(/\*\//g, '');
-        this.records.push(rec);
-        this.current = null;
+        record.name = name;
+        record.params = params && params.replace(/\/\*/g, '').replace(/\*\//g, '');
+        self.records.push(record);
+        self.current = null;
     }
 }
 
 JSShow.Doc.prototype.toHTML = function() {
     var spans = [];
-    var target = '';
+    spans.push('<div class="record">');
+    spans.push('<div class="signature">');
     this.target && spans.push('<span class="target">' + this.target + '</span>');
-    spans.push('<span class="fname">' + this.name + '</span>');
+    spans.push('<span class="name">' + this.name + '</span>');
     this.params != null && spans.push('(<var>' + this.params + '</var>)');
-    this.signature && spans.push('<div class="signature"><span class="label">Signature:</span> '+this.signature.escapeHTML()+'</div>');
-    spans = spans.concat(['<div class="description">',this.lines.join(' '), '</div>', '<br/>']);
+    spans.push('</div>');
+    this.signature && spans.push('<div class="type"><span class="label">Signature:</span> '+this.signature.escapeHTML()+'</div>');
+    var paras = this.paragraphs.select(pluck('length')).map(function(lines) {
+        if (typeof lines == 'string') return lines;
+        return ['<p>', lines.join(' '), '</p>'].join('')
+    });
+    spans.push('<div class="description">');
+    spans = spans.concat(paras);
+    spans.push('</div>');
+    spans.push('</div>');
     return spans.join('');
 }

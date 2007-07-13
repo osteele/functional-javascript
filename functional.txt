@@ -137,7 +137,6 @@ Agenda:
 - receiver -> something else (in the docs too)
 - references?
 
-fusion rule:
-here's a trick for applying a set of functions to a single number:
-map('_(1)', map('_.lambda()', ['x+1', 'x-1']))
-map(compose('_(1)', '_.lambda()'), ['x+1', 'x-1'])
+prefilter(1, not)
+prefilter(1, 2, not)
+var fwhile = until.applyAt(1, not);

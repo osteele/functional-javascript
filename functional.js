@@ -16,9 +16,10 @@
 
 /*
  * Agenda:
- * - foldr, foldl, fst, snd, pair
- * - vet against proto, prelude
- * - introduce synonym for reduce, args; doc synonyms
+ * - foldr, foldl
+ * - vet against proto
+ * - introduce synonym for args
+ * - doc synonyms
  * - split files?
  * - change license
  */
@@ -143,12 +144,12 @@ Function.prototype.flip = function() {
     return function() {
         var args = [].slice.call(arguments, 0);
         args = args.slice(1,2).concat(args.slice(0,1)).concat(args.slice(2));
-        info(args);
         return fn.apply(this, args);
     }
 }
 
-// Bind +f+ to +args+.  The returned function will ignore it's arguments.
+// Binds this function to +args+.  The returned function ignores
+// its arguments.
 //   fn.bind(args...)(args2..) == fn(args...)
 // :: f args... -> args2... -> f args...
 Function.prototype.args = function(/*args*/) {
@@ -171,10 +172,11 @@ Functional.install = function() {
         name == 'install' || {}[name] || (target[name] = source[name]);
 }
 
-// Return a function that applied the last argument of this
+// Returns a function that applies the last argument of this
 // function to its input, and the penultimate argument to this,
 // and so on.
-// :: f1 f2 f3... fn -> args -> f1(f2(f3(...(fn(*args)))))
+//   compose(f1, f2, f3..., fn)(args) = f1(f2(f3(...(fn(args...)))))
+// :: (t2 -> t1) (t3 -> t2) ... (args... -> tn) -> args... -> t1
 Functional.compose = function(/*fn...*/) {
     var fns = Functional.map(Function.toFunction, arguments);
     return function() {
@@ -184,8 +186,9 @@ Functional.compose = function(/*fn...*/) {
     }
 }
 
-// Same as +compose+ only applies the functions from front to back.
-// :: f1 f2 f3... fn -> args -> fn(...(f3(f2(f1(*args)))))
+// Same as +compose+, except applies the functions from front to back.
+//   sequence(f1, f2, f3..., fn)(args) == fn(...(f3(f2(f1(args...)))))
+// :: (args... -> t1) (t1 -> t2) (t2 -> t3) ... (t_{n-1} -> tn)  -> args... -> tn
 Functional.sequence = function(/*fn...*/) {
     var fns = Functional.map(Function.toFunction, arguments);
     return function() {
@@ -195,32 +198,35 @@ Functional.sequence = function(/*fn...*/) {
     }
 }
 
-// Apply +fn()+ to each element of +sequence+.
-// :: (x -> boolean) [x] -> [x]
-Functional.map = function(fn, sequence, receiver) {
+// Applies +fn+ to each element of +sequence+.
+//   map(f, [x1, x2...]) = [f(x, 0), f(x2, 1), ...]
+// :: (x ix -> boolean) [x] -> [x]
+Functional.map = function(fn, sequence, object) {
     arguments.length < 3 && (receiver = this);
     fn = Function.toFunction(fn);
     var len = sequence.length;
     var result = new Array(len);
     for (var i = 0; i < len; i++)
-        result[i] = fn.apply(receiver, [sequence[i], i]);
+        result[i] = fn.apply(object, [sequence[i], i]);
     return result;
 }
 
-// Apply +fn()+ to +init+ and the first element of +sequence+,
+// Applies +fn+ to +init+ and the first element of +sequence+,
 // and then to the result and the second element, and so on.
+//   reduce(fn, init, [x1, x2, x3]) == fn(fn(fn(init, x1), x2), x3)
 // :: (a b -> b) a [b] -> b
-Functional.reduce = function(fn, init, sequence, receiver) {
+Functional.reduce = function(fn, init, sequence, object) {
     arguments.length < 4 && (receiver = this);
     fn = Function.toFunction(fn);
     var len = sequence.length;
     var result = init;
     for (var i = 0; i < len; i++)
-        result = fn.apply(receiver, [result, sequence[i]]);
+        result = fn.apply(object, [result, sequence[i]]);
     return result;
 }
 
-// Return those elements +x+ of +sequence+ such that +fn(x)+ returns true.
+// Returns a list of those elements +x+ of +sequence+ such that
+// +fn(x)+ returns true.
 // :: (x -> boolean) [x] -> [x]
 Functional.select = function(fn, sequence, receiver) {
     arguments.length < 3 && (receiver = this);
@@ -234,30 +240,38 @@ Functional.select = function(fn, sequence, receiver) {
     return result;
 }
 
-// Returns true when +fn(x)+ returns true for some element +x+ of +sequence+.
+// Returns true when +fn(x)+ returns true for some element +x+ of
+// +sequence+.
+//   some(fn, [x1, x2, x3]) == fn(x1) || fn(x2) || fn(x3)
 // :: (x -> boolean) [x] -> [x]
 Functional.some = function(fn, sequence, receiver) {
     arguments.length < 3 && (receiver = this);
     fn = Function.toFunction(fn);
     var len = sequence.length;
     var result = [];
-    for (var i = 0; i < len; i++)
-        if (fn.apply(receiver, [sequence[i]]))
-            return true;
-    return false;
+    var value = false;
+    for (var i = 0; i < len; i++) {
+        value = fn.apply(receiver, [sequence[i]]);
+        if (value) return value;
+    }
+    return value;
 }
 
-// Returns true when +fn(x)+ is true for every element +x+ of +sequence+.
+// Returns true when +fn(x)+ is true for every element +x+ of
+// +sequence+.
+//   every(fn, [x1, x2, x3]) == fn(x1) && fn(x2) && fn(x3)
 // :: (x -> boolean) [x] -> [x]
 Functional.every = function(fn, sequence, receiver) {
     arguments.length < 3 && (receiver = this);
     fn = Function.toFunction(fn);
     var len = sequence.length;
     var result = [];
-    for (var i = 0; i < len; i++)
-        if (!fn.apply(receiver, [sequence[i]]))
-            return false;
-    return true;
+    var value = true;
+    for (var i = 0; i < len; i++) {
+        value = fn.apply(receiver, [sequence[i]]);
+        if (!value) return value;
+    }
+    return value;
 }
 
 // Returns a function that returns true when +fn()+ returns false.
@@ -291,7 +305,19 @@ Functional.pluck = function(name) {
     }
 }
 
-// Turns an expression into a function that returns its application.
+Functional.until = function(fn, pred) {
+    fn = Function.toFunction(fn);
+    pred = Function.toFunction(pred);
+    return function(value) {
+        while (!pred.call(null, value))
+            value = fn.call(null, value);
+        return value;
+    }
+}
+
+// Turns a string that contains a Javascript expression, into a
+// +Function+ that applies the expression.
+// 
 // If the string contains a '->', this separates the parameters from the body
 //   x, y -> x + y
 //   x y -> x + y
@@ -339,7 +365,7 @@ String.prototype.call = function() {
     return this.toFunction().apply(arguments[0], [].slice.call(arguments, 1));
 }
 
-// Return a Function that perfoms the action described by this
+// Returns a Function that perfoms the action described by this
 // string.  If the string contains a 'return', applies
 // 'new Function' to it.  Otherwise, calls +lambda+.
 String.prototype.toFunction = function() {
@@ -349,8 +375,14 @@ String.prototype.toFunction = function() {
     return this.lambda();
 }
 
+// Returns this function.  For use when an unknown value
+// must be coerced to a function.
+Function.prototype.toFunction = function() {
+    return this;
+}
+
 // Coerces +fn+ into a function if it is not already one,
 // by calling its +toFunction+ method.
-Function.toFunction = function(fn) {
-    return typeof fn == 'function' ? fn : fn.toFunction();
+Function.toFunction = function(value) {
+    return value.toFunction();
 }

@@ -126,6 +126,10 @@ function examples() {
     trace(some('x>2', [1,2,3,4]));
     trace(every('x>2', [1,2,3,4]));
     
+    // The fusion rule holds:
+    trace(map('x+1', map('x*2', [1,2,3])));
+    trace(map(compose('x+1', 'x*2'), [1,2,3]));
+    
     // +compose+ and +sequence+ compose sequences of functions
     // backwards and forwards, respectively
     trace(compose('_+1', '_*2')(1));
@@ -142,9 +146,21 @@ function examples() {
     // +pluck+ and +invoke+ turn methods into functions:
     trace(map(pluck('length'), ['two', 'words']));
     trace(map(invoke('toUpperCase'), ['two', 'words']));
-    // We could use +lambda+ instead:
+    // +lambda+ works for this too:
     trace(map('_.length', ['two', 'words']));
     trace(map('_.toUpperCase()', ['two', 'words']));
+    // +pluck+ can implement the tuple projection functions, +fst+ and +snd+:
+    trace(map(pluck(0), [['NYC', 'NY'], ['Boston', 'MA'], ['Sacremento', 'CA']]));
+    trace(map(pluck(1), [['NYC', 'NY'], ['Boston', 'MA'], ['Sacremento', 'CA']]));
+    
+    // functional iteration with +until+:
+    trace(until('x*2', 'x>10')(1));
+    trace(until('x*x', 'x>100')(2));
+    trace(until('x*x', not('x<1000'))(2));
+    
+    // Higher-order higher-order programming, and the fusion rule:
+    trace(map('_(1)', map('_.lambda()', ['x+1', 'x-1'])));
+    trace(map(compose('_(1)', '_.lambda()'), ['x+1', 'x-1']));
 }
 
 Function.prototype.reporting = function() {
