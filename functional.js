@@ -148,6 +148,16 @@ Function.prototype.flip = function() {
     }
 }
 
+Function.prototype.prefilter = function(pos, filter) {
+    var fn = this;
+    filter = Function.toFunction(filter);
+    return function() {
+        var args = [].slice.call(arguments, 0);
+        args[pos] = filter(args[pos]);
+        return fn.apply(this, args);
+    }
+}
+
 // Binds this function to +args+.  The returned function ignores
 // its arguments.
 //   fn.bind(args...)(args2..) == fn(args...)
@@ -305,7 +315,7 @@ Functional.pluck = function(name) {
     }
 }
 
-Functional.until = function(fn, pred) {
+Functional.until = function(pred, fn) {
     fn = Function.toFunction(fn);
     pred = Function.toFunction(pred);
     return function(value) {

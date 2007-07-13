@@ -135,8 +135,6 @@ I bummed the +[].slice.call(arguments, 0)+ idiom from http://www.coryhudson.com/
 
 Agenda:
 - receiver -> something else (in the docs too)
+- doc prefilter; add slice?
 - references?
-
-prefilter(1, not)
-prefilter(1, 2, not)
-var fwhile = until.applyAt(1, not);
+- swap order for until?
