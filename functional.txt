@@ -144,3 +144,4 @@ Agenda:
 - parameterize hn
 - make tl that take as fn instead of method?
 - add methods to string?
+- zip

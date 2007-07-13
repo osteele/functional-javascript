@@ -381,6 +381,12 @@ String.prototype.lambda = function() {
         }
     } else if (body.match(/\b_\b/)) {
         params = '_';
+    } else if (body.match(/^\s*[+*\/%&|^!\.=<>]/)) {
+        params = '_';
+        body = '_' + body;
+    } else if (body.match(/[+\-*\/%&|^!\.=<>]\s*$/)) {
+        params = '_';
+        body = body + '_';
     } else {
         var vars = this.match(/([a-z_$][a-z_$\d]*)/gi);
         for (var i = 0, v; v = vars[i++]; )

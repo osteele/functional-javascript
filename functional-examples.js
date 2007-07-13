@@ -23,8 +23,13 @@ trace('x+1'.lambda()(2));
 trace('x+2*y'.lambda()(2, 3));
 // You can call a string directly, if you're only using it once
 // (and don't need to cache the conversion to a function).
-trace('_+1'.call(null, 2));
-trace('_+1'.apply(null, [2]));
+trace('x+1'.call(null, 2));
+trace('x+1'.apply(null, [2]));
+// You can leave out a leading or trailing '_', if the string begins
+// with a binary or relational operator besides '-'.
+trace('*2'.lambda()(2));
+trace('/2'.lambda()(4));
+trace('2/'.lambda()(4));
 // Use -> to specify the variables explicitly, when the expression contains
 // symbols that aren't variables (e.g. +Math.sin+), or you want to bind the
 // arguments in a different order from their occurrence in the expression.
@@ -45,22 +50,22 @@ trace(Functional.map('_+1', [1,2,3]));
 // +Functional.install()+ imports the functionals into the global namespace,
 // so that we don't have to qualify them with Functional.* each time.
 Functional.install();
-trace(map('_+1', [1,2,3]));
+trace(map('+1', [1,2,3]));
 trace(map('_.length', 'here are some words'.split(' ')));
-trace(select('x>2', [1,2,3,4]));
+trace(select('>2', [1,2,3,4]));
 trace(reduce('2*x+y', 0, [1,0,1,0]));
-trace(some('x>2', [1,2,3,4]));
-trace(every('x>2', [1,2,3,4]));
+trace(some('>2', [1,2,3,4]));
+trace(every('>2', [1,2,3,4]));
 
 // The fusion rule:
-trace(map('x+1', map('x*2', [1,2,3])));
-trace(map(compose('x+1', 'x*2'), [1,2,3]));
+trace(map('+1', map('*2', [1,2,3])));
+trace(map(compose('+1', '*2'), [1,2,3]));
 
 // +compose+ and +sequence+ compose sequences of functions
 // backwards and forwards, respectively
-trace(compose('_+1', '_*2')(1));
-trace(sequence('_+1', '_*2')(1));
-trace(compose('_+1', '_*2', '_.length')('a string'));
+trace(compose('+1', '*2')(1));
+trace(sequence('+1', '*2')(1));
+trace(compose('+1', '*2', '_.length')('a string'));
 trace(compose.apply(null, map('x -> y -> x*y+1', [2,3,4]))(1));
 trace(compose.apply(null, map('x -> y -> x+y', ['hemi', 'demi', 'semi']))('quaver'));
 trace(compose.apply(null, map('x -> y -> x+"-"+y', ['hemi', 'demi', 'semi']))('quaver'));
@@ -73,8 +78,8 @@ trace(reduce.partial('x y -> y+x', _, ['hemi', 'demi', 'semi'].reverse())('quave
 trace(map(pluck('length'), ['two', 'words']));
 trace(map(invoke('toUpperCase'), ['two', 'words']));
 // +lambda+ works for this too:
-trace(map('_.length', ['two', 'words']));
-trace(map('_.toUpperCase()', ['two', 'words']));
+trace(map('.length', ['two', 'words']));
+trace(map('.toUpperCase()', ['two', 'words']));
 // +pluck+ can implement projections:
 trace(map(pluck(0), [['NYC', 'NY'], ['Boston', 'MA'], ['Sacremento', 'CA']]));
 trace(map(pluck(1), [['NYC', 'NY'], ['Boston', 'MA'], ['Sacremento', 'CA']]));
@@ -82,11 +87,11 @@ trace(map(pluck('x'), [{x:10, y:20}, {x:15, y:25}, {x:0, y:-5}]));
 trace(map(pluck('y'), [{x:10, y:20}, {x:15, y:25}, {x:0, y:-5}]));
 
 // Functional iteration with +until+:
-trace(until('x>10', 'x*2')(1));
-trace(until('x>100', 'x*x')(2));
-trace(until(not('x<100'), 'x*x')(2));
+trace(until('>10', '*2')(1));
+trace(until('>100', 'x*x')(2));
+trace(until(not('<100'), 'x*x')(2));
 var fwhile = until.prefilter(0, not);
-trace(fwhile('x<100', 'x*x')(2));
+trace(fwhile('<100', 'x*x')(2));
 
 // Higher order higher-order programming:
 trace(map('_(1)', map('_.lambda()', ['x+1', 'x-1'])));
@@ -102,17 +107,17 @@ function list(a,b,c,d) {return [a,b,c,d]};
 // Specialize the first and third parameters.  This creates a new
 // function, that interleaves its arguments with the 1 and 2.
 var finterleave = list.partial(1,_,2,_);
-trace('f2 3 ->', finterleave(3, 4));
+trace(finterleave(3, 4));
 
 // Specialize the outer two parameters, to produce a function that
 // plugs in the inners.
 var finners = list.partial(1,_,_,2);
-trace('f3 4, 5 -> ', finners(3, 4));
+trace(finners(3, 4));
 
 // if not all the parameters are supplied, the result is a function...
 trace(finterleave(4));
 // ...which can be applied until the argument list is saturated.
-trace('f2 4, 5 ->', finterleave(3)(4));
+trace(finterleave(3)(4));
 trace(finners(_,3));
 trace(finners(_,3)(4));
 trace(finners(3)(4));
@@ -138,8 +143,8 @@ trace(left(3, 4));
 function divide(a, b) {return a/b}
 var halve = divide.rcurry(2);
 var double = divide.rcurry(1/2);
-trace('halve 10', halve(10));
-trace('double 10', double(10));
+trace(halve(10));
+trace(double(10));
 
 // +ncurry+ and +rncurry+ wait until they're fully saturated before
 // applying the function.  [r]curry can't because it doesn't

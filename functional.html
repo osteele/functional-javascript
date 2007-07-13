@@ -38,15 +38,17 @@ h2 {margin:0}
           <span class="output">&rarr; 9</span>
         map('x*x', [1,2,3,4])
           <span class="output">&rarr; [1, 4, 9, 16]</span>
-        some('x>2', [1,2,3,4])
-          <span class="output">&rarr; true</span>
-        until('x>10', 'x*x')(2)
+        select('>2', [1,2,3,4])
+          <span class="output">&rarr; [3, 4]</span>
+        until('>10', 'x*x')(2)
           <span class="output">&rarr; 16</span>
       </pre>
     </div>
     <div style="float:left">
       <p>Or, for the adventurous, these:</p>
       <pre>
+        select('_.x > _.y', [{x:1,y:2},{x:2,y:1}])
+          <span class="output">&rarr; [{x:2, y:1}]</span>
         var squareUntil = until.partial(_, 'x*x');
         squareUntil('x>100')(2)
           <span class="output">&rarr; 256</span>
@@ -68,6 +70,7 @@ h2 {margin:0}
       <tr>
         <td id="examples" valign="top">
           <h2>Examples</h2>
+          (<a href="functional-examples.js">examples source</a>)
           <pre id="output" class="jsshow examples">Examples failed to load.</pre>
           <button id="e1">1. Event.observe</button>
           <button id="e2">2. onclick</button>
@@ -75,6 +78,7 @@ h2 {margin:0}
         </td>
         <td id="documentation" valign="top">
           <h2>Documentation</h2>
+          (<a href="functional.js">source</a>)
           <div id="docs" class="jsshow docs">Documentation failed to load.</div>
         </td>
       </tr>
