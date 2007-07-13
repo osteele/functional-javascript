@@ -21,7 +21,7 @@ JSShow.Docs.load = function(url) {
 }
 
 JSShow.Docs.prototype.parse = function(string) {
-    this.records = (new JSShow.DocParser).parse(string);
+    this.records = (new JSShow.Docs.Parser).parse(string);
     this.loaded = true;
     this.target && this.updateTarget();
     return this;
@@ -52,7 +52,7 @@ JSShow.Docs.prototype.toHTML = function(string) {
     return spans.join('\n');
 }
 
-JSShow.Doc = function(name, params) {
+JSShow.Docs.Definition = function(name, params) {
     this.target = this.params = null;
     var match;
     if (match = name.match(/(.*\.)(\w+)/)) {
@@ -63,49 +63,69 @@ JSShow.Doc = function(name, params) {
     this.params = params && params.replace(/\/\*(.*?)\*\//g, '$1').replace(/\.\.\./g, '&hellip;');
 }
 
-JSShow.Doc.prototype.setDescription = function(lines) {
+JSShow.Docs.Definition.prototype.setDescription = function(lines) {
     this.blocks = [];
     this.block = null;
     map(this.addDescriptionLine, lines, this);
 }
 
-JSShow.Doc.prototype.addDescriptionLine = function(line) {
+JSShow.Docs.Definition.prototype.addDescriptionLine = function(line) {
     var blocks = this.blocks;
     var block = this.block;
-    var match;
-    if (match = line.match(/\s*::\s*(.*)/))
-        return this.signature = match[1];
-    if (match = line.match(/^>>\s*(.*)/)) {
-        this.block = null;
-        line = '  ' + match[1].escapeHTML().replace(/->(.*)/, '<span class="output">&rarr;$1</span>');
-        pre(line);
-        return;
+    var self = this;
+    var rules =
+        [[/\s*::\s*(.*)/, type],
+         [/^>>\s*(.*)/, output],
+         [/^==\s*(.*)/, defn],
+         [/^\s+(.*)/, indented],
+         [/^\s*$/, endParagraph],
+         [/(.*)/, para]];
+    for (var i = 0; i < rules.length; i++) {
+        var item = rules[i];
+        var match;
+        if (match = line.match(item[0])) {
+            item[1].apply(this, [].slice.call(match, 1));
+            break;
+        }
     }
-    if ((match = line.match(/^==\s*(.*)/))) {
-        this.block = null;
-        line = '  ' + match[1].replace(/\.\.\./g, '&hellip;');
-        line = line.replace(/==/, '=<sub>def</sub>');
-        blocks.push('<pre>' + line + '</pre>');
-    } else if (match = line.match(/^\s+(.*)/)) {
-        this.block = null;
-        pre(match[1].escapeHTML());
-    } else if (line.match(/^\s*$/))
-        ;
-    else {
+    
+    // line type handlers (some also add)
+    function type(text) {
+        this.signature = text;
+    }
+    function output(text) {
+        endParagraph();
+        var line = text.escapeHTML().replace(/->(.*)/, '<span class="output">&rarr;$1</span>');
+        pre('  ' + line);
+    }
+    function defn(text) {
+        endParagraph();
+        var line = text.replace(/\.\.\./g, '&hellip;').replace(/==/, '=<sub>def</sub>');
+        blocks.push('<pre>  ' + line + '</pre>');
+    }
+    function indented(line) {
+        endParagraph();
+        pre(line.escapeHTML());
+    }
+    function para(line) {
         block || blocks.push(this.block = block = []);
         line = line.escapeHTML().replace(/\+([\w()_]+)\+/g, '<var>$1</var>').replace(/\*(\w+)\*/g, '<em>$1</em>');
         block.push(line);
+    }
+    // adders
+    function endParagraph() {
+        self.block = null;
     }
     function pre(line) {
         var prev = blocks[blocks.length - 1];
         var match;
         if (typeof prev == 'string' && (match = prev.match(/<pre>(.*)<\/pre>/)))
-            return blocks[blocks.length-1] = '<pre>' + match[1] + '\n' + line + '</pre>';
+            return blocks[blocks.length-1] = '<pre>' + match[1] + '\n&nbsp;&nbsp;' + line + '</pre>';
         blocks.push('<pre>&nbsp;&nbsp;' + line + '</pre>');
     }
 }
 
-JSShow.Doc.prototype.toHTML = function() {
+JSShow.Docs.Definition.prototype.toHTML = function() {
     var isFunction = this.params != null;
     var spans = [];
     
@@ -130,9 +150,9 @@ JSShow.Doc.prototype.toHTML = function() {
         this.signature && spans.push('<div class="type"><span class="label">Type:</span> '+this.signature.escapeHTML().replace(/-&gt;/g, '&rarr;').replace(/\.\.\./g, '&hellip;')+'</div>');
     }
     function description() {
-        var paras = this.blocks.select(pluck('length')).map(function(lines) {
-            if (typeof lines == 'string') return lines;
-            return ['<p>', lines.join(' '), '</p>'].join('')
+        var paras = this.blocks.select(pluck('length')).map(function(block) {
+            if (typeof block == 'string') return block;
+            return ['<p>', block.join(' '), '</p>'].join('')
         });
         spans.push('<div class="description">');
         spans = spans.concat(paras);
@@ -140,9 +160,9 @@ JSShow.Doc.prototype.toHTML = function() {
     }
 }
 
-JSShow.DocParser = function() {};
+JSShow.Docs.Parser = function() {};
 
-JSShow.DocParser.prototype.parse = function(text) {
+JSShow.Docs.Parser.prototype.parse = function(text) {
     this.lines = [];
     this.records = [];
     this.keys = {};
@@ -151,7 +171,7 @@ JSShow.DocParser.prototype.parse = function(text) {
     return this.records;
 }
 
-JSShow.DocParser.prototype.processLine = function(line) {
+JSShow.Docs.Parser.prototype.processLine = function(line) {
     var self = this;
     var match;
     if (match = line.match(/^\/\/ (.*)/)) {
@@ -172,7 +192,7 @@ JSShow.DocParser.prototype.processLine = function(line) {
         this.lines = [];
     }
     function recordDefinition(name, params) {
-        var record = self.keys[name] = new JSShow.Doc(name, params);
+        var record = self.keys[name] = new JSShow.Docs.Definition(name, params);
         record.setDescription(self.lines);
         self.records.push(record);
     }

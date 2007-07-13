@@ -396,7 +396,7 @@ Functional.zip = function(/*args...*/) {
 //   Math.pow(_, 2)
 //   x -> Math.pow(x, 2)
 // 
-// You can chain '->' to create a function in uncurried form:
+// Chain '->'s to create a function in uncurried form:
 //   x -> y -> x + y
 String.prototype.lambda = function() {
     var params = [];
