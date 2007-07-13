@@ -1,8 +1,11 @@
-/* Copyright 2007 by Oliver Steele.  This work is licensed under the
- * MIT license, and the Creative Commons Attribution-Noncommercial-Share
- * Alike 3.0 License. http://creativecommons.org/licenses/by-nc-sa/3.0/
+/* 
+ * Author: Oliver Steele
+ * Copyright: Copyright 2007 by Oliver Steele.  All rights reserved.
+ * License: MIT License
+ * Source: http://osteele.com/javascripts/jsshow-examples.js
+ * Created: 2007-07-11
+ * Modified: 2007-07-12
  */
-
 
 var JSShow = window.JSShow || {};
 
@@ -66,6 +69,9 @@ JSShow.Examples.prototype.toHTML = function() {
     //var html = lines.join('').replace(/(\/\/.*)/g, '<span class="comment">$1</span>');
     var html = lines.join('').replace(/(\/\/.*)/g, function(line) {
         line = line.replace(/\+(\S+)\+/g, '<span class="formatted">$1</span>');
+        var match;
+        if (match = line.match(/\^\s*(.*)/))
+            return '<h3>'+match[1]+'</h3>';
         return '<span class="comment">'+line+'</span>';
     });
     return html;

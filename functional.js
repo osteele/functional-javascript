@@ -1,27 +1,16 @@
-/* Copyright 2007 by Oliver Steele.
- *
- * License: This work is licensed under the MIT license, and the
- * Creative Commons Attribution-Noncommercial-Share Alike 3.0 License
- * http://creativecommons.org/licenses/by-nc-sa/3.0/.
- * Take your pick.
- *
- * Source: http://osteele.com/javascripts/partial.js
- * Description: http://osteele.com/javascripts/partials-demo.html
+/* 
+ * Author: Oliver Steele
+ * Copyright: Copyright 2007 by Oliver Steele.  All rights reserved.
+ * License: MIT License
+ * Homepage: http://osteele.com/javascripts/functional.html
+ * Source: http://osteele.com/javascripts/functional.js
+ * Created: 2007-07-11
+ * Modified: 2007-07-12
  *
  * This file defines some higher-order functions for partial function
  * application, as well as some other utilities for functional programming.
  * It also defines methods that allow a string such as 'x+1' or
  * 'x -> x+1' to be used as though it were a function.
- */
-
-/*
- * Agenda:
- * - foldr, foldl
- * - vet against proto
- * - introduce synonym for args
- * - doc synonyms
- * - split files?
- * - change license
  */
 
 // The identity function: x -> x.
@@ -44,7 +33,7 @@ Function.prototype.bind = function(object/*, args...*/) {
     }
 }
 
-// +_+ (underscore) is a unique value for use in +partial()+, below.
+// +_+ (underscore) is bound to a unique value for use in +partial()+, below.
 var _ = {};
 
 // Returns a function +f+ such that +f(args2)+ is equivalent to

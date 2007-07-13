@@ -19,9 +19,9 @@
       #docs .description p {margin:0; margin-bottom:.5em; line-height:1.2em}
       #docs .description .formatted {font-family:monospace; margin-top:-.5em}
       #docs .target {color:gray}
-      .output {color: blue}
       .comment {color: gray; font-style: italic; font-family: serif}
-      #footer {color:#888}
+      #output h3 {font-family:serif; margin:0; padding:0;}
+      #footer {color:#888; border-top:1px solid; font-size:small}
       #footer a, #legend a {color:#888}
       #footer a:hover, #legend a:hover {color:blue}
     </style>
@@ -36,11 +36,31 @@
     <code>partial</code>) for partial function application; and it
     accepts strings that define lambda expressions, such as <code>'x
     -> x+1'</code> or <code>'x+1'</code>, as synonyms for the more
-    verbose Javascript expression <code>function(x) {return x+1}</code>.</p>
-    <p>Functional doesn't define as many collection functions as
-    a library such as Prototype.  It can, however, be used in conjunction
-    with such a library.  The code that generates the documentation and
-    examples, below, does this.</p>
+    verbose Javascript expressions such as <code>function(x) {return
+    x+1}</code>.</p>
+    
+    <p>In short, for better or worse, Functional lets you write
+    expressions such as these:</p>
+    <pre>
+      map('x*x', [1,2,3,4]);
+        &rarr; [1,4,9,16]
+      some('x>2', [1,2,3,4]);
+        &rarr; true
+      until('x>10', 'x*x')(2);
+        &rarr; 16
+      map(pluck('length'), ['two', 'words']);
+        &rarr; [3,5]
+      map(invoke('toUpperCase'), ['two', 'words']);
+        &rarr; ["TWO", "WORDS"]
+    </pre>
+
+    <p>Functional doesn't define as many collection functions as a
+    library such as <a
+    href="http://www.prototypejs.org/">Prototype</a>.  It can,
+    however, be used in conjunction with such a library.  The code
+    that generates the documentation and examples that are displayed
+    below does this.</p>
+    
     <div id="noscript">
       If you can read this, you either have JavaScript turned off
       or you're using a browser I haven't tested.  Either way,
@@ -69,7 +89,7 @@
       </tr>
     </table>
     <div id="footer">
-      Copyright 2007 by Oliver Steele.  This work is licensed under the <a href="MIT-LICENSE">MIT license</a>, and the <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution-Noncommercial-Share Alike 3.0 License</a>.  (Take your pick.  The first one allows commercial use.)<br/>
+      Copyright 2007 by Oliver Steele.  This work is licensed under the <a href="MIT-LICENSE">MIT license</a>.
       <a href="partial.js" target="_blank">View source</a>.
     </div>
   </body>

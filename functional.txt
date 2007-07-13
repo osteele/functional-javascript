@@ -136,5 +136,7 @@ I bummed the +[].slice.call(arguments, 0)+ idiom from http://www.coryhudson.com/
 Agenda:
 - receiver -> something else (in the docs too)
 - doc prefilter; add slice?
-- references?
-- swap order for until?
+- foldr, foldl
+- vet against proto
+- introduce synonym for args?
+- doc synonyms
