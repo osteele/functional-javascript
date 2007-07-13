@@ -5,6 +5,7 @@
     <script type="text/javascript" src="/javascripts/prototype.js"></script>
     <script type="text/javascript" src="functional.js"></script>
     <script type="text/javascript" src="functional-examples.js"></script>
+    <script type="text/javascript" src="functional-page.js"></script>
     <script type="text/javascript" src="jsshow-docs.js"></script>
     <script type="text/javascript" src="jsshow-examples.js"></script>
     <link rel="stylesheet" type="text/css" href="jsshow.css"/>
@@ -65,20 +66,14 @@
       <tr>
         <td id="examples" valign="top">
           <h2>Examples</h2>
-          <pre id="output" class="jsshow examples"> </pre>
-          <script type="text/javascript">
-            JSShow.Examples.load('functional-examples.js', examples).onSuccess(done.args('examples')).replace($('output'));
-          </script>
+          <pre id="output" class="jsshow examples">Examples failed to load.</pre>
           <button id="e1">1. Event.observe</button>
           <button id="e2">2. onclick</button>
           <button id="e3">3. specialized alert fn</button>
         </td>
         <td id="documentation" valign="top">
           <h2>Documentation</h2>
-          <div id="docs" class="jsshow docs"> </div>
-          <script type="text/javascript">
-            JSShow.Docs.load('functional.js').onSuccess(done.args('docs')).replace($('docs'));
-          </script>
+          <div id="docs" class="jsshow docs">Documentation failed to load.</div>
         </td>
       </tr>
     </table>
