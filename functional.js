@@ -13,6 +13,8 @@
  * 'x -> x+1' to be used as though it were a function.
  */
 
+// ^ First-order combinators
+
 // The identity function: x -> x.
 //   I(x) == x.
 // :: x -> x
@@ -22,6 +24,32 @@ Function.I = function(x) {return x};
 //   K(x)(y) == x
 // :: x -> _ -> x
 Function.K = function(x) {return function() {return x}}
+
+// ^ Higher-order methods
+
+// Returns a function that swaps its first two arguments before
+// passing them to the underlying function.
+//   fn.flip()(n1, n2, n3...) == fn(n2, n1, n3...)
+Function.prototype.flip = function() {
+    var fn = this;
+    return function() {
+        var args = [].slice.call(arguments, 0);
+        args = args.slice(1,2).concat(args.slice(0,1)).concat(args.slice(2));
+        return fn.apply(this, args);
+    }
+}
+
+Function.prototype.prefilter = function(pos, filter) {
+    var fn = this;
+    filter = Function.toFunction(filter);
+    return function() {
+        var args = [].slice.call(arguments, 0);
+        args[pos] = filter(args[pos]);
+        return fn.apply(this, args);
+    }
+}
+
+// ^^ Partial function application
 
 // Returns a bound method on +object+; optionally currying +args+.
 //   fn.bind(obj)(args...) == fn.apply(obj, [args...])
@@ -33,40 +61,15 @@ Function.prototype.bind = function(object/*, args...*/) {
     }
 }
 
-// +_+ (underscore) is bound to a unique value for use in +partial()+, below.
-var _ = {};
-
-// Returns a function +f+ such that +f(args2)+ is equivalent to
-// the underlying function applied to a combination of +args+ and +args2+:
-// 
-// +args+ is a partially-specified argument: it's a list with 'holes',
-// specified by the special value +_+.  It is combined with +args2+ as
-// follows:
-// 
-// From left to right, each value in +args2+ fills in the leftmost
-// remaining hole in +args+.  Any remaining values
-// in +args2+ are appended to the result of the filling-in process
-// to produce the combined argument list.
-// 
-// If the combined argument list contains any occurrences of +_+, the result
-// of the application of +f+ is another partial function.  Otherwise, the
-// result is the same as the result of applying the underlying function to
-// the combined argument list.
-Function.prototype.partial = function(/*args*/) {
+// Binds this function to +args+.  The returned function ignores
+// its arguments.
+//   fn.bind(args...)(args2..) == fn(args...)
+// :: f args... -> args2... -> f args...
+Function.prototype.args = function(/*args*/) {
     var fn = this;
     var args = [].slice.call(arguments, 0);
-    // substitution positions
-    var subpos = [], value;
-    for (var i = 0; i < arguments.length; i++)
-        arguments[i] == _ && subpos.push(i);
     return function() {
-        var specialized = args.concat([].slice.call(arguments, subpos.length));
-        for (var i = 0; i < Math.min(subpos.length, arguments.length); i++)
-            specialized[subpos[i]] = arguments[i];
-        for (var i = 0; i < specialized.length; i++)
-            if (specialized[i] == _)
-                return fn.partial.apply(fn, specialized);
-        return fn.apply(this, specialized);
+        return fn.apply(this, args);
     }
 }
 
@@ -125,40 +128,46 @@ Function.prototype.rncurry = function(n/*, args...*/) {
     };
 }
 
-// Returns a function that swaps its first two arguments before
-// passing them to the underlying function.
-//   fn.flip()(n1, n2, n3...) == fn(n2, n1, n3...)
-Function.prototype.flip = function() {
-    var fn = this;
-    return function() {
-        var args = [].slice.call(arguments, 0);
-        args = args.slice(1,2).concat(args.slice(0,1)).concat(args.slice(2));
-        return fn.apply(this, args);
-    }
-}
+// +_+ (underscore) is bound to a unique value for use in +partial()+, below.
+var _ = {};
 
-Function.prototype.prefilter = function(pos, filter) {
-    var fn = this;
-    filter = Function.toFunction(filter);
-    return function() {
-        var args = [].slice.call(arguments, 0);
-        args[pos] = filter(args[pos]);
-        return fn.apply(this, args);
-    }
-}
-
-// Binds this function to +args+.  The returned function ignores
-// its arguments.
-//   fn.bind(args...)(args2..) == fn(args...)
-// :: f args... -> args2... -> f args...
-Function.prototype.args = function(/*args*/) {
+// Returns a function +f+ such that +f(args2)+ is equivalent to
+// the underlying function applied to a combination of +args+ and +args2+:
+// 
+// +args+ is a partially-specified argument: it's a list with 'holes',
+// specified by the special value +_+.  It is combined with +args2+ as
+// follows:
+// 
+// From left to right, each value in +args2+ fills in the leftmost
+// remaining hole in +args+.  Any remaining values
+// in +args2+ are appended to the result of the filling-in process
+// to produce the combined argument list.
+// 
+// If the combined argument list contains any occurrences of +_+, the result
+// of the application of +f+ is another partial function.  Otherwise, the
+// result is the same as the result of applying the underlying function to
+// the combined argument list.
+Function.prototype.partial = function(/*args*/) {
     var fn = this;
     var args = [].slice.call(arguments, 0);
+    // substitution positions
+    var subpos = [], value;
+    for (var i = 0; i < arguments.length; i++)
+        arguments[i] == _ && subpos.push(i);
     return function() {
-        return fn.apply(this, args);
+        var specialized = args.concat([].slice.call(arguments, subpos.length));
+        for (var i = 0; i < Math.min(subpos.length, arguments.length); i++)
+            specialized[subpos[i]] = arguments[i];
+        for (var i = 0; i < specialized.length; i++)
+            if (specialized[i] == _)
+                return fn.partial.apply(fn, specialized);
+        return fn.apply(this, specialized);
     }
 }
 
+// ^ Higher-order functions
+
+// A namespace for higher-order functions.
 var Functional = window.Functional || {};
 
 // Copies all the functions in +Functional+ (except this one)
@@ -199,7 +208,7 @@ Functional.sequence = function(/*fn...*/) {
 
 // Applies +fn+ to each element of +sequence+.
 //   map(f, [x1, x2...]) = [f(x, 0), f(x2, 1), ...]
-// :: (x ix -> boolean) [x] -> [x]
+// :: (a ix -> boolean) [a] -> [a]
 Functional.map = function(fn, sequence, object) {
     arguments.length < 3 && (receiver = this);
     fn = Function.toFunction(fn);
@@ -226,7 +235,7 @@ Functional.reduce = function(fn, init, sequence, object) {
 
 // Returns a list of those elements +x+ of +sequence+ such that
 // +fn(x)+ returns true.
-// :: (x -> boolean) [x] -> [x]
+// :: (a -> boolean) [a] -> [a]
 Functional.select = function(fn, sequence, receiver) {
     arguments.length < 3 && (receiver = this);
     fn = Function.toFunction(fn);
@@ -239,10 +248,15 @@ Functional.select = function(fn, sequence, receiver) {
     return result;
 }
 
+// A synonym for +select+.
+Functional.filter = Functional.select;
+
+// ^^ Predicates
+
 // Returns true when +fn(x)+ returns true for some element +x+ of
 // +sequence+.
 //   some(fn, [x1, x2, x3]) == fn(x1) || fn(x2) || fn(x3)
-// :: (x -> boolean) [x] -> [x]
+// :: (a -> boolean) [a] -> [a]
 Functional.some = function(fn, sequence, receiver) {
     arguments.length < 3 && (receiver = this);
     fn = Function.toFunction(fn);
@@ -259,7 +273,7 @@ Functional.some = function(fn, sequence, receiver) {
 // Returns true when +fn(x)+ is true for every element +x+ of
 // +sequence+.
 //   every(fn, [x1, x2, x3]) == fn(x1) && fn(x2) && fn(x3)
-// :: (x -> boolean) [x] -> [x]
+// :: (a -> boolean) [a] -> [a]
 Functional.every = function(fn, sequence, receiver) {
     arguments.length < 3 && (receiver = this);
     fn = Function.toFunction(fn);
@@ -275,13 +289,15 @@ Functional.every = function(fn, sequence, receiver) {
 
 // Returns a function that returns true when +fn()+ returns false.
 //   fn.not()(args...) == !fn(args...)
-// :: (x -> boolean) -> (x -> boolean)
+// :: (a -> boolean) -> (a -> boolean)
 Functional.not = function(fn) {
     fn = Function.toFunction(fn);
     return function() {  
         return !fn.apply(null, arguments);
     }
 }
+
+// ^^ OO -> FP coercion functions
 
 // Returns a function that takes an object as an argument, and applies
 // +object+'s +methodName+ method to +arguments+.
@@ -304,6 +320,11 @@ Functional.pluck = function(name) {
     }
 }
 
+// ^^ Control structure
+
+// Returns a function that, applied to a value +v+, while +pred(v)+
+// applies +fn+ to +v+.
+// :: (a -> boolean) (a -> a) -> a
 Functional.until = function(pred, fn) {
     fn = Function.toFunction(fn);
     pred = Function.toFunction(pred);
@@ -313,6 +334,8 @@ Functional.until = function(pred, fn) {
         return value;
     }
 }
+
+// ^ String lambdas
 
 // Turns a string that contains a Javascript expression, into a
 // +Function+ that applies the expression.
@@ -329,7 +352,7 @@ Functional.until = function(pred, fn) {
 // use '_' or '->':
 //   Math.pow(_, 2)
 //   x -> Math.pow(x, 2)
-//
+// 
 // You can chain '->' to create a function in uncurried form:
 //   x -> y -> x + y
 String.prototype.lambda = function() {
@@ -363,6 +386,8 @@ String.prototype.apply = function(thisArg, args) {
 String.prototype.call = function() {
     return this.toFunction().apply(arguments[0], [].slice.call(arguments, 1));
 }
+
+// ^^ Coercion
 
 // Returns a Function that perfoms the action described by this
 // string.  If the string contains a 'return', applies
