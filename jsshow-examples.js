@@ -11,9 +11,8 @@ var JSShow = window.JSShow || {};
 
 JSShow.Examples = function() {};
 
-JSShow.Examples.load = function(url, exampleFunction) {
+JSShow.Examples.load = function(url) {
     var examples = new JSShow.Examples;
-    examples.exampleFunction = exampleFunction;
     new Ajax.Request(
         url,
         {method: 'GET',
@@ -22,7 +21,7 @@ JSShow.Examples.load = function(url, exampleFunction) {
 }
 
 JSShow.Examples.prototype.parse = function(text) {
-    this.text = text;
+    this.text = text.replace(/\s*\/\*(?:.|\n)*?\*\/[ \t]*/, '');
     this.runExamples();
     this.loaded = true;
     this.target && this.updateTarget();
@@ -47,13 +46,13 @@ JSShow.Examples.prototype.updateTarget = function() {
 }
 
 JSShow.Examples.prototype.toHTML = function() {
-    var chunks = (extractLines(this.text, /function examples/, /^\}/)
+    var chunks = (unindent(this.text)
                   .escapeHTML()
                   .split('trace('));
     var outputs = this.trace;
     var lines = [chunks.shift()];
     chunks.each(function(segment, ix) {
-        var output = outputs[ix].escapeHTML();
+        var output = (outputs[ix]||'').escapeHTML();
         var m = segment.match(/'(.*)', /);
         if (m && '"' + m[1] + '"' == output.slice(0, m[1].length+2)) {
             output = output.slice(m[1].length+2);
@@ -79,21 +78,22 @@ JSShow.Examples.prototype.toHTML = function() {
 }
 
 JSShow.Examples.prototype.runExamples = function() {
-    var examples = this.exampleFunction;
     var saved = window.trace;
     var results = [];
     try {
-        trace = function() {
-            var args = $A(arguments).map(function(value) {
+        trace = window.trace = function() {
+            function toString(value) {
                 switch (typeof(value)) {
+                case 'object': 
                 case 'function': return 'function';
                 case 'string': return '"' + value + '"';
                 default: return value;
                 }
-            });
+            }
+            var args = $A(arguments).map(toString);
             results.push(args.join(' '));
         }
-        examples();
+        eval(this.text);
     } catch (e) {
         console.error(e);
     } finally {
@@ -102,11 +102,12 @@ JSShow.Examples.prototype.runExamples = function() {
     this.trace = results;
 }
 
-function unindent(lines) {
+function unindent(text) {
+    var lines = text.split('\n');
     var min = lines.grep(/\S/).map('_.match(/^\\s*/)[0].length'.lambda()).min();
     return lines.map(function(line) {
         return line.slice(min);
-    });
+    }).join('\n');
 }
 
 function extractLines(string, startPattern, endPattern) {
