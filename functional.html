@@ -7,26 +7,10 @@
     <script type="text/javascript" src="functional-examples.js"></script>
     <script type="text/javascript" src="jsshow-docs.js"></script>
     <script type="text/javascript" src="jsshow-examples.js"></script>
+    <link rel="stylesheet" type="text/css" href="jsshow.css"/>
     <style type="text/css">
       h1 {text-align:center}
       .output {color:blue}
-      #output {line-height:1.2em}
-      #output .comment {white-space:normal}
-      #output .formatted {font-family:monospace; font-style: normal}
-      #output .output {color:blue}
-      #docs .record {margin-bottom: 1em}
-      #docs .signature {color:gray; font-family:monospace; margin-bottom:.25em}
-      #docs .type {color:gray; font-family:monospace; font-size:smaller; margin-bottom:.25em}
-      #docs .name {font-weight:bold; color:black}
-      #docs .target {color:gray}
-      #docs .type .label {font-family:serif}
-      #docs .description {color:#444; line-height:1.2em}
-      #docs .description p {margin:0; margin-bottom:.5em}
-      #docs .description pre {font-family:monospace; line-height:1.2em; margin-top:-.5em}
-      #docs .output {color:blue}
-      #docs sub {font-size: small; font-family:serif; font-style:italic}
-      .comment {color: gray; font-style: italic; font-family: serif}
-      #output h3 {font-family:serif; margin:0; padding:0;}
       #footer {color:#888; border-top:1px solid; font-size:small}
       a {color:#888}
       a:hover {color:blue}
@@ -47,16 +31,22 @@
     
     <p>Functional enables expressions such as these:</p>
     <pre>
-      map('x*x', [1,2,3,4]);
-        <span class="output">&rarr; [1,4,9,16]</span>
-      some('x>2', [1,2,3,4]);
+      map('x*x', [1,2,3,4])
+        <span class="output">&rarr; [1, 4, 9, 16]</span>
+      some('x>2', [1,2,3,4])
         <span class="output">&rarr; true</span>
-      until('x>10', 'x*x')(2);
+      until('x>10', 'x*x')(2)
         <span class="output">&rarr; 16</span>
-      map(pluck('length'), ['two', 'words']);
+      map(pluck('length'), ['two', 'words'])
         <span class="output">&rarr; [3,5]</span>
-      map(invoke('toUpperCase'), ['two', 'words']);
+      map(invoke('toUpperCase'), ['two', 'words'])
         <span class="output">&rarr; ["TWO", "WORDS"]</span>
+      map(compose(invoke('toString'), 'x*x'), [1,2,3,4])
+        <span class="output">["1", "4", "9", "16"]</span>
+      map(compose(pluck('length'), invoke('toString'), 'x*x'), [1,2,3,4])
+        <span class="output">[1, 1, 1, 2]</span>
+      map('x -> (x*x).toString().length', [1,2,3,4])
+        <span class="output">[1, 1, 1, 2]</span>
     </pre>
 
     <p>Functional doesn't define as many collection functions as a
@@ -75,7 +65,7 @@
       <tr>
         <td id="examples" valign="top">
           <h2>Examples</h2>
-          <pre id="output"> </pre>
+          <pre id="output" class="jsshow examples"> </pre>
           <script type="text/javascript">
             JSShow.Examples.load('functional-examples.js', examples).onSuccess(done.args('examples')).replace($('output'));
           </script>
@@ -85,7 +75,7 @@
         </td>
         <td id="documentation" valign="top">
           <h2>Documentation</h2>
-          <div id="docs"> </div>
+          <div id="docs" class="jsshow docs"> </div>
           <script type="text/javascript">
             JSShow.Docs.load('functional.js').onSuccess(done.args('docs')).replace($('docs'));
           </script>

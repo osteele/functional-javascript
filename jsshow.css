@@ -1,0 +1,27 @@
+/* 
+   * Author: Oliver Steele
+   * Copyright: Copyright 2007 by Oliver Steele.  All rights reserved.
+   * License: MIT License
+   * Source: http://osteele.com/javascripts/jsshow.css
+   * Created: 2007-07-11
+   * Modified: 2007-07-13
+*/
+
+.jsshow.examples {line-height:1.2em}
+.jsshow.examples h3 {font-family:serif; margin:0; padding:0;}
+.jsshow.examples .output {color:blue}
+.jsshow.examples .comment {color: gray; font-style: italic; font-family: serif}
+.jsshow.examples .comment {white-space:normal}
+.jsshow.examples .formatted {font-family:monospace; font-style: normal}
+
+.jsshow.docs .record {margin-bottom: 1em}
+.jsshow.docs .signature {color:gray; font-family:monospace; margin-bottom:.25em}
+.jsshow.docs .type {color:gray; font-family:monospace; font-size:smaller; margin-bottom:.25em}
+.jsshow.docs .name {font-weight:bold; color:black}
+.jsshow.docs .target {color:gray}
+.jsshow.docs .type .label {font-family:serif}
+.jsshow.docs .description {color:#444; line-height:1.2em}
+.jsshow.docs .description p {margin:0; margin-bottom:.5em}
+.jsshow.docs .description pre {font-family:monospace; line-height:1.2em; margin-top:-.5em}
+.jsshow.docs .output {color:blue}
+.jsshow.docs sub {font-size: small; font-family:serif; font-style:italic}
