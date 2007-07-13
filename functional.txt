@@ -134,14 +134,20 @@ I bummed the +[].slice.call(arguments, 0)+ idiom from http://www.coryhudson.com/
 
 
 Agenda:
+- new name for args
 - receiver -> something else (in the docs too)
 - doc prefilter; add slice?
-- foldr, foldl
 - rewrite last section of blog
-- new name for args
-- second pass on jsshow-*
+Literacy:
+- cleanup jsshow-*
 - move the examples h3 outside pre
 - parameterize hn
+Tweak:
 - make tl that take as fn instead of method?
 - add methods to string?
-- zip
+
+Number.prototype.times = function(fn, receiver) {
+    var limit = Math.max(0, this);
+    for (var i = 0; i < limit; i++)
+        fn.call(receiver, i);
+}

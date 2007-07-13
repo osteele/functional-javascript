@@ -29,7 +29,7 @@ Function.K = function(x) {return function() {return x}}
 
 // Returns a function that swaps its first two arguments before
 // passing them to the underlying function.
-// == fn.flip()(n1, n2, n3...) == fn(n2, n1, n3...)
+// == fn.flip()(a, b, c...) == fn(b, a, c...)
 // :: (a b c...) -> (b a c...)
 Function.prototype.flip = function() {
     var fn = this;
@@ -66,7 +66,7 @@ Function.prototype.prefilter = function(pos, filter) {
 // ^^ Partial function application
 
 // Returns a bound method on +object+; optionally currying +args+.
-// == fn.bind(obj)(args...) == fn.apply(obj, [args...])
+// == fn.bind(obj, args...)(args2...) == fn.apply(obj, [args..., args2...])
 Function.prototype.bind = function(object/*, args...*/) {
     var fn = this;
     var args = [].slice.call(arguments, 1);
@@ -235,8 +235,8 @@ Functional.map = function(fn, sequence, object) {
 
 // Applies +fn+ to +init+ and the first element of +sequence+,
 // and then to the result and the second element, and so on.
-// == reduce(fn, init, [x1, x2, x3]) == fn(fn(fn(init, x1), x2), x3)
-// :: (a b -> b) a [b] -> b
+// == foldl(fn, init, [x1, x2, x3]) == fn(fn(fn(init, x1), x2), x3)
+// :: (a b -> a) a [b] -> a
 Functional.reduce = function(fn, init, sequence, object) {
     arguments.length < 4 && (receiver = this);
     fn = Function.toFunction(fn);
@@ -264,6 +264,22 @@ Functional.select = function(fn, sequence, receiver) {
 
 // A synonym for +select+.
 Functional.filter = Functional.select;
+
+// A synonym for +reduce+.
+Functional.foldl = Functional.reduce;
+
+// Same as foldl, but applies the function from right to left.
+// == reduce(fn, init, [x1, x2, x3]) == fn(x1, fn(x2, fn(x3, init)))
+// :: (a b -> b) b [a] -> b
+Functional.foldr = function(fn, init, sequence, object) {
+    arguments.length < 4 && (receiver = this);
+    fn = Function.toFunction(fn);
+    var len = sequence.length;
+    var result = init;
+    for (var i = len; --i >= 0; )
+        result = fn.apply(object, [sequence[i], result]);
+    return result;
+}
 
 // ^^ Predicates
 
@@ -334,7 +350,7 @@ Functional.pluck = function(name) {
     }
 }
 
-// ^^ Control structure
+// ^^ Utilities
 
 // Returns a function that applies +fn+ to +v+ to a value +v+, and then
 // applies +fn+ to the result, zero or more times, while +pred(v)+ is true.
@@ -348,6 +364,19 @@ Functional.until = function(pred, fn) {
         return value;
     }
 }
+
+// == zip(a, b...) == [[a[0], b[0]], [a[1], b[1]], ...]
+// :: [a] [b]... -> [[a b]...]
+Functional.zip = function(/*args...*/) {
+    var n = Math.min.apply(null, map('.length', arguments));
+    var results = new Array(n);
+    for (var i = 0; i < n; i++) {
+        var key = String(i);
+        results[key] = map(pluck(key), arguments);
+    };
+    return results;
+}
+
 
 // ^ String lambdas
 
