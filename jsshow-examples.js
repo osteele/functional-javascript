@@ -55,41 +55,30 @@ JSShow.Examples.prototype.toHTML = function() {
     var lines = [chunks.shift()];
     chunks.each(function(segment, ix) {
         var output = (outputs[ix]||'').escapeHTML();
-        var m = segment.match(/'(.*)', /);
-        if (m && '"' + m[1] + '"' == output.slice(0, m[1].length+2)) {
-            output = output.slice(m[1].length+2);
-            segment = segment.slice(m[0].length);
-        }
-        m = segment.indexOf(');');
+        var m = segment.indexOf(');');
         lines.push(segment.slice(0, m));
         lines.push(';\n <span class="output">&rarr; ');
         lines.push(output.strip());
         lines.push('</span>');
         lines.push(segment.slice(m+2));
     });
-    //var html = lines.join('').replace(/(\/\/.*)/g, '<span class="comment">$1</span>');
-    var html = lines.join('').replace(/(\/\/.*)/g, function(line) {
-        line = line.replace(/\+(\S+)\+/g, '<span class="formatted">$1</span>');
-        var match;
-        if (match = line.match(/\^\s*(.*)/))
+    var html = lines.join('').replace(/((?:\/\/.*\n)+)/g, function(text) {
+        text = text.replace(/\+(\S+)\+/g, '<span class="formatted">$1</span>');
+        text = text.replace(/\/\/  (.*)/g, '<pre>$1</pre>');
+        //text = text.replace(/\n\s*\/\//g, '');
+        text = text.replace(/\/\//g, ' ');
+        if (match = text.match(/\^\s*(.*)/))
             return '<h3>'+match[1]+'</h3>';
-        return '<span class="comment">'+line+'</span>';
+        return '<div class="comment">'+text+'</div>';
     });
-//     html = html.replace(/((?:<div class="comment">.*?<\/div>\s*){2,})/, function(n) {
-//         var match = n.match(/<div class="comment">\/\/(.*?)<\/div>/g);
-//         n = n.replace(/<div class="comment">\/\/(.*?)<\/div>/g, '$1');
-//         return '<div class="comment>' + n + '</div>';
-//         return '<p>' + n + '</p>';
-//     });
     gh = html;
     return html;
 }
 
 JSShow.Examples.prototype.runExamples = function() {
-    var saved = window.trace;
-    var results = [];
+    var results = this.trace = [];
     try {
-        trace = window.trace = function() {
+        trace = function() {
             function toString(value) {
                 if (value instanceof Array) {
                     var spans = map(toString, value);
@@ -104,13 +93,11 @@ JSShow.Examples.prototype.runExamples = function() {
             var args = $A(arguments).map(toString);
             results.push(args.join(' '));
         }
-        eval(this.text);
+        var fn = new Function('trace', this.text);
+        fn(trace);
     } catch (e) {
         console.error(e);
-    } finally {
-        trace = saved;
     }
-    this.trace = results;
 }
 
 function unindent(text) {

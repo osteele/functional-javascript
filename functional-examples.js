@@ -33,9 +33,9 @@ trace('2/'.lambda()(4));
 // Otherwise, the symbols are the arguments, in the order
 // they occur.
 trace('x+2*y'.lambda()(2, 3));
-//  +lambda+ doesn't know about keyword or property names,
+// +lambda+ doesn't know about keyword or property names,
 // and it looks for symbols inside regular expressions and strings.
-//  Use _ (to define a unary function) or ->, if the string contains anything
+// Use _ (to define a unary function) or ->, if the string contains anything
 // that looks like a symbol but shouldn't be used as a parameter name, or
 // to specify parameters that are ordered differently from their first
 // occurrence in the string:
@@ -43,7 +43,7 @@ trace('y / x'.lambda()(4, 2));
 trace('x y -> y / x'.lambda()(4, 2));
 trace('Math.cos(_)'.lambda()(Math.PI));
 trace('_.x'.lambda()({x:1, y:2}));
-// Chains -> to create curried functions.
+// Chain -> to create curried functions.
 trace('x y -> x+y'.lambda()(2, 3));
 trace('x -> y -> x+y'.lambda()(2)(3));
 trace('x -> y -> x+y'.lambda()(2));
@@ -75,7 +75,7 @@ trace(map('+1', map('*2', [1,2,3])));
 trace(map(compose('+1', '*2'), [1,2,3]));
 
 // +compose+ and +sequence+ compose sequences of functions
-// backwards and forwards, respectively
+// backwards and forwards, respectively:
 trace(compose('+1', '*2')(1));
 trace(sequence('+1', '*2')(1));
 trace(compose('+1', '*2', '_.length')('a string'));
@@ -120,18 +120,18 @@ trace(map(compose('_(1)', '_.lambda()'), ['x+1', 'x-1']));
 function list(a,b,c,d) {return [a,b,c,d]};
 
 // Specialize the first and third parameters.  This creates a new
-// function, that interleaves its arguments with the 1 and 2.
+// function, that interleaves its arguments with the 1 and 2:
 var finterleave = list.partial(1,_,2,_);
 trace(finterleave(3, 4));
 
 // Specialize the outer two parameters, to produce a function that
-// plugs in the inners.
+// plugs in the inners:
 var finners = list.partial(1,_,_,2);
 trace(finners(3, 4));
 
 // if not all the parameters are supplied, the result is a function...
 trace(finterleave(4));
-// ...which can be applied until the argument list is saturated.
+// ...which can be applied until the argument list is saturated:
 trace(finterleave(3)(4));
 trace(finners(_,3));
 trace(finners(_,3)(4));
@@ -139,22 +139,22 @@ trace(finners(3)(4));
 trace(list.partial(_,_,_,1)(2,_,3)(4));
 
 // An application: create some specialized versions of String replace.
-// The first function replaces vowels with its argument:
+// The first function replaces vowels in its object with its argument:
 var replaceVowels = "".replace.partial(/[aeiou]/g, _);
-// This is a method, so use +call+ to invoke it:
+// This is a method, so use +call+ to invoke it on an object:
 trace(replaceVowels.call("change my vowels to underscores", '_'));
-// The second function replaces spans that match its argument with 'th'.
+// The second function replaces slices that match its argument with 'th':
 var replaceWithCoronalFricatives = "".replace.partial(_, 'th');
 trace(replaceWithCoronalFricatives.call("substitute my esses with tee-aitches", /s/g));
 
 // +curry+ creates a new function that applies the original arguments, and
-// then the new arguments
+// then the new arguments:
 var right = list.curry(1, 2);
 trace(right(3,4));
 var left = list.rcurry(1, 2);
 trace(left(3, 4));
 
-// use +rcurry+ ("right curry") to create +halve+ and +double+ functions from +divide+
+// Use +rcurry+ ("right curry") to create +halve+ and +double+ functions from +divide+:
 function divide(a, b) {return a/b}
 var halve = divide.rcurry(2);
 var double = divide.rcurry(1/2);
@@ -172,15 +172,15 @@ trace(list.rncurry(4,1,2)(3));
 trace(list.rncurry(4,1,2)(3,4));
 
 // +curry+ and +partial+ overlap in their use, but curries are like Haskell sections:
-// (10 /) 2
+//  (10 /) 2
 trace(divide.curry(10)(2));
-// (/ 2) 10
+//   (/ 2) 10
 trace(divide.rcurry(2)(10));
 // while partials are like the hyphens used in abstract algebra
 // (e.g. Hom(F-, -) = Hom(-, G-)), here put to more concrete use:
-// (10 / -) 2
+//   (10 / -) 2
 trace(divide.partial(10, _)(2));
-// (- / 2) 10
+//   (- / 2) 10
 trace(divide.partial(_, 2)(10));
 
 // ^ Using the Prototype library
@@ -194,8 +194,8 @@ trace([1, 2, 3].map('x*x'.lambda()).map('x+1'.lambda()));
 
 // Define an +onclick+ function that abbreviates Event.observe(_, 'click', ...)
 var onclick = Event.observe.bind(Event).partial(_, 'click');
-// These next three lines are equivalent, except they act on
-// different elements.
+// These next three lines are identical except their targets
+// and messages:
 Event.observe('e1', 'click', function(){alert('1')});
 onclick('e2', function(){alert('2')});
 onclick('e3', alert.bind(null).args('3'));

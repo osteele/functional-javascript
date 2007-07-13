@@ -144,7 +144,6 @@ Blog:
 - credit FP explanation
 - rewrite last section of blog
 Literacy:
-- cleanup jsshow-*
 - move the examples h3 outside pre
 - parameterize hn
 Tweak:
