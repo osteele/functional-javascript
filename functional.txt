@@ -137,6 +137,10 @@ Agenda:
 - receiver -> something else (in the docs too)
 - doc prefilter; add slice?
 - foldr, foldl
-- vet against proto
-- introduce synonym for args?
-- doc synonyms
+- rewrite last section of blog
+- new name for args
+- second pass on jsshow-*
+- move the examples h3 outside pre
+- parameterize hn
+- make tl that take as fn instead of method?
+- add methods to string?

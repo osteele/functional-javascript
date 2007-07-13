@@ -10,15 +10,17 @@
     <link rel="stylesheet" type="text/css" href="jsshow.css"/>
     <style type="text/css">
       h1 {text-align:center}
+      p {line-height:1.2em; margin-top:0}
       .output {color:blue}
-      #footer {color:#888; border-top:1px solid; font-size:small}
+h2 {margin:0}
       a {color:#888}
       a:hover {color:blue}
+      #footer {color:#888; border-top:1px solid; font-size:small}
     </style>
   </head>
   <body>
     <h1>Functional Javascript</h1>
-    <p>The Functional Javascript library defines functions for using
+    <p>The <dfn>Functional Javascript library</dfn> defines functions for using
     Javascript for functional programming (FP).  It defines the
     standard FP functions such as <code>map</code>,
     <code>reduce</code>, <code>select</code>.  It also defines
@@ -29,32 +31,33 @@
     verbose Javascript expressions such as <code>function(x) {return
     x+1}</code>.</p>
     
-    <p>Functional enables expressions such as these:</p>
-    <pre>
-      map('x*x', [1,2,3,4])
-        <span class="output">&rarr; [1, 4, 9, 16]</span>
-      some('x>2', [1,2,3,4])
-        <span class="output">&rarr; true</span>
-      until('x>10', 'x*x')(2)
-        <span class="output">&rarr; 16</span>
-      map(pluck('length'), ['two', 'words'])
-        <span class="output">&rarr; [3,5]</span>
-      map(invoke('toUpperCase'), ['two', 'words'])
-        <span class="output">&rarr; ["TWO", "WORDS"]</span>
-      map(compose(invoke('toString'), 'x*x'), [1,2,3,4])
-        <span class="output">["1", "4", "9", "16"]</span>
-      map(compose(pluck('length'), invoke('toString'), 'x*x'), [1,2,3,4])
-        <span class="output">[1, 1, 1, 2]</span>
-      map('x -> (x*x).toString().length', [1,2,3,4])
-        <span class="output">[1, 1, 1, 2]</span>
-    </pre>
+    <div style="float:left; margin-right:5em">
+      <p>Functional enables expressions such as these:</p>
+      <pre>
+        compose('x*x', 'x+1')(2)
+          <span class="output">&rarr; 9</span>
+        map('x*x', [1,2,3,4])
+          <span class="output">&rarr; [1, 4, 9, 16]</span>
+        some('x>2', [1,2,3,4])
+          <span class="output">&rarr; true</span>
+        until('x>10', 'x*x')(2)
+          <span class="output">&rarr; 16</span>
+      </pre>
+    </div>
+    <div style="float:left">
+      <p>Or, for the adventurous, these:</p>
+      <pre>
+        var squareUntil = until.partial(_, 'x*x');
+        squareUntil('x>100')(2)
+          <span class="output">&rarr; 256</span>
+        var square2Until = squareUntil.uncurry().flip().curry(2);
+        var firstSquare2Over = compose(square2Until, 'm -> x -> x > m');
+        firstSquare2Over(100)
+          <span class="output">&rarr; 256</span>
+      </pre>
+  </div>
+<div style="clear:left"> </div>
 
-    <p>Functional doesn't define as many collection functions as a
-    library such as <a
-    href="http://www.prototypejs.org/">Prototype</a>.  It can,
-    however, be used in conjunction with such a library.  The code
-    that generates this page is an example of this.</p>
-    
     <div id="noscript">
       If you can read this, you either have JavaScript turned off
       or you're using a browser I haven't tested.  Either way,

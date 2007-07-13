@@ -7,6 +7,8 @@
  * Modified: 2007-07-12
  */
 
+Functional.install();
+
 var JSShow = window.JSShow || {};
 
 JSShow.Examples = function() {};
@@ -83,8 +85,11 @@ JSShow.Examples.prototype.runExamples = function() {
     try {
         trace = window.trace = function() {
             function toString(value) {
+                if (value instanceof Array) {
+                    var spans = map(toString, value);
+                    return '[' + spans.join(', ') + ']';
+                }
                 switch (typeof(value)) {
-                case 'object': 
                 case 'function': return 'function';
                 case 'string': return '"' + value + '"';
                 default: return value;

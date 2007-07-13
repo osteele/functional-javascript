@@ -21,7 +21,7 @@ trace(square(3));
 trace('_+1'.lambda()(2));
 trace('x+1'.lambda()(2));
 trace('x+2*y'.lambda()(2, 3));
-// You can just call a string directly, if you're only using it once
+// You can call a string directly, if you're only using it once
 // (and don't need to cache the conversion to a function).
 trace('_+1'.call(null, 2));
 trace('_+1'.apply(null, [2]));
@@ -163,8 +163,16 @@ trace(divide.partial(10, _)(2));
 // (- / 2) 10
 trace(divide.partial(_, 2)(10));
 
-// An application: Use with Prototype to define an +onclick+ function
-// that abbreviates Event.observe(_, 'click', ...)
+// ^ Using the Prototype library
+
+// Invoke +lambda+ on a string to create a function for Prototype.
+// (Prototype defines a larger set of collection utilities than
+// Functional does, and attaches them to Array so that they can
+// be chained.)
+trace([1, 2, 3].map('x*x'.lambda()));
+trace([1, 2, 3].map('x*x'.lambda()).map('x+1'.lambda()));
+
+// Define an +onclick+ function that abbreviates Event.observe(_, 'click', ...)
 var onclick = Event.observe.bind(Event).partial(_, 'click');
 // These next three lines are equivalent, except they act on
 // different elements.

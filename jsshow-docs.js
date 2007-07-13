@@ -60,7 +60,7 @@ JSShow.Doc = function() {
 JSShow.Doc.prototype.addDescriptionLine = function(line) {
     var paragraphs = this.paragraphs;
     var match;
-    if (match = line.match(/^>>>\s*(.*)/)) {
+    if (match = line.match(/^>>\s*(.*)/)) {
         line = '  ' + match[1].replace(/->(.*)/, '<span class="output">&rarr;$1</span>');
     }
     if ((match = line.match(/^==\s*(.*)/))) {
@@ -94,7 +94,7 @@ JSShow.Doc.prototype.toHTML = function() {
     isFunction && spans.push('(<var>' + this.params + '</var>)');
     isFunction || spans.push(';');
     spans.push('</div>');
-    this.signature && spans.push('<div class="type"><span class="label">Signature:</span> '+this.signature.escapeHTML().replace(/-&gt;/g, '&rarr;').replace(/\.\.\./g, '&hellip;')+'</div>');
+    this.signature && spans.push('<div class="type"><span class="label">Type:</span> '+this.signature.escapeHTML().replace(/-&gt;/g, '&rarr;').replace(/\.\.\./g, '&hellip;')+'</div>');
     var paras = this.paragraphs.select(pluck('length')).map(function(lines) {
         if (typeof lines == 'string') return lines;
         return ['<p>', lines.join(' '), '</p>'].join('')
@@ -156,7 +156,7 @@ JSShow.DocParser.prototype.processNextLine = function(line) {
             record.target = match[1];
         }
         record.name = name;
-        record.params = params && params.replace(/\/\*/g, '').replace(/\*\//g, '');
+        record.params = params && params.replace(/\/\*/g, '').replace(/\*\//g, '').replace(/\.\.\./g, '&hellip;');
         self.records.push(record);
     }
     function processNondefinitionComment(lines) {

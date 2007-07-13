@@ -17,12 +17,12 @@
 
 // The identity function: x -> x.
 // == I(x) == x
-// :: x -> x
+// :: a -> a
 Function.I = function(x) {return x};
 
 // Returns a constant function that returns +x+.
 // == K(x)(y) == x
-// :: x -> _ -> x
+// :: a -> b -> a
 Function.K = function(x) {return function() {return x}}
 
 // ^ Higher-order methods
@@ -30,12 +30,26 @@ Function.K = function(x) {return function() {return x}}
 // Returns a function that swaps its first two arguments before
 // passing them to the underlying function.
 // == fn.flip()(n1, n2, n3...) == fn(n2, n1, n3...)
+// :: (a b c...) -> (b a c...)
 Function.prototype.flip = function() {
     var fn = this;
     return function() {
         var args = [].slice.call(arguments, 0);
         args = args.slice(1,2).concat(args.slice(0,1)).concat(args.slice(2));
         return fn.apply(this, args);
+    }
+}
+
+// Returns a function that applies the underlying function to its
+// first argument, and the result of that application to the remaining
+// arguments.
+// == fn.uncurry(a, b...) == fn(a)(b...)
+// :: (a -> b -> c) -> (a, b) -> c
+Function.prototype.uncurry = function() {
+    var fn = this;
+    return function() {
+        var f1 = fn.apply(this, [].slice.call(arguments, 0, 1));
+        return f1.apply(this, [].slice.call(arguments, 1));
     }
 }
 
@@ -64,7 +78,7 @@ Function.prototype.bind = function(object/*, args...*/) {
 // Binds this function to +args+.  The returned function ignores
 // its arguments.
 // == fn.bind(args...)(args2..) == fn(args...)
-// :: f args... -> args2... -> f args...
+// :: (a... -> b) a... -> (... -> b)
 Function.prototype.args = function(/*args*/) {
     var fn = this;
     var args = [].slice.call(arguments, 0);
@@ -77,7 +91,7 @@ Function.prototype.args = function(/*args*/) {
 // applies the underlying function to +args+ ++ +arg2+.
 // == fn.curry(args...)(args2...) == fn(args..., args2...)
 // Adapted from http://www.coryhudson.com/blog/2007/03/10/javascript-currying-redux/
-// :: f args... -> args2... -> f args... args2...
+// :: (a... b... -> c) a... -> (b... -> c)
 Function.prototype.curry = function(/*args...*/) {
     var fn = this;
     var args = [].slice.call(arguments, 0);
@@ -89,7 +103,7 @@ Function.prototype.curry = function(/*args...*/) {
 // Right curry.  Returns a function that, applied to an argumen list +args2+,
 // applies the underlying function to +args2+ + +args+.
 // == fn.curry(args...)(args2...) == fn(args2..., args...)
-// :: f args... -> args2... -> f args2... args...
+// :: (a... b... -> c) b... -> (a... -> c)
 Function.prototype.rcurry = function(/*args...*/) {
     var fn = this;
     var args = [].slice.call(arguments, 0);
@@ -184,7 +198,7 @@ Functional.install = function() {
 // function to its input, and the penultimate argument to this,
 // and so on.
 // == compose(f1, f2, f3..., fn)(args) == f1(f2(f3(...(fn(args...)))))
-// :: (a2 -> a1) (a3 -> a2) ... (args... -> an) -> args... -> a1
+// :: (a2 -> a1) (a3 -> a2)... (a... -> an) -> a... -> a1
 Functional.compose = function(/*fn...*/) {
     var fns = Functional.map(Function.toFunction, arguments);
     return function() {
@@ -196,7 +210,7 @@ Functional.compose = function(/*fn...*/) {
 
 // Same as +compose+, except applies the functions from front to back.
 // == sequence(f1, f2, f3..., fn)(args) == fn(...(f3(f2(f1(args...)))))
-// :: (args... -> a1) (a1 -> a2) (a2 -> a3) ... (a[n-1] -> an)  -> args... -> an
+// :: (a... -> a1) (a1 -> a2) (a2 -> a3)... (a[n-1] -> an)  -> a... -> an
 Functional.sequence = function(/*fn...*/) {
     var fns = Functional.map(Function.toFunction, arguments);
     return function() {
@@ -376,13 +390,13 @@ String.prototype.lambda = function() {
 }
 
 // Coerce the string to a function and then apply it.
-// >>> 'x+1'.apply(null, [2]) -> 3
+// >> 'x+1'.apply(null, [2]) -> 3
 String.prototype.apply = function(thisArg, args) {
     return this.toFunction().apply(thisArg, args);
 }
 
 // Coerce the string to a function and then call it.
-// >>> 'x+1'.call(2) -> 3
+// >> 'x+1'.call(2) -> 3
 String.prototype.call = function() {
     return this.toFunction().apply(arguments[0], [].slice.call(arguments, 1));
 }
