@@ -8,6 +8,92 @@ var trace = info;
 
 // Examples
 function examples() {
+    // ^ String lambdas
+    
+    // +lambda+ creates a single-expression function from a string.
+    // If the expression contains a '_', that's the argument.
+    // Otherwise, the symbols are the arguments, in the order
+    // they occur.  (+lambda+ doesn't know about keywords, property names,
+    // and symbols in strings.  Use -> to tell it about these, or
+    // _ for a unary function.)
+    var square = 'x*x'.lambda();
+    trace(square(3));
+    trace('_+1'.lambda()(2));
+    trace('x+1'.lambda()(2));
+    trace('x+2*y'.lambda()(2, 3));
+    // You can just call a string directly, if you're only using it once
+    // (and don't need to cache the conversion to a function).
+    trace('_+1'.call(null, 2));
+    trace('_+1'.apply(null, [2]));
+    // Use -> to specify the variables explicitly, when the expression contains
+    // symbols that aren't variables (e.g. +Math.sin+), or you want to bind the
+    // arguments in a different order from their occurrence in the expression.
+    trace('x, y -> x+2*y'.lambda()(2, 3));
+    trace('y, x -> x+2*y'.lambda()(2, 3));
+    // You can chain -> to create curried functions.
+    trace('x -> y -> x+y'.lambda()(2));
+    trace('x -> y -> x+y'.lambda()(2)(3));
+    
+    // ^ Higher-order functions
+    
+    // The +Functional+ namespace defines the higher-order functions:
+    // +map+, +reduce+, +select+, and a bunch of others.
+    trace(Functional.map(function(x){return x+1}, [1,2,3]));
+    // Lambda strings are useful as arguments to functionals.  The functionals
+    // convert the string to a function once per call, not once per application.
+    trace(Functional.map('_+1', [1,2,3]));
+    // +Functional.install()+ imports the functionals into the global namespace,
+    // so that we don't have to qualify them with Functional.* each time.
+    Functional.install();
+    trace(map('_+1', [1,2,3]));
+    trace(map('_.length', 'here are some words'.split(' ')));
+    trace(select('x>2', [1,2,3,4]));
+    trace(reduce('2*x+y', 0, [1,0,1,0]));
+    trace(some('x>2', [1,2,3,4]));
+    trace(every('x>2', [1,2,3,4]));
+    
+    // The fusion rule:
+    trace(map('x+1', map('x*2', [1,2,3])));
+    trace(map(compose('x+1', 'x*2'), [1,2,3]));
+    
+    // +compose+ and +sequence+ compose sequences of functions
+    // backwards and forwards, respectively
+    trace(compose('_+1', '_*2')(1));
+    trace(sequence('_+1', '_*2')(1));
+    trace(compose('_+1', '_*2', '_.length')('a string'));
+    trace(compose.apply(null, map('x -> y -> x*y+1', [2,3,4]))(1));
+    trace(compose.apply(null, map('x -> y -> x+y', ['hemi', 'demi', 'semi']))('quaver'));
+    trace(compose.apply(null, map('x -> y -> x+"-"+y', ['hemi', 'demi', 'semi']))('quaver'));
+    trace(compose.apply(null, map('x -> y -> x+"("+y+")"', ['hemi', 'demi', 'semi']))('quaver'));
+    // +reduce+ could have handled the last few examples, e.g.:
+    trace(reduce('x y -> y+x', 'quaver', ['hemi', 'demi', 'semi'].reverse()));
+    trace(reduce.partial('x y -> y+x', _, ['hemi', 'demi', 'semi'].reverse())('quaver'));
+    
+    // +pluck+ and +invoke+ turn methods into functions:
+    trace(map(pluck('length'), ['two', 'words']));
+    trace(map(invoke('toUpperCase'), ['two', 'words']));
+    // +lambda+ works for this too:
+    trace(map('_.length', ['two', 'words']));
+    trace(map('_.toUpperCase()', ['two', 'words']));
+    // +pluck+ can implement projections:
+    trace(map(pluck(0), [['NYC', 'NY'], ['Boston', 'MA'], ['Sacremento', 'CA']]));
+    trace(map(pluck(1), [['NYC', 'NY'], ['Boston', 'MA'], ['Sacremento', 'CA']]));
+    trace(map(pluck('x'), [{x:10, y:20}, {x:15, y:25}, {x:0, y:-5}]));
+    trace(map(pluck('y'), [{x:10, y:20}, {x:15, y:25}, {x:0, y:-5}]));
+    
+    // Functional iteration with +until+:
+    trace(until('x>10', 'x*2')(1));
+    trace(until('x>100', 'x*x')(2));
+    trace(until(not('x<100'), 'x*x')(2));
+    var fwhile = until.prefilter(0, not);
+    trace(fwhile('x<100', 'x*x')(2));
+    
+    // Higher order higher-order programming:
+    trace(map('_(1)', map('_.lambda()', ['x+1', 'x-1'])));
+    trace(map(compose('_(1)', '_.lambda()'), ['x+1', 'x-1']));
+    
+    // ^ Partial function application
+    
     // Create an unspecialized function that just lists its (four) arguments.
     // We'll create partially applied (specialized) versions of this function
     // below.
@@ -71,13 +157,13 @@ function examples() {
     // (/ 2) 10
     trace(divide.rcurry(2)(10));
     // while partials are like the hyphens used in abstract algebra
-    // (e.g. Hom(F-, -) ~ Hom(-, G-)), here put to more concrete use:
+    // (e.g. Hom(F-, -) = Hom(-, G-)), here put to more concrete use:
     // (10 / -) 2
     trace(divide.partial(10, _)(2));
     // (- / 2) 10
     trace(divide.partial(_, 2)(10));
     
-    // An application: use with Prototype to define an +onclick+ function
+    // An application: Use with Prototype to define an +onclick+ function
     // that abbreviates Event.observe(_, 'click', ...)
     var onclick = Event.observe.bind(Event).partial(_, 'click');
     // These next three lines are equivalent, except they act on
@@ -85,86 +171,6 @@ function examples() {
     Event.observe('e1', 'click', function(){alert('1')});
     onclick('e2', function(){alert('2')});
     onclick('e3', alert.bind(null).args('3'));
-    
-    // +lambda+ creates a single-expression functions from a strings.
-    // If the expression contains a '_', that's the argument.
-    // Otherwise, the symbols are the arguments, in the order
-    // they occur.  (+lambda+ doesn't know about keywords, property names,
-    // and symbols in strings.  Use -> to tell it about these, or
-    // _ for a unary function.)
-    var square = 'x*x'.lambda();
-    trace(square(3));
-    trace('_+1'.lambda()(2));
-    trace('x+1'.lambda()(2));
-    trace('x+2*y'.lambda()(2, 3));
-    // You can just call a string directly, if you're only using it once
-    // (and don't need to cache the conversion to a function).
-    trace('_+1'.call(null, 2));
-    trace('_+1'.apply(null, [2]));
-    // Use -> to name the variables when the expression contains symbols
-    // that aren't variables (e.g. +Math.sin+), or you want to bind the
-    // arguments in a different order from their occurrence in the expression.
-    trace('x, y -> x+2*y'.lambda()(2, 3));
-    trace('y, x -> x+2*y'.lambda()(2, 3));
-    // You can chain -> to create curried functions.
-    trace('x -> y -> x+y'.lambda()(2));
-    trace('x -> y -> x+y'.lambda()(2)(3));
-    
-    // The +Functional+ namespace defines the functionals: +map+, +reduce+, +select+,
-    // +some+, +every+.  Google will tell you all about these.
-    trace(Functional.map(function(x){return x+1}, [1,2,3]));
-    // Lambda strings are useful as arguments to functionals.  The functionals
-    // convert the string to a function once per call, not once per application.
-    trace(Functional.map('_+1', [1,2,3]));
-    // +Functional.install()+ imports the functionals into the global namespace,
-    // so that we don't have to qualify them with Functional.* each time.
-    Functional.install();
-    trace(map('_+1', [1,2,3]));
-    trace(map('_.length', 'here are some words'.split(' ')));
-    trace(select('x>2', [1,2,3,4]));
-    trace(reduce('2*x+y', 0, [1,0,1,0]));
-    trace(some('x>2', [1,2,3,4]));
-    trace(every('x>2', [1,2,3,4]));
-    
-    // The fusion rule:
-    trace(map('x+1', map('x*2', [1,2,3])));
-    trace(map(compose('x+1', 'x*2'), [1,2,3]));
-    
-    // +compose+ and +sequence+ compose sequences of functions
-    // backwards and forwards, respectively
-    trace(compose('_+1', '_*2')(1));
-    trace(sequence('_+1', '_*2')(1));
-    trace(compose('_+1', '_*2', '_.length')('a string'));
-    trace(compose.apply(null, map('x -> y -> x*y+1', [2,3,4]))(1));
-    trace(compose.apply(null, map('x -> y -> x+y', ['hemi', 'demi', 'semi']))('quaver'));
-    trace(compose.apply(null, map('x -> y -> x+"-"+y', ['hemi', 'demi', 'semi']))('quaver'));
-    trace(compose.apply(null, map('x -> y -> x+"("+y+")"', ['hemi', 'demi', 'semi']))('quaver'));
-    // +reduce+ could have handled the last few examples, e.g.:
-    trace(reduce('x y -> y+x', 'quaver', ['hemi', 'demi', 'semi'].reverse()));
-    trace(reduce.partial('x y -> y+x', _, ['hemi', 'demi', 'semi'].reverse())('quaver'));
-    
-    // +pluck+ and +invoke+ turn methods into functions:
-    trace(map(pluck('length'), ['two', 'words']));
-    trace(map(invoke('toUpperCase'), ['two', 'words']));
-    // +lambda+ works for this too:
-    trace(map('_.length', ['two', 'words']));
-    trace(map('_.toUpperCase()', ['two', 'words']));
-    // +pluck+ can implement projections:
-    trace(map(pluck(0), [['NYC', 'NY'], ['Boston', 'MA'], ['Sacremento', 'CA']]));
-    trace(map(pluck(1), [['NYC', 'NY'], ['Boston', 'MA'], ['Sacremento', 'CA']]));
-    trace(map(pluck('x'), [{x:10, y:20}, {x:15, y:25}, {x:0, y:-5}]));
-    trace(map(pluck('y'), [{x:10, y:20}, {x:15, y:25}, {x:0, y:-5}]));
-    
-    // functional iteration with +until+:
-    trace(until('x>10', 'x*2')(1));
-    trace(until('x>100', 'x*x')(2));
-    trace(until(not('x<100'), 'x*x')(2));
-    var fwhile = until.prefilter(0, not);
-    trace(fwhile('x<100', 'x*x')(2));
-    
-    // Higher order higher-order programming:
-    trace(map('_(1)', map('_.lambda()', ['x+1', 'x-1'])));
-    trace(map(compose('_(1)', '_.lambda()'), ['x+1', 'x-1']));
 }
 
 Function.prototype.reporting = function() {
