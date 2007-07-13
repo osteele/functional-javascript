@@ -134,9 +134,14 @@ I bummed the +[].slice.call(arguments, 0)+ idiom from http://www.coryhudson.com/
 
 
 Agenda:
-- new name for args
-- receiver -> something else (in the docs too)
-- doc prefilter; add slice?
+Code:
+- rename args
+- rename prefilter
+- rename receiver
+- doc prefilter
+- doc portability
+Blog:
+- credit FP explanation
 - rewrite last section of blog
 Literacy:
 - cleanup jsshow-*
@@ -151,3 +156,17 @@ Number.prototype.times = function(fn, receiver) {
     for (var i = 0; i < limit; i++)
         fn.call(receiver, i);
 }
+
+
+fwhile('<100', 'x*x')(2)
+
+fwhile = compose(until.uncurry(), not).curry()
+
+compose(until.curry(), not).curry(('<100')('x*x')(2)
+compose(until.curry(), not)('<100')('x*x')(2)
+until.curry()(not('<100' ))('x*x')(2)
+
+compose(until.curry)(not('<100'))('x*x')(2)
+until.curry(not('<100'))('x*x')(2)
+until(not('<100'), 'x*x')(2)
+

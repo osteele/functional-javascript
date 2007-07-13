@@ -10,34 +10,47 @@
 
 // ^ String lambdas
 
-// +lambda+ creates a single-expression function from a string.
-// If the expression contains a '_', that's the argument.
-// Otherwise, the symbols are the arguments, in the order
-// they occur.  (+lambda+ doesn't know about keywords, property names,
-// and symbols in strings.  Use -> to tell it about these, or
-// _ for a unary function.)
-var square = 'x*x'.lambda();
-trace(square(3));
-trace('_+1'.lambda()(2));
+// +lambda+ creates a function from a string that contains a single
+// expression.  This function can then be applied to an argument list,
+// either at the time, or (or more usefully) later.
 trace('x+1'.lambda()(2));
 trace('x+2*y'.lambda()(2, 3));
-// You can call a string directly, if you're only using it once
-// (and don't need to cache the conversion to a function).
-trace('x+1'.call(null, 2));
-trace('x+1'.apply(null, [2]));
-// You can leave out a leading or trailing '_', if the string begins
-// with a binary or relational operator besides '-'.
+var square = 'x*x'.lambda();
+trace(square(3));
+// If the expression contains a ->, it separates the parameters
+// from the function body (the expression).
+trace('x y -> x+2*y'.lambda()(2, 3));
+// Otherwise, if the string contains a '_', that's the parameter.
+// These are the same:
+trace('_ -> _+1'.lambda()(2));
+trace('_+1'.lambda()(2));
+// Otherwise, if the string starts with an operator or relation
+// besides -, or ends with an operator or relation, then it takes a single
+// argument which is placed at the start or end, respectively.
 trace('*2'.lambda()(2));
 trace('/2'.lambda()(4));
 trace('2/'.lambda()(4));
-// Use -> to specify the variables explicitly, when the expression contains
-// symbols that aren't variables (e.g. +Math.sin+), or you want to bind the
-// arguments in a different order from their occurrence in the expression.
-trace('x, y -> x+2*y'.lambda()(2, 3));
-trace('y, x -> x+2*y'.lambda()(2, 3));
-// You can chain -> to create curried functions.
-trace('x -> y -> x+y'.lambda()(2));
+// Otherwise, the symbols are the arguments, in the order
+// they occur.
+trace('x+2*y'.lambda()(2, 3));
+//  +lambda+ doesn't know about keyword or property names,
+// and it looks for symbols inside regular expressions and strings.
+//  Use _ (to define a unary function) or ->, if the string contains anything
+// that looks like a symbol but shouldn't be used as a parameter name, or
+// to specify parameters that are ordered differently from their first
+// occurrence in the string:
+trace('y / x'.lambda()(4, 2));
+trace('x y -> y / x'.lambda()(4, 2));
+trace('Math.cos(_)'.lambda()(Math.PI));
+trace('_.x'.lambda()({x:1, y:2}));
+// Chains -> to create curried functions.
+trace('x y -> x+y'.lambda()(2, 3));
 trace('x -> y -> x+y'.lambda()(2)(3));
+trace('x -> y -> x+y'.lambda()(2));
+// Strings support +call+ and +apply+.  This duck-types them as
+// functions to some callers.
+trace('x+1'.call(null, 2));
+trace('x+1'.apply(null, [2]));
 
 // ^ Higher-order functions
 
@@ -77,12 +90,14 @@ trace(reduce.partial('x y -> y+x', _, ['hemi', 'demi', 'semi'].reverse())('quave
 // +pluck+ and +invoke+ turn methods into functions:
 trace(map(pluck('length'), ['two', 'words']));
 trace(map(invoke('toUpperCase'), ['two', 'words']));
-// +lambda+ works for this too:
+// +lambda+ can do this too:
 trace(map('.length', ['two', 'words']));
 trace(map('.toUpperCase()', ['two', 'words']));
-// +pluck+ can implement projections:
+// and +pluck+ and +lambda+ can both implement projections:
+trace(map('_[0]', [['NYC', 'NY'], ['Boston', 'MA'], ['Sacremento', 'CA']]));
 trace(map(pluck(0), [['NYC', 'NY'], ['Boston', 'MA'], ['Sacremento', 'CA']]));
 trace(map(pluck(1), [['NYC', 'NY'], ['Boston', 'MA'], ['Sacremento', 'CA']]));
+trace(map('_.x', [{x:10, y:20}, {x:15, y:25}, {x:0, y:-5}]));
 trace(map(pluck('x'), [{x:10, y:20}, {x:15, y:25}, {x:0, y:-5}]));
 trace(map(pluck('y'), [{x:10, y:20}, {x:15, y:25}, {x:0, y:-5}]));
 
@@ -90,7 +105,7 @@ trace(map(pluck('y'), [{x:10, y:20}, {x:15, y:25}, {x:0, y:-5}]));
 trace(until('>10', '*2')(1));
 trace(until('>100', 'x*x')(2));
 trace(until(not('<100'), 'x*x')(2));
-var fwhile = until.prefilter(0, not);
+var fwhile = until.intercept(0, not);
 trace(fwhile('<100', 'x*x')(2));
 
 // Higher order higher-order programming:

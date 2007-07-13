@@ -75,7 +75,13 @@ JSShow.Examples.prototype.toHTML = function() {
             return '<h3>'+match[1]+'</h3>';
         return '<span class="comment">'+line+'</span>';
     });
-    //html = html.replace(/<\/span>\s*<span class="comment">/g, '');
+//     html = html.replace(/((?:<div class="comment">.*?<\/div>\s*){2,})/, function(n) {
+//         var match = n.match(/<div class="comment">\/\/(.*?)<\/div>/g);
+//         n = n.replace(/<div class="comment">\/\/(.*?)<\/div>/g, '$1');
+//         return '<div class="comment>' + n + '</div>';
+//         return '<p>' + n + '</p>';
+//     });
+    gh = html;
     return html;
 }
 

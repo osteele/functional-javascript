@@ -53,7 +53,7 @@ Function.prototype.uncurry = function() {
     }
 }
 
-Function.prototype.prefilter = function(pos, filter) {
+Function.prototype.intercept = function(pos, filter) {
     var fn = this;
     filter = Function.toFunction(filter);
     return function() {
@@ -235,7 +235,7 @@ Functional.map = function(fn, sequence, object) {
 
 // Applies +fn+ to +init+ and the first element of +sequence+,
 // and then to the result and the second element, and so on.
-// == foldl(fn, init, [x1, x2, x3]) == fn(fn(fn(init, x1), x2), x3)
+// == reduce(fn, init, [x1, x2, x3]) == fn(fn(fn(init, x1), x2), x3)
 // :: (a b -> a) a [b] -> a
 Functional.reduce = function(fn, init, sequence, object) {
     arguments.length < 4 && (receiver = this);
@@ -268,7 +268,7 @@ Functional.filter = Functional.select;
 // A synonym for +reduce+.
 Functional.foldl = Functional.reduce;
 
-// Same as foldl, but applies the function from right to left.
+// Same as +foldl+, but applies the function from right to left.
 // == reduce(fn, init, [x1, x2, x3]) == fn(x1, fn(x2, fn(x3, init)))
 // :: (a b -> b) b [a] -> b
 Functional.foldr = function(fn, init, sequence, object) {
