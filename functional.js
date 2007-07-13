@@ -75,7 +75,7 @@ Function.prototype.args = function(/*args*/) {
 
 // Returns a function that, applied to an argument list +arg2+,
 // applies the underlying function to +args+ ++ +arg2+.
-//   fn.curry(args...)(args2...) == fn(args..., args2...)
+// == fn.curry(args...)(args2...) == fn(args..., args2...)
 // Adapted from http://www.coryhudson.com/blog/2007/03/10/javascript-currying-redux/
 // :: f args... -> args2... -> f args... args2...
 Function.prototype.curry = function(/*args...*/) {
@@ -132,7 +132,7 @@ Function.prototype.rncurry = function(n/*, args...*/) {
 var _ = {};
 
 // Returns a function +f+ such that +f(args2)+ is equivalent to
-// the underlying function applied to a combination of +args+ and +args2+:
+// the underlying function applied to a combination of +args+ and +args2+.
 // 
 // +args+ is a partially-specified argument: it's a list with 'holes',
 // specified by the special value +_+.  It is combined with +args2+ as
@@ -322,8 +322,8 @@ Functional.pluck = function(name) {
 
 // ^^ Control structure
 
-// Returns a function that, applied to a value +v+, while +pred(v)+
-// applies +fn+ to +v+.
+// Returns a function that applies +fn+ to +v+ to a value +v+, and then
+// applies +fn+ to the result, zero or more times, while +pred(v)+ is true.
 // :: (a -> boolean) (a -> a) -> a
 Functional.until = function(pred, fn) {
     fn = Function.toFunction(fn);
@@ -340,16 +340,16 @@ Functional.until = function(pred, fn) {
 // Turns a string that contains a Javascript expression, into a
 // +Function+ that applies the expression.
 // 
-// If the string contains a '->', this separates the parameters from the body
+// If the string contains a '->', this separates the parameters from the body:
 //   x, y -> x + y
 //   x y -> x + y
-// Otherwise, if the expression contains a '_', this is the argument:
+// Otherwise, if the expression contains a '_', this is the parameter:
 //   _ + 1
-// Otherwise, each symbol is a parameter:
+// Otherwise, each symbol is an implicit parameter:
 //   x + y
-// This last case won't do what you want if the expression contains
+// The implicit case won't do what you want if the expression contains
 // symbols that aren't variables.  In that case,
-// use '_' or '->':
+// use '_' or '->' to specify the parameters explicitly:
 //   Math.pow(_, 2)
 //   x -> Math.pow(x, 2)
 // 
