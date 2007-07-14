@@ -446,35 +446,46 @@ Functional.zip = function(/*args...*/) {
 
 // ^ String lambdas
 
-// Turns a string that contains a Javascript expression, into a
-// +Function+ that applies the expression.
+// Turns a string that contains a JavaScript expression into a
+// +Function+ that returns the value of that expression.
 // 
 // If the string contains a '->', this separates the parameters from the body:
 // >> 'x -> x + 1'.lambda()(1) -> 2
 // >> 'x y -> x + 2*y'.lambda()(1, 2) -> 5
 // >> 'x, y -> x + 2*y'.lambda()(1, 2) -> 5
+// 
 // Otherwise, if the string contains a '_', this is the parameter:
 // >> '_ + 1'.lambda()(1) -> 2
+// 
 // Otherwise if the string begins or ends with an operator or relation,
 // prepend or append a parameter.  (The documentation refers to this type
 // of string as a "section".)
 // >> '/2'.lambda()(4) -> 2
 // >> '2/'.lambda()(4) -> 0.5
 // >> '/'.lambda()(2,4) -> 0.5
-// Otherwise, each symbol is an implicit parameter:
-// >> 'x + 1'.lambda()(1) -> 2
-// >> 'x + 2*y'.lambda()(1, 2) -> 5
-// >> 'y + 2*x'.lambda()(1, 2) -> 5
-// 
 // Sections can end, but not begin with, '-'.  (This is to avoid interpreting
 // e.g. '-2*x' as a section).  On the other hand, a string that either begins
 // or ends with '/' is a section, so an expression that begins or ends with a
 // regular expression literal needs an explicit parameter.
 // 
-// +lambda+ doesn't know about keyword or property names,
-// and it looks for symbols inside regular expressions and strings.
+// Otherwise, each variable name is an implicit parameter:
+// >> 'x + 1'.lambda()(1) -> 2
+// >> 'x + 2*y'.lambda()(1, 2) -> 5
+// >> 'y + 2*x'.lambda()(1, 2) -> 5
+// 
+// Implicit parameter detection ignores strings literals, variable names that
+// start with capitals, and identifiers that precede ':' or follow '.':
+// >> map('"im"+root', ["probable", "possible"]) -> ["improbable", "impossible"]
+// >> 'Math.cos(angle)'.lambda()(Math.PI) -> -1
+// >> 'point.x'.lambda()({x:1, y:2}) -> 1
+// >> '({x:1, y:2})[key]'.lambda()('x') -> 1
+// 
+// Implicit parameter detection looks inside regular expression literals for
+// variable names.  It doesnt know about keywords and bound variables.
+// (The only way you can get these last two if with a function literal inside the
+// string, which is ouside the use case for string lambdas.)
 // Use _ (to define a unary function) or ->, if the string contains anything
-// that looks like a symbol but shouldn't be used as a parameter name, or
+// that looks like a free variable but shouldn't be used as a parameter, or
 // to specify parameters that are ordered differently from their first
 // occurrence in the string.
 // 
@@ -482,35 +493,35 @@ Functional.zip = function(/*args...*/) {
 // >> 'x -> y -> x + 2*y'.lambda()(1)(2) -> 5
 String.prototype.lambda = function() {
     var params = [];
-    var body = this;
-    var sections = body.split(/\s*->\s*/);
+    var expr = this;
+    var sections = expr.split(/\s*->\s*/);
     if (sections.length > 1) {
         while (sections.length) {
-            body = sections.pop();
+            expr = sections.pop();
             params = sections.pop().split(/\s*,\s*|\s+/);
-            sections.length && sections.push('(function('+params+'){return ('+body+')})');
+            sections.length && sections.push('(function('+params+'){return ('+expr+')})');
         }
-    } else if (body.match(/\b_\b/)) {
+    } else if (expr.match(/\b_\b/)) {
         params = '_';
     } else {
-        var m1 = body.match(/^\s*[+*\/%&|^!\.=<>]/);
-        var m2 = body.match(/[+\-*\/%&|^!\.=<>]\s*$/);
+        var m1 = expr.match(/^\s*[+*\/%&|^!\.=<>]/);
+        var m2 = expr.match(/[+\-*\/%&|^!\.=<>]\s*$/);
         if (m1 || m2) {
             if (m1) {
                 params.push('$1');
-                body = '$1' + body;
+                expr = '$1' + expr;
             }
             if (m2) {
                 params.push('$2');
-                body = body + '$2';
+                expr = expr + '$2';
             }
         } else {
-            var vars = this.match(/([a-z_$][a-z_$\d]*)/gi);
+            var vars = this.replace(/(?:\b[A-Z]|\.[a-zA-Z_$])[a-zA-Z_$\d]*|[a-zA-Z_$][a-zA-Z_$\d]*:|'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g, '').match(/([a-z_$][a-z_$\d]*)/gi); // '
             for (var i = 0, v; v = vars[i++]; )
                 params.indexOf(v) >= 0 || params.push(v);
         }
     }
-    return new Function(params, 'return (' + body + ')');
+    return new Function(params, 'return (' + expr + ')');
 }
 
 // ^^ Duck-Typing
@@ -536,6 +547,8 @@ String.prototype.call = function() {
 // Returns a Function that perfoms the action described by this
 // string.  If the string contains a 'return', applies
 // 'new Function' to it.  Otherwise, calls +lambda+.
+// >> '+1'.toFunction()(2) -> 3
+// >> 'return 1'.toFunction()(1) -> 1
 String.prototype.toFunction = function() {
     var body = this;
     if (body.match(/\breturn\b/))
@@ -543,14 +556,21 @@ String.prototype.toFunction = function() {
     return this.lambda();
 }
 
-// Returns this function.  For use when an unknown value
-// must be coerced to a function.
+// Returns this function.  +Function.toFunction+ calls this.
+// >> '+1'.lambda().toFunction()(2) -> 3
 Function.prototype.toFunction = function() {
     return this;
 }
 
 // Coerces +fn+ into a function if it is not already one,
 // by calling its +toFunction+ method.
+// >> Function.toFunction(function() {return 1})() -> 1
+// >> Function.toFunction('+1')(2) -> 3
+// This doesn't coerce arbitrary values to functions.
+// You might think it would be useful to treat
+// Function.toFunction(value) as though it were the
+// constant function that returned +value+, but it's rarely
+// useful and hides errors.  Use Function.K(value) instead.
 Function.toFunction = function(value) {
     return value.toFunction();
 }

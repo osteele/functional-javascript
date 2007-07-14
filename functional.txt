@@ -141,9 +141,11 @@ I bummed the +[].slice.call(arguments, 0)+ idiom from http://www.coryhudson.com/
 
 
 Agenda:
-- add methods to string?
 - doc portability
 - rename receiver
+Later:
+- add methods to string?
+- environments
 
 Number.prototype.times = function(fn, receiver) {
     var limit = Math.max(0, this);
@@ -162,3 +164,13 @@ Number.prototype.times = function(fn, receiver) {
 //         return oldRequest.apply(this, url, [options].concat([].slice.call(arguments, 2)));
 //     }
 // })(Ajax.Request);
+
+// 
+// If +binding+ is supplied, it acts an environment for the new function.
+// >> 'x -> x+a'.lambda({a:1})(2)
+String.prototype.lambda = function(binding) {
+
+    var body = 'return (' + expr + ')';
+    alert(binding, new Function(params, body));
+        with (binding)
+            return new Function(params, body);
