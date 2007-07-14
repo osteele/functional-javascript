@@ -9,15 +9,15 @@
 
 Functional.install();
 
-var JSShow = window.JSShow || {};
+var OSDoc = window.OSDoc || {};
 
-JSShow.Docs = function(options) {
+OSDoc.Docs = function(options) {
     this.options = {headingLevel: 3, onLoad: Function.I};
     for (var name in options||{})
         this.options[name] = options[name];
 };
 
-JSShow.Docs.prototype.load = function(url) {
+OSDoc.Docs.prototype.load = function(url) {
     new Ajax.Request(
         url,
         {method: 'GET',
@@ -25,18 +25,18 @@ JSShow.Docs.prototype.load = function(url) {
     return this;
 }
 
-JSShow.Docs.prototype.parse = function(string) {
-    this.records = (new JSShow.Docs.Parser).parse(string);
+OSDoc.Docs.prototype.parse = function(string) {
+    this.records = (new OSDoc.Docs.Parser).parse(string);
     this.options.onLoad();
     return this;
 }
 
-JSShow.Docs.prototype.replace = function(target) {
+OSDoc.Docs.prototype.replace = function(target) {
     target.innerHTML = this.toHTML();
     return this;
 }
 
-JSShow.Docs.prototype.runTests = function() {
+OSDoc.Docs.prototype.runTests = function() {
     function toString(value) {
         if (value instanceof Array) {
             var spans = map(toString, value);
@@ -83,7 +83,7 @@ JSShow.Docs.prototype.runTests = function() {
     };
 }
 
-JSShow.Docs.prototype.createTestText = function() {
+OSDoc.Docs.prototype.createTestText = function() {
     var lines = [];
     this.records.each(function(defn) {
         defn.tests.length && lines.push('// ' + defn.name);
@@ -99,7 +99,7 @@ JSShow.Docs.prototype.createTestText = function() {
     return lines.join('\n').replace(/^/mg, '    ');
 }
 
-JSShow.Docs.prototype.toHTML = function(string) {
+OSDoc.Docs.prototype.toHTML = function(string) {
     var spans = [];
     var self = this;
     this.records.each(function(rec) {
@@ -110,7 +110,7 @@ JSShow.Docs.prototype.toHTML = function(string) {
     return spans.join('\n');
 }
 
-JSShow.Docs.Definition = function(name, params) {
+OSDoc.Docs.Definition = function(name, params) {
     this.target = this.params = null;
     var match;
     if (match = name.match(/(.*\.)(\w+)/)) {
@@ -121,14 +121,14 @@ JSShow.Docs.Definition = function(name, params) {
     this.params = params && params.replace(/\/\*(.*?)\*\//g, '$1').replace(/\.\.\./g, '&hellip;');
 }
 
-JSShow.Docs.Definition.prototype.setDescription = function(lines) {
+OSDoc.Docs.Definition.prototype.setDescription = function(lines) {
     this.tests = [];
     this.blocks = [];
     this.block = null;
     map(this.addDescriptionLine, lines, this);
 }
 
-JSShow.Docs.Definition.prototype.addDescriptionLine = function(line) {
+OSDoc.Docs.Definition.prototype.addDescriptionLine = function(line) {
     var blocks = this.blocks;
     var block = this.block;
     var self = this;
@@ -193,7 +193,7 @@ JSShow.Docs.Definition.prototype.addDescriptionLine = function(line) {
     }
 }
 
-JSShow.Docs.Definition.prototype.toHTML = function() {
+OSDoc.Docs.Definition.prototype.toHTML = function() {
     var isFunction = this.params != null;
     var spans = [];
     
@@ -228,9 +228,9 @@ JSShow.Docs.Definition.prototype.toHTML = function() {
     }
 }
 
-JSShow.Docs.Parser = function(options) {};
+OSDoc.Docs.Parser = function(options) {};
 
-JSShow.Docs.Parser.prototype.parse = function(text) {
+OSDoc.Docs.Parser.prototype.parse = function(text) {
     this.lines = [];
     this.records = [];
     this.keys = {};
@@ -239,7 +239,7 @@ JSShow.Docs.Parser.prototype.parse = function(text) {
     return this.records;
 }
 
-JSShow.Docs.Parser.prototype.processLine = function(line) {
+OSDoc.Docs.Parser.prototype.processLine = function(line) {
     var self = this;
     var match;
     if (match = line.match(/^\/\/ (.*)/)) {
@@ -260,7 +260,7 @@ JSShow.Docs.Parser.prototype.processLine = function(line) {
         this.lines = [];
     }
     function recordDefinition(name, params) {
-        var record = self.keys[name] = new JSShow.Docs.Definition(name, params);
+        var record = self.keys[name] = new OSDoc.Docs.Definition(name, params);
         record.setDescription(self.lines);
         self.records.push(record);
     }

@@ -27,8 +27,8 @@ Function.prototype.reporting = function() {
 var gExamples, gDocs;
 
 function initialize() {
-    gExamples = JSShow.Examples.load('functional-examples.js').onSuccess(done.saturate('examples')).replace($('output'));
-    gDocs = new JSShow.Docs({onLoad: function() {
+    gExamples = OSDoc.Examples.load('functional-examples.js').onSuccess(done.saturate('examples')).replace($('output'));
+    gDocs = new OSDoc.Docs({onLoad: function() {
         gDocs.replace($('docs'));
         done('docs');
     }});

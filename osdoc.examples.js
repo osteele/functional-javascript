@@ -9,14 +9,14 @@
 
 Functional.install();
 
-var JSShow = window.JSShow || {};
+var OSDoc = window.OSDoc || {};
 
-JSShow.Examples = function() {
+OSDoc.Examples = function() {
     this.headingLevel = 3;
 };
 
-JSShow.Examples.load = function(url) {
-    var examples = new JSShow.Examples;
+OSDoc.Examples.load = function(url) {
+    var examples = new OSDoc.Examples;
     new Ajax.Request(
         url,
         {method: 'GET',
@@ -24,7 +24,7 @@ JSShow.Examples.load = function(url) {
     return examples;
 }
 
-JSShow.Examples.prototype.parse = function(text) {
+OSDoc.Examples.prototype.parse = function(text) {
     this.text = text.replace(/\s*\/\*(?:.|\n)*?\*\/[ \t]*/, '');
     this.runExamples();
     this.loaded = true;
@@ -32,24 +32,24 @@ JSShow.Examples.prototype.parse = function(text) {
     return this;
 }
 
-JSShow.Examples.prototype.replace = function(target) {
+OSDoc.Examples.prototype.replace = function(target) {
     this.target = target;
     this.loaded && this.updateTarget();
     return this;
 }
 
-JSShow.Examples.prototype.onSuccess = function(fn) {
+OSDoc.Examples.prototype.onSuccess = function(fn) {
     this.onSuccessFn = fn;
     return this;
 }
 
-JSShow.Examples.prototype.updateTarget = function() {
+OSDoc.Examples.prototype.updateTarget = function() {
     this.target.innerHTML = this.toHTML();
     this.onSuccessFn && this.onSuccessFn();
     return this;
 }
 
-JSShow.Examples.prototype.toHTML = function() {
+OSDoc.Examples.prototype.toHTML = function() {
     var self = this;
     var chunks = (unindent(this.text)
                   .escapeHTML()
@@ -80,7 +80,7 @@ JSShow.Examples.prototype.toHTML = function() {
     return html;
 }
 
-JSShow.Examples.prototype.runExamples = function() {
+OSDoc.Examples.prototype.runExamples = function() {
     var results = this.trace = [];
     try {
         trace = function() {
