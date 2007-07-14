@@ -517,7 +517,7 @@ String.prototype.lambda = function() {
                 expr = expr + '$2';
             }
         } else {
-            var vars = this.replace(/(?:\b[A-Z]|\.[a-zA-Z_$])[a-zA-Z_$\d]*|[a-zA-Z_$][a-zA-Z_$\d]*:|'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g, '').match(/([a-z_$][a-z_$\d]*)/gi); // '
+            var vars = this.replace(/(?:\b[A-Z]|\.[a-zA-Z_$])[a-zA-Z_$\d]*|[a-zA-Z_$][a-zA-Z_$\d]*:|this|'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g, '').match(/([a-z_$][a-z_$\d]*)/gi) || []; // '
             for (var i = 0, v; v = vars[i++]; )
                 params.indexOf(v) >= 0 || params.push(v);
         }
@@ -567,11 +567,11 @@ Function.prototype.toFunction = function() {
 // by calling its +toFunction+ method.
 // >> Function.toFunction(function() {return 1})() -> 1
 // >> Function.toFunction('+1')(2) -> 3
-// This doesn't coerce arbitrary values to functions.
-// You might think it would be useful to treat
+// Function.toFunction doesn't coerce arbitrary values to functions.
+// It might seem convenient to treat
 // Function.toFunction(value) as though it were the
 // constant function that returned +value+, but it's rarely
-// useful and hides errors.  Use Function.K(value) instead.
+// useful and it hides errors.  Use Function.K(value) instead.
 Function.toFunction = function(value) {
     return value.toFunction();
 }

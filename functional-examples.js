@@ -142,8 +142,8 @@ trace(finners(_,3)(4));
 trace(finners(3)(4));
 trace(list.partial(_,_,_,1)(2,_,3)(4));
 
-// Two specializations String replace.
-// The first function replaces vowels in its object with the value of its
+// Two specializations of String's +replace+ method.
+// The function replaces vowels in its object with the value of its
 // argument:
 var replaceVowels = "".replace.partial(/[aeiou]/g, _);
 // This is a method, so use +call+ to invoke it on an object:
@@ -153,9 +153,13 @@ trace(replaceVowels.call("change my vowels to underscores", '_'));
 var replaceWithCoronalFricatives = "".replace.partial(_, 'th');
 trace(replaceWithCoronalFricatives.call("substitute my esses with tee-aitches", /s/g));
 
-// The syntax for partials is meant to suggest the hyphens that are used
-// as placeholders in abstract algebra:
-//   Hom(F-, -) = Hom(-, G-)):
+// The syntax for partials is meant to suggest the hyphen placeholders
+// in abstract algebra:
+//   Hom(F-, -) = Hom(-, G_)
+// This isn't unification or pattern-matching, though.  All the hyphens
+// have to be at the top level (as arguments, not items in lists, etc.).
+// And  there's no facility for binding two hyphens to the same parameter
+// position.
 
 // ^^ Curry
 
@@ -194,11 +198,15 @@ trace(list.curry(1,2)(3));
 // ^^ Function versions of Function's methods
 
 // Functional's methods on +Function+ are also available as functions, that
-// take a function as their first argument, in +Functional+.
-// (+Functional.install+ also installs these functions in the global namespace.)
-// Unlike the methods, these functions can be applied to string lambda's, too:
+// take a function as their first argument.  These functions are in the
+// +Functional+ namespace.  +Functional.install+ also installs these functions
+// in the global namespace.
+// 
+// Unlike the methodson Function, these functions can be applied to string
+// lambdas too:
 trace('+'.lambda().curry(1)(2));
 trace(curry('+', 1)(2));
+trace(bind('-> this', 1)());
 
 // ^ Using Functional with Prototype
 
