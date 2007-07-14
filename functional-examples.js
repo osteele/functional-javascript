@@ -17,22 +17,25 @@ trace('x+1'.lambda()(2));
 trace('x+2*y'.lambda()(2, 3));
 var square = 'x*x'.lambda();
 trace(square(3));
-// If the expression contains a ->, it separates the parameters
-// from the function body (the expression).
+// If the string contains a ->, this separates the parameters
+// from the expression that is used as the function body.
 trace('x y -> x+2*y'.lambda()(2, 3));
-// Otherwise, if the string contains a '_', that's the parameter.
-// These are equivalent:
-trace('_ -> _+1'.lambda()(2));
+// Otherwise, if the string contains a '_', that's the parameter:
 trace('_+1'.lambda()(2));
+trace('_*_'.lambda()(2));
 // Otherwise, if the string starts with an operator or relation
-// besides -, or ends with an operator or relation, then it takes a single
-// argument which is placed at the start or end, respectively.
+// besides -, or ends with an operator or relation, then it takes arguments
+// which are placed at the beginning and/or end:
 trace('*2'.lambda()(2));
 trace('/2'.lambda()(4));
 trace('2/'.lambda()(4));
-// Otherwise, the symbols are the arguments, in the order
-// they occur.
+trace('/'.lambda()(2, 4));
+// Otherwise, the parameters are the symbols in the string, in the order
+// in which they occur.
 trace('x+2*y'.lambda()(2, 3));
+
+// ^^ Gotchas
+
 // +lambda+ doesn't know about keyword or property names,
 // and it looks for symbols inside regular expressions and strings.
 // Use _ (to define a unary function) or ->, if the string contains anything
@@ -46,6 +49,9 @@ trace('x y -> y / x'.lambda()(4, 2));
 trace('Math.cos(_)'.lambda()(Math.PI));
 // Implicit parameterization would mistake 'x' for a parameter:
 trace('_.x'.lambda()({x:1, y:2}));
+
+// ^^ Advanced Features
+
 // Chain -> to create curried functions.
 trace('x y -> x+y'.lambda()(2, 3));
 trace('x -> y -> x+y'.lambda()(2)(3));
@@ -60,10 +66,10 @@ trace('x+1'.apply(null, [2]));
 // The +Functional+ namespace defines the higher-order functions (HOFs):
 // +map+, +reduce+, +select+, and a bunch of others.
 trace(Functional.map(function(x){return x+1}, [1,2,3]));
-// Lambda strings are useful as arguments to HOFs.  The HOFs
+// Lambda strings are useful as arguments to HOFs.  HOFs
 // convert the string to a function once per call, not once per application.
 trace(Functional.map('_+1', [1,2,3]));
-// +Functional.install()+ imports the HOFs into the global namespace,
+// +Functional.install()+ imports the HOFs into the global namespace (+window+),
 // so that they needn't be qualified with Functional.* each time.
 Functional.install();
 trace(map('+1', [1,2,3]));
@@ -83,12 +89,9 @@ trace(compose('+1', '*2')(1));
 trace(sequence('+1', '*2')(1));
 trace(compose('+1', '*2', '_.length')('a string'));
 trace(compose.apply(null, map('x -> y -> x*y+1', [2,3,4]))(1));
-trace(compose.apply(null, map('x -> y -> x+y', ['hemi', 'demi', 'semi']))('quaver'));
-trace(compose.apply(null, map('x -> y -> x+"-"+y', ['hemi', 'demi', 'semi']))('quaver'));
-trace(compose.apply(null, map('x -> y -> x+"("+y+")"', ['hemi', 'demi', 'semi']))('quaver'));
-// +reduce+ could have handled the last few examples, e.g.:
-trace(reduce('x y -> y+x', 'quaver', ['hemi', 'demi', 'semi'].reverse()));
-trace(reduce.partial('x y -> y+x', _, ['hemi', 'demi', 'semi'].reverse())('quaver'));
+// +foldr+ (right reduce) could have handled the last example:
+trace(foldr('x -> y -> x*y+1'.lambda().uncurry(), 1, [2,3,4]));
+trace(foldr('x*y+1', 1, [2,3,4]));
 
 // +pluck+ and +invoke+ turn methods into functions:
 trace(map(pluck('length'), ['two', 'words']));
@@ -186,19 +189,18 @@ trace(divide.partial(10, _)(2));
 //  (- / 2) 10
 trace(divide.partial(_, 2)(10));
 
-// ^ Using the Prototype library
+// ^ Using Functional with Prototype
 
 // Invoke +lambda+ on a string to create a function for Prototype.
 // Prototype defines a larger set of collection functions than
 // Functional, and attaches them to Array so that they can
-// be chained.)
+// be chained.
 trace([1, 2, 3].map('x*x'.lambda()));
 trace([1, 2, 3].map('x*x'.lambda()).map('x+1'.lambda()));
 
-// Define an +onclick+ function that abbreviates Event.observe(_, 'click', ...)
+// Define an +onclick+ function that abbreviates Event.observe(_, 'click', ...):
 var onclick = Event.observe.bind(Event).partial(_, 'click');
-// These next three lines are identical except their targets
-// and messages:
+// These next three lines are equivalent, just applied to different targets:
 Event.observe('e1', 'click', function(){alert('1')});
 onclick('e2', function(){alert('2')});
 onclick('e3', alert.bind(null).args('3'));

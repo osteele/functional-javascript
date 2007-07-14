@@ -50,6 +50,7 @@ JSShow.Examples.prototype.updateTarget = function() {
 }
 
 JSShow.Examples.prototype.toHTML = function() {
+    var self = this;
     var chunks = (unindent(this.text)
                   .escapeHTML()
                   .split('trace('));
@@ -69,10 +70,11 @@ JSShow.Examples.prototype.toHTML = function() {
         text = text.replace(/\/\/  (.*)/g, '<pre>$1</pre>');
         //text = text.replace(/\n\s*\/\//g, '');
         text = text.replace(/\/\//g, ' ');
-        if (match = text.match(/\^\s*(.*)/)) {
-            var tagName = 'h' + this.headingLevel;
-            return ['<', tagName, '>', match[1], '</', tagName, '>'].join('');
-        }
+        text = text.replace(/(\^+)\s*(.*)/, function(_, level, title) {
+            var tagName = 'h' + (level.length - 1 + self.headingLevel);
+            info(level, title, tagName, level.length, self.headingLevel);
+            return ['</div><', tagName, '>', title, '</', tagName, '><div class="comment">'].join('');
+        });
         return '<div class="comment">'+text+'</div>';
     }.bind(this));
     return html;
