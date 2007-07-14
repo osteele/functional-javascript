@@ -145,7 +145,6 @@ Blog:
 - rewrite last section of blog
 Literacy:
 - move the examples h3 outside pre
-- parameterize hn
 Tweak:
 - make tl that take as fn instead of method?
 - add methods to string?

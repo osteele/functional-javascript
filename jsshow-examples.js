@@ -11,7 +11,9 @@ Functional.install();
 
 var JSShow = window.JSShow || {};
 
-JSShow.Examples = function() {};
+JSShow.Examples = function() {
+    this.headingLevel = 3;
+};
 
 JSShow.Examples.load = function(url) {
     var examples = new JSShow.Examples;
@@ -67,11 +69,12 @@ JSShow.Examples.prototype.toHTML = function() {
         text = text.replace(/\/\/  (.*)/g, '<pre>$1</pre>');
         //text = text.replace(/\n\s*\/\//g, '');
         text = text.replace(/\/\//g, ' ');
-        if (match = text.match(/\^\s*(.*)/))
-            return '<h3>'+match[1]+'</h3>';
+        if (match = text.match(/\^\s*(.*)/)) {
+            var tagName = 'h' + this.headingLevel;
+            return ['<', tagName, '>', match[1], '</', tagName, '>'].join('');
+        }
         return '<div class="comment">'+text+'</div>';
-    });
-    gh = html;
+    }.bind(this));
     return html;
 }
 

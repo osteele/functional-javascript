@@ -9,7 +9,9 @@
 
 var JSShow = window.JSShow || {};
 
-JSShow.Docs = function() {};
+JSShow.Docs = function() {
+    this.headingLevel = 3;
+};
 
 JSShow.Docs.load = function(url) {
     var docs = new JSShow.Docs();
@@ -46,8 +48,11 @@ JSShow.Docs.prototype.updateTarget = function() {
 
 JSShow.Docs.prototype.toHTML = function(string) {
     var spans = [];
+    var self = this;
     this.records.each(function(rec) {
-        spans.push(rec.toHTML());
+        spans.push(rec.toHTML().replace(/(<\/?h)(\d)([\s>])/g, function(_, left, n, right) {
+            return [left, n.charCodeAt(0) - 49 + self.headingLevel, right].join('');
+        }));
     });
     return spans.join('\n');
 }
@@ -160,7 +165,7 @@ JSShow.Docs.Definition.prototype.toHTML = function() {
     }
 }
 
-JSShow.Docs.Parser = function() {};
+JSShow.Docs.Parser = function(options) {};
 
 JSShow.Docs.Parser.prototype.parse = function(text) {
     this.lines = [];
@@ -199,8 +204,8 @@ JSShow.Docs.Parser.prototype.processLine = function(line) {
     function processNondefinitionComment(lines) {
         var match;
         if (lines.length && (match = lines[0].match(/(\^+)\s*(.*)/))) {
-            var tagName = 'h' + (match[1].length + 3);
-            var html = '<' + tagName + '>' + match[2] + '</' + tagName + '>';
+            var tagName = 'h' + match[1].length;
+            var html = ['<', tagName, '>', match[2], '</', tagName, '>'].join('');
             self.records.push({toHTML: Function.K(html)});
         }
     }

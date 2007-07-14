@@ -327,7 +327,7 @@ Functional.not = function(fn) {
     }
 }
 
-// ^^ OO -> FP coercion functions
+// ^^ OO -> FP coercion
 
 // Returns a function that takes an object as an argument, and applies
 // +object+'s +methodName+ method to +arguments+.
