@@ -27,6 +27,7 @@ window.__functionalInitialState = (function() {
 // The identity function: x -> x.
 // == I(x) == x
 // :: a -> a
+// >> Function.I(1) -> 1
 Function.I = function(x) {return x};
 
 // Returns a constant function that returns +x+.
@@ -40,6 +41,7 @@ Function.K = function(x) {return function() {return x}}
 // passing them to the underlying function.
 // == fn.flip()(a, b, c...) == fn(b, a, c...)
 // :: (a b c...) -> (b a c...)
+// >> ('a/b'.lambda()).flip()(1,2) -> 2
 Function.prototype.flip = function() {
     var fn = this;
     return function() {
@@ -54,6 +56,7 @@ Function.prototype.flip = function() {
 // arguments.
 // == fn.uncurry(a, b...) == fn(a)(b...)
 // :: (a -> b -> c) -> (a, b) -> c
+// >> ('a -> b -> a/b'.lambda()).uncurry()(1,2) -> 0.5
 Function.prototype.uncurry = function() {
     var fn = this;
     return function() {
@@ -208,6 +211,8 @@ delete window.__functionalInitialState;
 // in +Functional+, that coerces its first argument to a +Function+ and applies
 // the remaining arguments to it.
 // == curry(fn, args...) == fn.curry(args...)
+// >> Functional.flip('a/b')(1, 2) -> 2
+// >> Functional.curry('a/b', 1)(2) -> 0.5
 var Functional = window.Functional || {};
 
 // For each method that this file defined on Function.prototype,
@@ -224,12 +229,14 @@ var Functional = window.Functional || {};
 
 // Copies all the functions in +Functional+ (except this one)
 // into the global namespace.
+// >> Functional.install
 Functional.install = function() {
     var source = Functional;
     var target = window;
     // the {}[name] works around Prototype
     for (var name in source)
         name == 'install' || name == 'functionMethods' || {}[name] || (target[name] = source[name]);
+    Functional.install = Function.I;
 }
 
 // Returns a function that applies the last argument of this
@@ -237,6 +244,7 @@ Functional.install = function() {
 // and so on.
 // == compose(f1, f2, f3..., fn)(args) == f1(f2(f3(...(fn(args...)))))
 // :: (a2 -> a1) (a3 -> a2)... (a... -> an) -> a... -> a1
+// >> compose('1+', '2*')(2) -> 5
 Functional.compose = function(/*fn...*/) {
     var fns = Functional.map(Function.toFunction, arguments);
     return function() {
@@ -249,6 +257,7 @@ Functional.compose = function(/*fn...*/) {
 // Same as +compose+, except applies the functions in argument-list order.
 // == sequence(f1, f2, f3..., fn)(args) == fn(...(f3(f2(f1(args...)))))
 // :: (a... -> a1) (a1 -> a2) (a2 -> a3)... (a[n-1] -> an)  -> a... -> an
+// >> sequence('1+', '2*')(2) -> 6
 Functional.sequence = function(/*fn...*/) {
     var fns = Functional.map(Function.toFunction, arguments);
     return function() {
@@ -261,6 +270,7 @@ Functional.sequence = function(/*fn...*/) {
 // Applies +fn+ to each element of +sequence+.
 // == map(f, [x1, x2...]) = [f(x, 0), f(x2, 1), ...]
 // :: (a ix -> boolean) [a] -> [a]
+// >> map('1+', [1,2,3]) -> [2, 3, 4]
 Functional.map = function(fn, sequence, object) {
     arguments.length < 3 && (receiver = this);
     fn = Function.toFunction(fn);
@@ -275,6 +285,7 @@ Functional.map = function(fn, sequence, object) {
 // and then to the result and the second element, and so on.
 // == reduce(fn, init, [x1, x2, x3]) == fn(fn(fn(init, x1), x2), x3)
 // :: (a b -> a) a [b] -> a
+// >> reduce('x y -> 2*x+y', 0, [1,0,1,0]) -> 10
 Functional.reduce = function(fn, init, sequence, object) {
     arguments.length < 4 && (receiver = this);
     fn = Function.toFunction(fn);
@@ -288,6 +299,7 @@ Functional.reduce = function(fn, init, sequence, object) {
 // Returns a list of those elements +x+ of +sequence+ such that
 // +fn(x)+ returns true.
 // :: (a -> boolean) [a] -> [a]
+// >> select('%2', [1,2,3,4]) -> [1, 3]
 Functional.select = function(fn, sequence, receiver) {
     arguments.length < 3 && (receiver = this);
     fn = Function.toFunction(fn);
@@ -307,8 +319,9 @@ Functional.filter = Functional.select;
 Functional.foldl = Functional.reduce;
 
 // Same as +foldl+, but applies the function from right to left.
-// == reduce(fn, init, [x1, x2, x3]) == fn(x1, fn(x2, fn(x3, init)))
+// == foldr(fn, init, [x1, x2, x3]) == fn(x1, fn(x2, fn(x3, init)))
 // :: (a b -> b) b [a] -> b
+// >> foldr('x y -> 2*x+y', 100, [1,0,1,0]) -> 104
 Functional.foldr = function(fn, init, sequence, object) {
     arguments.length < 4 && (receiver = this);
     fn = Function.toFunction(fn);
@@ -325,6 +338,8 @@ Functional.foldr = function(fn, init, sequence, object) {
 // +sequence+.
 // == some(fn, [x1, x2, x3]) == fn(x1) || fn(x2) || fn(x3)
 // :: (a -> boolean) [a] -> [a]
+// >> some('>2', [1,2,3]) -> true
+// >> some('>10', [1,2,3]) -> false
 Functional.some = function(fn, sequence, receiver) {
     arguments.length < 3 && (receiver = this);
     fn = Function.toFunction(fn);
@@ -332,7 +347,7 @@ Functional.some = function(fn, sequence, receiver) {
     var result = [];
     var value = false;
     for (var i = 0; i < len; i++) {
-        value = fn.apply(receiver, [sequence[i]]);
+        value = fn.call(receiver, sequence[i]);
         if (value) return value;
     }
     return value;
@@ -342,6 +357,8 @@ Functional.some = function(fn, sequence, receiver) {
 // +sequence+.
 // == every(fn, [x1, x2, x3]) == fn(x1) && fn(x2) && fn(x3)
 // :: (a -> boolean) [a] -> [a]
+// >> every('<2', [1,2,3]) -> false
+// >> every('<10', [1,2,3]) -> true
 Functional.every = function(fn, sequence, receiver) {
     arguments.length < 3 && (receiver = this);
     fn = Function.toFunction(fn);
@@ -349,7 +366,7 @@ Functional.every = function(fn, sequence, receiver) {
     var result = [];
     var value = true;
     for (var i = 0; i < len; i++) {
-        value = fn.apply(receiver, [sequence[i]]);
+        value = fn.call(receiver, sequence[i]);
         if (!value) return value;
     }
     return value;
@@ -358,6 +375,8 @@ Functional.every = function(fn, sequence, receiver) {
 // Returns a function that returns true when +fn()+ returns false.
 // == fn.not()(args...) == !fn(args...)
 // :: (a -> boolean) -> (a -> boolean)
+// >> not(Function.K(true))() -> false
+// >> not(Function.K(false))() -> true
 Functional.not = function(fn) {
     fn = Function.toFunction(fn);
     return function() {  
@@ -392,6 +411,7 @@ Functional.pluck = function(name) {
 // +value+ to produce a new value, which is used as an input for the next round.
 // +fn+ returns the first +value+ for which +pred(value)+ is false.
 // :: (a -> boolean) (a -> a) -> a
+// >> until('>10', '2*')(1) -> 16
 Functional.until = function(pred, fn) {
     fn = Function.toFunction(fn);
     pred = Function.toFunction(pred);
@@ -475,12 +495,14 @@ String.prototype.lambda = function() {
 
 // Coerce the string to a function and then apply it.
 // >> 'x+1'.apply(null, [2]) -> 3
+// >> '/'.apply(null, [2, 4]) -> 0.5
 String.prototype.apply = function(thisArg, args) {
     return this.toFunction().apply(thisArg, args);
 }
 
 // Coerce the string to a function and then call it.
-// >> 'x+1'.call(2) -> 3
+// >> 'x+1'.call(null, 2) -> 3
+// >> '/'.call(null, 2, 4) -> 0.5
 String.prototype.call = function() {
     return this.toFunction().apply(arguments[0], [].slice.call(arguments, 1));
 }

@@ -55,7 +55,7 @@ JSShow.Examples.prototype.toHTML = function() {
                   .escapeHTML()
                   .split('trace('));
     var outputs = this.trace;
-    var lines = [chunks.shift()];
+    var lines = ['<pre>', chunks.shift()];
     chunks.each(function(segment, ix) {
         var output = (outputs[ix]||'').escapeHTML();
         var m = segment.indexOf(');');
@@ -65,6 +65,7 @@ JSShow.Examples.prototype.toHTML = function() {
         lines.push('</span>');
         lines.push(segment.slice(m+2));
     });
+    lines.push('</pre>');
     var html = lines.join('').replace(/((?:\/\/.*\n)+)/g, function(text) {
         text = text.replace(/\+(\S+)\+/g, '<span class="formatted">$1</span>');
         text = text.replace(/\/\/  (.*)/g, '<pre>$1</pre>');
@@ -75,7 +76,7 @@ JSShow.Examples.prototype.toHTML = function() {
             return ['</div><', tagName, '>', title, '</', tagName, '><div class="comment">'].join('');
         });
         return '<div class="comment">'+text+'</div>';
-    }.bind(this));
+    }.bind(this)).replace(/<div class="comment">\s*<\/div>/g, '');
     return html;
 }
 

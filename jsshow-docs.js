@@ -7,43 +7,68 @@
  * Modified: 2007-07-12
  */
 
+Functional.install();
+
 var JSShow = window.JSShow || {};
 
-JSShow.Docs = function() {
-    this.headingLevel = 3;
+JSShow.Docs = function(options) {
+    this.options = {headingLevel: 3, onLoad: Function.I};
+    for (var name in options||{})
+        this.options[name] = options[name];
 };
 
-JSShow.Docs.load = function(url) {
-    var docs = new JSShow.Docs();
+JSShow.Docs.prototype.load = function(url) {
     new Ajax.Request(
         url,
         {method: 'GET',
-         onSuccess: Functional.compose(docs.parse.bind(docs), '_.responseText').reporting()});
-    return docs;
+         onSuccess: Functional.compose(this.parse.bind(this), '_.responseText').reporting()});
+    return this;
 }
 
 JSShow.Docs.prototype.parse = function(string) {
     this.records = (new JSShow.Docs.Parser).parse(string);
-    this.loaded = true;
-    this.target && this.updateTarget();
+    this.options.onLoad();
     return this;
 }
 
 JSShow.Docs.prototype.replace = function(target) {
-    this.target = target;
-    this.loaded && this.updateTarget();
+    target.innerHTML = this.toHTML();
     return this;
 }
 
-JSShow.Docs.prototype.onSuccess = function(fn) {
-    this.onSuccessFn = fn;
-    return this;
-}
-
-JSShow.Docs.prototype.updateTarget = function() {
-    this.target.innerHTML = this.toHTML();
-    this.onSuccessFn && this.onSuccessFn();
-    return this;
+JSShow.Docs.prototype.runTests = function() {
+    function toString(value) {
+        if (value instanceof Array) {
+            var spans = map(toString, value);
+            return '[' + spans.join(', ') + ']';
+        }
+        switch (typeof(value)) {
+        case 'function': return 'function()';
+        case 'string': return '"' + value + '"';
+        case 'undefined': return 'undefined';
+        default: return value.toString();
+        }
+    }
+    var failures = this.failures = [];
+    this.records.each(function(defn) {
+        defn.tests.each(function(test) {
+            //info(defn.name, test);
+            try {
+                var result = eval(test.test);
+            } catch (e) {
+                failures.push({defn: defn, test: test, error: e});
+                return;
+            }
+            if (test.expect != undefined && toString(result) != test.expect)
+                failures.push({defn: defn, test: test, result: result});
+        });
+    });
+    failures.each(function(failure) {
+        var message = [failure.defn.name, ':', failure.test.test, ' -> ', toString(failure.result), ' != ', failure.test.expect].join('');
+        if (failure.error)
+            message = [failure.defn.name, '::', failure.test.test, ' -> ', failure.error].join('');
+        info(message);
+    });
 }
 
 JSShow.Docs.prototype.toHTML = function(string) {
@@ -69,6 +94,7 @@ JSShow.Docs.Definition = function(name, params) {
 }
 
 JSShow.Docs.Definition.prototype.setDescription = function(lines) {
+    this.tests = [];
     this.blocks = [];
     this.block = null;
     map(this.addDescriptionLine, lines, this);
@@ -101,6 +127,8 @@ JSShow.Docs.Definition.prototype.addDescriptionLine = function(line) {
     function output(text) {
         endParagraph();
         var line = text.escapeHTML().replace(/-&gt;(.*)/, '<span class="output">&rarr;$1</span>');
+        var match = text.match(/\s*(.*)\s*->\s*(.*?)\s*$/);
+        match && self.tests.push({test: match[1].replace(/\s*$/,''), expect: match[2]});
         pre('  ' + line);
     }
     function defn(text) {
@@ -206,7 +234,7 @@ JSShow.Docs.Parser.prototype.processLine = function(line) {
         if (lines.length && (match = lines[0].match(/(\^+)\s*(.*)/))) {
             var tagName = 'h' + match[1].length;
             var html = ['<', tagName, '>', match[2], '</', tagName, '>'].join('');
-            self.records.push({toHTML: Function.K(html)});
+            self.records.push({toHTML: Function.K(html), tests:[]});
         }
     }
 }

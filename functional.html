@@ -30,7 +30,7 @@ h2 {margin:0}
     <p>The <dfn>Functional Javascript</dfn> library defines functions for using
     Javascript for functional programming (FP).  It defines the
     standard higher-order functions such as <code>map</code>,
-    <code>reduce</code> (<code>foldl</code>), and <code>select</code> (<code>filter</code>).  It also defines
+    <code>reduce</code> (aka <code>foldl</code>), and <code>select</code> (aka <code>filter</code>).  It also defines
     functions for partial function application (<code>curry</code>, <code>rcurry</code>,
     <code>partial</code>, <i>etc.</i>); and all these
     functions accept strings that define lambda expressions, such as <code>'x
@@ -39,7 +39,7 @@ h2 {margin:0}
     x+1}</code>.</p>
     
     <div style="float:left; margin-right:5em">
-      <p><dfn>Functional</dfn> enables expressions such as these:</p>
+      <p><dfn>Functional</dfn> supports expressions such as these:</p>
       <pre>
         compose('x*x', 'x+1')(2)
           <span class="output">&rarr; 9</span>
@@ -47,20 +47,18 @@ h2 {margin:0}
           <span class="output">&rarr; [1, 4, 9, 16]</span>
         select('>2', [1,2,3,4])
           <span class="output">&rarr; [3, 4]</span>
-        until('>10', 'x*x')(2)
-          <span class="output">&rarr; 16</span>
+        select('_.x > _.y', [{x:1,y:2},{x:2,y:1}])
+          <span class="output">&rarr; [{x:2, y:1}]</span>
       </pre>
     </div>
     <div style="float:left">
-      <p>Or, for the more adventurous, these:</p>
+      <p>&hellip;or these <a href="http://haskell.org/haskellwiki/Pointfree#Problems_with_pointfree">pointless</a> <a href="http://en.wikipedia.org/wiki/Function-level_programming">function-level</a> examples:</p>
       <pre>
-        select('_.x > _.y', [{x:1,y:2},{x:2,y:1}])
-          <span class="output">&rarr; [{x:2, y:1}]</span>
-        var squareUntil = until.partial(_, 'x*x');
-        squareUntil('x>100')(2)
+        until('>100', 'x*x')(2)
           <span class="output">&rarr; 256</span>
+        var squareUntil = until.partial(_, 'x*x');
         var square2Until = squareUntil.uncurry().flip().curry(2);
-        var firstSquare2Over = compose(square2Until, 'm -> x -> x > m');
+        var firstSquare2Over = compose(square2Until, 'n -> i -> i > n');
         firstSquare2Over(100)
           <span class="output">&rarr; 256</span>
       </pre>
@@ -78,7 +76,7 @@ h2 {margin:0}
       <tr>
         <td id="examples" valign="top">
           <h2>Examples <span class="download">(<a href="functional-examples.js">source</a>)</span></h2>
-          <pre style="padding-right:5em" id="output" class="jsshow examples">Examples failed to load.</pre>
+          <div style="padding-right:5em" id="output" class="jsshow examples">Examples failed to load.</div>
           <button id="e1">1. Event.observe</button>
           <button id="e2">2. onclick</button>
           <button id="e3">3. specialized alert fn</button>

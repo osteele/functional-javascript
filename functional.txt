@@ -1,3 +1,7 @@
+.bq [T]he aim of functional programming is to transform a program which
+describes a problem into a program which describes a solution
+-- "Claus Reinke":http://www.haskell.org/pipermail/haskell-cafe/2006-December/020147.html
+
 Procedural programming manipulates values, applying a sequence of builtin operations and other functions to the inputs to produce an output.  Functional programming manipulates functions, applying operations to them and combining them to create a synthetic function which is applied to the input.  A function that takes a function as an argument or returns a function as a result is called (in functional programming) a higher-order function or (in math) a functional.
 
 Functional is a JavaScript library for functional programming.  It
@@ -139,11 +143,10 @@ Code:
 - rename or remove intercept
 - test w/out prototype
 Blog:
-- credit FP explanation
-- rewrite last section of blog
+- distinction between FP and function-level programming
+- rewrite last section
 Later:
 - add methods to string?
-- move the examples h3 outside pre
 - doc portability
 - rename receiver
 
@@ -173,4 +176,3 @@ until.curry()(not('<100' ))('x*x')(2)
 compose(until.curry)(not('<100'))('x*x')(2)
 until.curry(not('<100'))('x*x')(2)
 until(not('<100'), 'x*x')(2)
-
