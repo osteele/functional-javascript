@@ -20,18 +20,41 @@ var square = 'x*x'.lambda();
 trace(square(3));
 trace(square(4));
 
+// ^^ Explicit parameters
+
 // If the string contains a ->, this separates the parameters
-// from the expression that is used as the function body.
+// from the body.
 trace('x y -> x+2*y'.lambda()(2, 3));
 trace('y x -> x+2*y'.lambda()(2, 3));
 
-// Otherwise, if the string starts with an operator or relation
+// Otherwise, if the string contains a '_', it's a unary function
+// and '_' is the parameter:
+trace('_ -> _+1'.lambda()(2));
+trace('_ -> _*_'.lambda()(3));
+
+// ^^ Implicit parameters
+
+// If the string doesn't specify explicit parameters, they
+// are implicit.
+
+// If the string starts with an operator or relation
 // besides -, or ends with an operator or relation, then its
 // implicit arguments are placed at the beginning and/or end:
 trace('*2'.lambda()(2));
 trace('/2'.lambda()(4));
 trace('2/'.lambda()(4));
 trace('/'.lambda()(2, 4));
+// '.' counts as a right operator:
+trace('.x'.lambda()({x:1, y:2}));
+
+// Otherwise, the symbols in the string, in order of occurrence,
+// are its parameters.  (That's symbols, not all of which you would
+// normally consider variables.  The parser isn't very smart.  See
+// Gotchas, below.)
+trace('x+1'.lambda()(2));
+trace('x*x'.lambda()(3));
+trace('x + 2*y'.lambda()(1, 2));
+trace('y + 2*x'.lambda()(1, 2));
 
 // ^^ Chaining
 
@@ -46,6 +69,31 @@ trace('x -> y -> x+y'.lambda()(2));
 // functions, to some callers.
 trace('x+1'.call(null, 2));
 trace('x+1'.apply(null, [2]));
+
+// ^^ String-lambda Gotchas
+
+// +lambda+ doesn't know about keywords or function and property names,
+// and it looks for symbols inside string and regular expressions literals.
+// For example, +lambda+'s implicit parameterization would mistake 'Math'
+// and 'cos' for parameters in the following line.
+//   'Math.cos(angle)'.lambda()(Math.PI)
+// Use '_' or '->' instead:
+trace('Math.cos(_)'.lambda()(Math.PI));
+trace('angle -> Math.cos(angle)'.lambda()(Math.PI));
+// Implicit parameterization would mistake 'x' for a parameter in this
+// projection function:
+//   'point.x'.lambda()({x:1, y:2})
+// Use a section, '_', '->', instead:
+trace('.x'.lambda()({x:1, y:2}));
+trace('_.x'.lambda()({x:1, y:2}));
+trace('point -> point.x'.lambda()({x:1, y:2}));
+// The symbols in these strings are inside literals, but +lambda+
+// doesn't (currently) have a lexer.  (The examples are contrived because
+// most things you could do with a literal involve a function name, which
+// runs into the previous limitation anyway.)
+trace(map('"im"+_', ["probable", "possible"]));
+// This only works in Firefox anyway:
+//   select('(/im/)(_)', ["improbable", "unlikely"]) -> ["improbable"]
 
 // ^ Higher-order functions
 
