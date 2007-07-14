@@ -44,6 +44,15 @@ function initialize() {
         var text = gDocs.createTestText();
         document.write('<pre>'+text.escapeHTML()+'</pre>');
     });
+    Event.observe('cin', 'keyup', function(e) {
+        if (e.keyCode == 13) {
+            doit();
+            Event.stop(e);
+        }
+    });
+    Event.observe('eval', 'click', function(e) {
+        doit();
+    });
     function makeToggler(button, complement, action) {
         Event.observe(button, 'click', function(e) {
             Event.stop(e);
@@ -58,11 +67,34 @@ function initialize() {
     }
 }
 
+var gg = {};
+function doit() {
+    var cin = $('cin').value = $('cin').value.strip().replace('\n', '');
+    var html;
+    try {
+        cin = cin.replace(/^\s*var\s+/, '');
+        var v;
+        with(gg) v = eval(cin);
+        html = OSDoc.toString(v).escapeHTML();
+    } catch (e) {
+        html = 'Error: ' + e;
+    }
+    $('cout').innerHTML = html;
+    //window.location = '#cin';
+}
+
 function done(name) {
     var me = arguments.callee;
     me[name] = true;
-    if (me.docs && me.examples)
+    if (me.docs && me.examples) {
         $('noscript').hide();
+        function handler(e) {
+            var text = Event.element(e).innerHTML.unescapeHTML();
+            $('cin').value = text;
+            doit();
+        }
+        map(Event.observe.bind(Event).partial(_, 'click', handler), $$('.input'));
+    }
 }
 
 Event.observe(window, 'load', initialize);

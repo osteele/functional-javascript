@@ -20,6 +20,8 @@ h2 {margin:0}
       a:hover {color:blue}
       #hide-header, #show-header {font-size:medium}
       #footer {color:#888; margin-top:2em; padding-top:2px; border-top:1px solid; font-size:small}
+      .input {cursor:pointer}
+      .input:hover {color:red}
     </style>
   </head>
   <body>
@@ -42,27 +44,45 @@ h2 {margin:0}
     <div style="float:left; margin-right:5em">
       <p><dfn>Functional</dfn> supports <a href="http://en.wikipedia.org/wiki/Higher-order_programming">higher-order programming</a>:</p>
       <pre>
-        map('x*x', [1,2,3,4])
+        <span class="input">map('x*x', [1,2,3,4])</span>
           <span class="output">&rarr; [1, 4, 9, 16]</span>
-        select(not('%2'), [1,2,3,4])
+        <span class="input">select(not('%2'), [1,2,3,4])</span>
           <span class="output">&rarr; [2, 4]</span>
-        reduce('x*2+y', 0, [1,0,1,0])
+        <span class="input">reduce('x*2+y', 0, [1,0,1,0])</span>
           <span class="output">&rarr; 10</span>
       </pre>
     </div>
     <div style="float:left">
       <p>&hellip;as well as a <a href="http://en.wikipedia.org/wiki/Function-level_programming">function-level</a> (or <a href="http://haskell.org/haskellwiki/Pointfree#Problems_with_pointfree">pointless</a>) style:</p>
       <pre>
-        until('>100', 'x*x')(2)
+        <span class="input">until('>100', 'x*x')(2)</span>
           <span class="output">&rarr; 256</span>
-        var squareUntil = until.partial(_, 'x*x');
-        var square2Until = squareUntil.uncurry().flip().curry(2);
-        var firstSquare2Over = compose(square2Until, 'n -> i -> i > n');
-        firstSquare2Over(100)
+        <span class="input">var squareUntil = until.partial(_, 'x*x');</span>
+        <span class="input">var square2Until = squareUntil.uncurry().flip().curry(2);</span>
+        <span class="input">var firstSquare2Over = compose(square2Until, 'n -> i -> i > n');</span>
+        <span class="input">firstSquare2Over(100)</span>
           <span class="output">&rarr; 256</span>
       </pre>
     </div>
     <div style="clear:left"> </div>
+    
+    <table>
+      <tr><td colspan="2">Try it!  Enter an expression below, or click on a line from the documentation to copy it here.</td></tr>
+      <tr>
+        <td>
+          <textarea id="cin" rows="1" cols="50" style="text-align:left">
+            1+1
+          </textarea>
+        </td>
+        <td>
+          <button id="eval">&rarr;&nbsp;</button>
+        </td>
+        <td>
+          <pre id="cout" style="border:1px solid;width:30em;">
+          </pre>
+        </td>
+      </tr>
+    </table>
     </div>
         
     <div id="noscript">

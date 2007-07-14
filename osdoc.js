@@ -112,8 +112,9 @@ OSDoc.Docs.Definition.prototype.addDescriptionLine = function(line) {
                     : {text: input});
         self.tests.push(test);
         var line = (match
-                    ? [input, ' <span class="output">&rarr; ', output, '</span>'].join('')
-                    : text);
+                    ? ['<span class="input">', input.escapeHTML(), '</span>',
+                       ' <span class="output">&rarr; ', output.escapeHTML(), '</span>'].join('')
+                    : text.escapeHTML());
         pre(line);
     }
     function defn(text) {
