@@ -33,18 +33,29 @@ function initialize() {
         done('docs');
     }});
     gDocs.load('functional.js');
-    Event.observe('hide-header', 'click', function() {
-        Element.hide('hide-header');
-        Element.show('show-header');
-        Element.hide('header');
-        return false;
+    makeTogglePair('hide-header', 'show-header', 'header');
+    Event.observe('run-tests', 'click', function(e) {
+        Event.stop(e);
+        var results = gDocs.runTests();
+        alert(results.toHTML());
     });
-    Event.observe('show-header', 'click', function() {
-        Element.hide('show-header');
-        Element.show('hide-header');
-        Element.show('header');
-        return false;
+    Event.observe('write-tests', 'click', function(e) {
+        Event.stop(e);
+        var text = gDocs.createTestText();
+        document.write('<pre>'+text.escapeHTML()+'</pre>');
     });
+    function makeToggler(button, complement, action) {
+        Event.observe(button, 'click', function(e) {
+            Event.stop(e);
+            Element.hide(button);
+            Element.show(complement);
+            action();
+        });
+    }
+    function makeTogglePair(hider, shower, target) {
+        makeToggler(hider, shower, Element.hide.bind(Element, target));
+        makeToggler(shower, hider, Element.show.bind(Element, target));
+    }
 }
 
 function done(name) {

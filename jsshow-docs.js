@@ -49,12 +49,13 @@ JSShow.Docs.prototype.runTests = function() {
         default: return value.toString();
         }
     }
-    var failures = this.failures = [];
+    var tests = [];
+    var failures = [];
     this.records.each(function(defn) {
         defn.tests.each(function(test) {
-            //info(defn.name, test);
+            tests.push(test);
             try {
-                var result = eval(test.test);
+                var result = eval(test.text);
             } catch (e) {
                 failures.push({defn: defn, test: test, error: e});
                 return;
@@ -65,30 +66,37 @@ JSShow.Docs.prototype.runTests = function() {
     });
     var lines = [];
     failures.each(function(failure) {
-        var message = [failure.defn.name, ':', failure.test.test, ' -> ', toString(failure.result), ' != ', failure.test.expect].join('');
-        if (failure.error)
-            message = [failure.defn.name, '::', failure.test.test, ' -> ', failure.error].join('');
-        info(message);
-        lines.push(message);
+        var message = (failure.error
+                       ? [failure.test.text, ' throws ', failure.error]
+                       : [failure.test.text, ' -> ', toString(failure.result), ' != ', failure.test.expect]).join('');
+        lines.push(failure.defn.name + ': ' + message);
     });
-    this.testResults = {HTML: lines.join('\n')};
+    return this.testResults = {
+        tests: tests,
+        failure: failures,
+        success: !failures.length,
+        toHTML: function() {
+            return (failures.length
+                    ? ['Failed', failures.length, 'out of', tests.length, 'tests:\n'+lines.join('\n')]
+                    : ['Passed all', tests.length, 'tests.']).join(' ');
+        }
+    };
 }
 
-JSShow.Docs.prototype.createTestFunction = function() {
+JSShow.Docs.prototype.createTestText = function() {
     var lines = [];
-    info(this.records.length);
     this.records.each(function(defn) {
-        defn.tests.length && lines.push('\n    // ' + defn.name);
+        defn.tests.length && lines.push('// ' + defn.name);
         defn.tests.each(function(test) {
-            if (test.result) {
-                lines.push('    console.info(' + test.test.toString() + ');');
-                lines.push(['    assertEquals(', test.result, ', ', test.test, ');'].join(''));
+            if (test.expect) {
+                lines.push('console.info(' + test.text.toString() + ');');
+                lines.push(['assertEquals(', test.expect, ', ', test.text, ');'].join(''));
             } else
-                lines.push('    ' + test.test);
+                lines.push(test.text);
         });
-        lines.push('');
+        defn.tests.length && lines.push('');
     });
-    return 'function() {\n' + lines.join('\n') + '}';
+    return lines.join('\n').replace(/^/mg, '    ');
 }
 
 JSShow.Docs.prototype.toHTML = function(string) {
@@ -147,12 +155,14 @@ JSShow.Docs.Definition.prototype.addDescriptionLine = function(line) {
     function output(text) {
         endParagraph();
         var match = text.match(/\s*(.*)\s*->\s*(.*?)\s*$/);
+        var input = match ? match[1].replace(/\s+$/,'') : text;
+        var output = match && match[2];
         var test = (match
-                    ? {test: match[1].replace(/\s+$/,''), result: match[2]}
-                    : {test: text});
+                    ? {text: input, expect: output}
+                    : {text: input});
         self.tests.push(test);
         var line = (match
-                    ? [test.test, ' <span class="output">&rarr; ', test.result, '</span>'].join('')
+                    ? [input, ' <span class="output">&rarr; ', output, '</span>'].join('')
                     : text);
         pre(line);
     }

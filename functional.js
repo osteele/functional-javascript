@@ -437,7 +437,7 @@ Functional.zip = function(/*args...*/) {
 // 
 // If the string contains a '->', this separates the parameters from the body:
 // >> 'x -> x + 1'.lambda()(1) -> 2
-// >> 'x y -> x + y'.lambda()(1, 2) -> 5
+// >> 'x y -> x + 2*y'.lambda()(1, 2) -> 5
 // >> 'x, y -> x + 2*y'.lambda()(1, 2) -> 5
 // Otherwise, if the string contains a '_', this is the parameter:
 // >> '_ + 1'.lambda()(1) -> 2
@@ -447,7 +447,7 @@ Functional.zip = function(/*args...*/) {
 // >> '2/'.lambda()(4) -> 0.5
 // >> '/'.lambda()(2,4) -> 0.5
 // Otherwise, each symbol is an implicit parameter:
-// >> 'x + 1'.lambda()() -> 2
+// >> 'x + 1'.lambda()(1) -> 2
 // >> 'x + 2*y'.lambda()(1, 2) -> 5
 // >> 'y + 2*x'.lambda()(1, 2) -> 5
 // 
