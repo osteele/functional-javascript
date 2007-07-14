@@ -88,8 +88,9 @@ JSShow.Examples.prototype.runExamples = function() {
                     return '[' + spans.join(', ') + ']';
                 }
                 switch (typeof(value)) {
-                case 'function': return 'function';
+                case 'function': return 'function()';
                 case 'string': return '"' + value + '"';
+                case 'undefined': return 'undefined';
                 default: return value;
                 }
             }

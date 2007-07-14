@@ -21,7 +21,7 @@ trace(square(3));
 // from the function body (the expression).
 trace('x y -> x+2*y'.lambda()(2, 3));
 // Otherwise, if the string contains a '_', that's the parameter.
-// These are the same:
+// These are equivalent:
 trace('_ -> _+1'.lambda()(2));
 trace('_+1'.lambda()(2));
 // Otherwise, if the string starts with an operator or relation
@@ -39,29 +39,32 @@ trace('x+2*y'.lambda()(2, 3));
 // that looks like a symbol but shouldn't be used as a parameter name, or
 // to specify parameters that are ordered differently from their first
 // occurrence in the string:
+trace('x / y'.lambda()(4, 2));
 trace('y / x'.lambda()(4, 2));
 trace('x y -> y / x'.lambda()(4, 2));
+// Implicit parameterization would mistake 'Math' and 'cos' for parameters:
 trace('Math.cos(_)'.lambda()(Math.PI));
+// Implicit parameterization would mistake 'x' for a parameter:
 trace('_.x'.lambda()({x:1, y:2}));
 // Chain -> to create curried functions.
 trace('x y -> x+y'.lambda()(2, 3));
 trace('x -> y -> x+y'.lambda()(2)(3));
 trace('x -> y -> x+y'.lambda()(2));
 // Strings support +call+ and +apply+.  This duck-types them as
-// functions to some callers.
+// functions, to some callers.
 trace('x+1'.call(null, 2));
 trace('x+1'.apply(null, [2]));
 
 // ^ Higher-order functions
 
-// The +Functional+ namespace defines the higher-order functions:
+// The +Functional+ namespace defines the higher-order functions (HOFs):
 // +map+, +reduce+, +select+, and a bunch of others.
 trace(Functional.map(function(x){return x+1}, [1,2,3]));
-// Lambda strings are useful as arguments to functionals.  The functionals
+// Lambda strings are useful as arguments to HOFs.  The HOFs
 // convert the string to a function once per call, not once per application.
 trace(Functional.map('_+1', [1,2,3]));
-// +Functional.install()+ imports the functionals into the global namespace,
-// so that we don't have to qualify them with Functional.* each time.
+// +Functional.install()+ imports the HOFs into the global namespace,
+// so that they needn't be qualified with Functional.* each time.
 Functional.install();
 trace(map('+1', [1,2,3]));
 trace(map('_.length', 'here are some words'.split(' ')));
@@ -174,20 +177,20 @@ trace(list.rncurry(4,1,2)(3,4));
 // +curry+ and +partial+ overlap in their use, but curries are like Haskell sections:
 //  (10 /) 2
 trace(divide.curry(10)(2));
-//   (/ 2) 10
+//  (/ 2) 10
 trace(divide.rcurry(2)(10));
 // while partials are like the hyphens used in abstract algebra
-// (e.g. Hom(F-, -) = Hom(-, G-)), here put to more concrete use:
-//   (10 / -) 2
+// (e.g. in Hom(F-, -) = Hom(-, G-)):
+//  (10 / -) 2
 trace(divide.partial(10, _)(2));
-//   (- / 2) 10
+//  (- / 2) 10
 trace(divide.partial(_, 2)(10));
 
 // ^ Using the Prototype library
 
 // Invoke +lambda+ on a string to create a function for Prototype.
-// (Prototype defines a larger set of collection utilities than
-// Functional does, and attaches them to Array so that they can
+// Prototype defines a larger set of collection functions than
+// Functional, and attaches them to Array so that they can
 // be chained.)
 trace([1, 2, 3].map('x*x'.lambda()));
 trace([1, 2, 3].map('x*x'.lambda()).map('x+1'.lambda()));

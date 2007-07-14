@@ -26,6 +26,18 @@ Function.prototype.reporting = function() {
 function initialize() {
     JSShow.Examples.load('functional-examples.js').onSuccess(done.args('examples')).replace($('output'));
     JSShow.Docs.load('functional.js').onSuccess(done.args('docs')).replace($('docs'));
+    Event.observe('hide-header', 'click', function() {
+        Element.hide('hide-header');
+        Element.show('show-header');
+        Element.hide('header');
+        return false;
+    });
+    Event.observe('show-header', 'click', function() {
+        Element.hide('show-header');
+        Element.show('hide-header');
+        Element.show('header');
+        return false;
+    });
 }
 
 function done(name) {

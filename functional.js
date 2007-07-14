@@ -391,8 +391,8 @@ Functional.zip = function(/*args...*/) {
 // Otherwise, each symbol is an implicit parameter:
 //   x + y
 // The implicit case won't do what you want if the expression contains
-// symbols that aren't variables.  In that case,
-// use '_' or '->' to specify the parameters explicitly:
+// symbols that aren't variables.  In that case, use '_' or '->' to specify
+// the parameters explicitly:
 //   Math.pow(_, 2)
 //   x -> Math.pow(x, 2)
 // 
@@ -410,16 +410,23 @@ String.prototype.lambda = function() {
         }
     } else if (body.match(/\b_\b/)) {
         params = '_';
-    } else if (body.match(/^\s*[+*\/%&|^!\.=<>]/)) {
-        params = '_';
-        body = '_' + body;
-    } else if (body.match(/[+\-*\/%&|^!\.=<>]\s*$/)) {
-        params = '_';
-        body = body + '_';
     } else {
-        var vars = this.match(/([a-z_$][a-z_$\d]*)/gi);
-        for (var i = 0, v; v = vars[i++]; )
-            params.indexOf(v) >= 0 || params.push(v);
+        var m1 = body.match(/^\s*[+*\/%&|^!\.=<>]/);
+        var m2 = body.match(/[+\-*\/%&|^!\.=<>]\s*$/);
+        if (m1 || m2) {
+            if (m1) {
+                params.push('$1');
+                body = '$1' + body;
+            }
+            if (m2) {
+                params.push('$2');
+                body = body + '$2';
+            }
+        } else {
+            var vars = this.match(/([a-z_$][a-z_$\d]*)/gi);
+            for (var i = 0, v; v = vars[i++]; )
+                params.indexOf(v) >= 0 || params.push(v);
+        }
     }
     return new Function(params, 'return (' + body + ')');
 }

@@ -9,7 +9,7 @@
     <script type="text/javascript" src="jsshow-examples.js"></script>
     <link rel="stylesheet" type="text/css" href="jsshow.css"/>
     <style type="text/css">
-      body {padding:20pt 10pt; color:#222; background:#fff}
+      body {padding:0pt 10pt 0 10pt; color:#222; background:#fff}
       h1 {text-align:center}
       h2 .download {font-size: small}
       p, pre {line-height:1.25em; margin-top:0}
@@ -17,24 +17,29 @@
 h2 {margin:0}
       a {color:#888}
       a:hover {color:blue}
-      #footer {color:#888; border-top:1px solid; font-size:small}
+      #hide-header, #show-header {font-size:medium}
+      #footer {color:#888; margin-top:2em; padding-top:2px; border-top:1px solid; font-size:small}
     </style>
   </head>
   <body>
-    <h1>Functional Javascript</h1>
+    <h1>Functional Javascript
+    <a id="hide-header" href="#">(hide header)</a>
+    <a id="show-header" href="#" style="display:none">(show header)</a>
+    </h1>
+    <div id="header">
     <p>The <dfn>Functional Javascript</dfn> library defines functions for using
     Javascript for functional programming (FP).  It defines the
     standard FP functions such as <code>map</code>,
     <code>reduce</code>, <code>select</code>.  It also defines
     higher-order functions (<code>curry</code>, <code>rcurry</code>,
-    <code>partial</code>) for partial function application; and it
-    accepts strings that define lambda expressions, such as <code>'x
+    <code>partial</code>) for partial function application; and its
+    functions accept strings that define lambda expressions, such as <code>'x
     -> x+1'</code> or <code>'x+1'</code>, as synonyms for the more
     verbose Javascript expressions such as <code>function(x) {return
     x+1}</code>.</p>
     
     <div style="float:left; margin-right:5em">
-      <p>Functional enables expressions such as these:</p>
+      <p><dfn>Functional</dfn> enables expressions such as these:</p>
       <pre>
         compose('x*x', 'x+1')(2)
           <span class="output">&rarr; 9</span>
@@ -47,7 +52,7 @@ h2 {margin:0}
       </pre>
     </div>
     <div style="float:left">
-      <p>Or, for the adventurous, these:</p>
+      <p>Or, for the more adventurous, these:</p>
       <pre>
         select('_.x > _.y', [{x:1,y:2},{x:2,y:1}])
           <span class="output">&rarr; [{x:2, y:1}]</span>
@@ -59,9 +64,10 @@ h2 {margin:0}
         firstSquare2Over(100)
           <span class="output">&rarr; 256</span>
       </pre>
-  </div>
-<div style="clear:left"> </div>
-
+    </div>
+    <div style="clear:left"> </div>
+    </div>
+        
     <div id="noscript">
       If you can read this, you either have JavaScript turned off
       or you're using a browser I haven't tested.  Either way,
@@ -70,21 +76,21 @@ h2 {margin:0}
     </div>
     <table>
       <tr>
-        <td id="examples" valign="top" width="50%">
+        <td id="examples" valign="top">
           <h2>Examples <span class="download">(<a href="functional-examples.js">source</a>)</span></h2>
-          <pre id="output" class="jsshow examples">Examples failed to load.</pre>
+          <pre style="padding-right:5em" id="output" class="jsshow examples">Examples failed to load.</pre>
           <button id="e1">1. Event.observe</button>
           <button id="e2">2. onclick</button>
           <button id="e3">3. specialized alert fn</button>
         </td>
-        <td id="documentation" valign="top" width="50%">
+        <td id="documentation" valign="top">
           <h2>Documentation <span class="download">(<a href="functional.js">source</a>)</span></h2>
           <div id="docs" class="jsshow docs">Documentation failed to load.</div>
         </td>
       </tr>
     </table>
     <div id="footer">
-      Copyright 2007 by Oliver Steele.  This work is licensed under the <a href="MIT-LICENSE">MIT license</a>.
+      Copyright 2007 by <a href="http://osteele.com">Oliver Steele</a>.  This work is licensed under the <a href="MIT-LICENSE">MIT license</a>.
       <a href="partial.js" target="_blank">View source</a>.
     </div>
   </body>
