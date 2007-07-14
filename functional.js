@@ -481,9 +481,9 @@ Functional.zip = function(/*args...*/) {
 // >> '({x:1, y:2})[key]'.lambda()('x') -> 1
 // 
 // Implicit parameter detection looks inside regular expression literals for
-// variable names.  It doesnt know about keywords and bound variables.
+// variable names.  It doesn't know to ignore JavaScript keywords and bound variables.
 // (The only way you can get these last two if with a function literal inside the
-// string, which is ouside the use case for string lambdas.)
+// string.  This is outside the use case for string lambdas.)
 // Use _ (to define a unary function) or ->, if the string contains anything
 // that looks like a free variable but shouldn't be used as a parameter, or
 // to specify parameters that are ordered differently from their first
@@ -491,6 +491,7 @@ Functional.zip = function(/*args...*/) {
 // 
 // Chain '->'s to create a function in uncurried form:
 // >> 'x -> y -> x + 2*y'.lambda()(1)(2) -> 5
+// >> 'x -> y -> z -> x + 2*y+3*z'.lambda()(1)(2)(3) -> 14
 String.prototype.lambda = function() {
     var params = [];
     var expr = this;
