@@ -13,6 +13,15 @@
  * 'x -> x+1' to be used as though it were a function.
  */
 
+// Record the current contents of Function.prototype, so that we
+// can see what we've added later.
+window.__functionalInitialState = (function() {
+    var record = {};
+    for (var name in Function.prototype)
+        record[name] = Function.prototype[name];
+    return record;
+})();
+
 // ^ First-order combinators
 
 // The identity function: x -> x.
@@ -179,10 +188,39 @@ Function.prototype.partial = function(/*args*/) {
     }
 }
 
+// For each method that this file defined on Function.prototype,
+// define a function on Functional that delegates to it.
+Function.functionalMethods = (function() {
+    var methods = {};
+    for (var name in Function.prototype)
+        if (Function.prototype[name] != window.__functionalInitialState[name])
+            methods[name] = Function.prototype[name];
+    return methods;
+})();
+
+delete window.__functionalInitialState;
+
+
 // ^ Higher-order functions
 
-// A namespace for higher-order functions.
+// A namespace for higher-order functions.  In addition to the functions defined
+// below, every method defined above on +Function+ is also available as a function
+// in +Functional+, that coerces its first argument to a +Function+ and applies
+// the remaining arguments to it.
+// == curry(fn, args...) == fn.curry(args...)
 var Functional = window.Functional || {};
+
+// For each method that this file defined on Function.prototype,
+// define a function on Functional that delegates to it.
+(function() {
+    for (var name in Function.functionalMethods)
+        Functional[name] = (function(name) {
+            var fn = Function.prototype[name];
+            return function(object) {
+                return fn.apply(Function.toFunction(object), [].slice.call(arguments, 1));
+            }
+        })(name);
+})();
 
 // Copies all the functions in +Functional+ (except this one)
 // into the global namespace.
@@ -191,7 +229,7 @@ Functional.install = function() {
     var target = window;
     // the {}[name] works around Prototype
     for (var name in source)
-        name == 'install' || {}[name] || (target[name] = source[name]);
+        name == 'install' || name == 'functionMethods' || {}[name] || (target[name] = source[name]);
 }
 
 // Returns a function that applies the last argument of this
@@ -208,7 +246,7 @@ Functional.compose = function(/*fn...*/) {
     }
 }
 
-// Same as +compose+, except applies the functions from front to back.
+// Same as +compose+, except applies the functions in argument-list order.
 // == sequence(f1, f2, f3..., fn)(args) == fn(...(f3(f2(f1(args...)))))
 // :: (a... -> a1) (a1 -> a2) (a2 -> a3)... (a[n-1] -> an)  -> a... -> an
 Functional.sequence = function(/*fn...*/) {
@@ -327,7 +365,7 @@ Functional.not = function(fn) {
     }
 }
 
-// ^^ OO -> FP coercion
+// ^^ Utilities
 
 // Returns a function that takes an object as an argument, and applies
 // +object+'s +methodName+ method to +arguments+.
@@ -341,7 +379,7 @@ Functional.invoke = function(methodName/*, arguments*/) {
 }
 
 // Returns a function that takes an object, and returns the value of its
-// +name+ property.  pluck(name) is the same as '_.name'.lambda().
+// +name+ property.  +pluck(name)+ is the same as '_.name'.lambda().
 // == fn.pluck(name)(object) == object[name]
 // :: name -> object -> object[name]
 Functional.pluck = function(name) {
@@ -350,10 +388,9 @@ Functional.pluck = function(name) {
     }
 }
 
-// ^^ Utilities
-
-// Returns a function that applies +fn+ to +v+ to a value +v+, and then
-// applies +fn+ to the result, zero or more times, while +pred(v)+ is true.
+// Returns a function +fn+ that, while +pred(value)+ is true, applies +fn+ to
+// +value+ to produce a new value, which is used as an input for the next round.
+// +fn+ returns the first +value+ for which +pred(value)+ is false.
 // :: (a -> boolean) (a -> a) -> a
 Functional.until = function(pred, fn) {
     fn = Function.toFunction(fn);
@@ -365,6 +402,9 @@ Functional.until = function(pred, fn) {
     }
 }
 
+// You know that +zip+ can transpose a matrix,
+// don't you?
+// >> zip.apply(null, [[1,2],[3,4]]) -> [[1, 3], [2, 4]]
 // == zip(a, b...) == [[a[0], b[0]], [a[1], b[1]], ...]
 // :: [a] [b]... -> [[a b]...]
 Functional.zip = function(/*args...*/) {
@@ -431,6 +471,8 @@ String.prototype.lambda = function() {
     return new Function(params, 'return (' + body + ')');
 }
 
+// ^^ Duck-Typing
+
 // Coerce the string to a function and then apply it.
 // >> 'x+1'.apply(null, [2]) -> 3
 String.prototype.apply = function(thisArg, args) {
@@ -443,7 +485,7 @@ String.prototype.call = function() {
     return this.toFunction().apply(arguments[0], [].slice.call(arguments, 1));
 }
 
-// ^^ Coercion
+// ^^ Coercion 
 
 // Returns a Function that perfoms the action described by this
 // string.  If the string contains a 'return', applies

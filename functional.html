@@ -29,10 +29,10 @@ h2 {margin:0}
     <div id="header">
     <p>The <dfn>Functional Javascript</dfn> library defines functions for using
     Javascript for functional programming (FP).  It defines the
-    standard FP functions such as <code>map</code>,
-    <code>reduce</code>, <code>select</code>.  It also defines
-    higher-order functions (<code>curry</code>, <code>rcurry</code>,
-    <code>partial</code>) for partial function application; and these
+    standard higher-order functions such as <code>map</code>,
+    <code>reduce</code> (<code>foldl</code>), and <code>select</code> (<code>filter</code>).  It also defines
+    functions for partial function application (<code>curry</code>, <code>rcurry</code>,
+    <code>partial</code>, <i>etc.</i>); and all these
     functions accept strings that define lambda expressions, such as <code>'x
     -> x+1'</code> or <code>'x+1'</code>, as synonyms for the more
     verbose Javascript expressions such as <code>function(x) {return

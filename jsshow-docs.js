@@ -100,7 +100,7 @@ JSShow.Docs.Definition.prototype.addDescriptionLine = function(line) {
     }
     function output(text) {
         endParagraph();
-        var line = text.escapeHTML().replace(/->(.*)/, '<span class="output">&rarr;$1</span>');
+        var line = text.escapeHTML().replace(/-&gt;(.*)/, '<span class="output">&rarr;$1</span>');
         pre('  ' + line);
     }
     function defn(text) {

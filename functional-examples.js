@@ -189,12 +189,17 @@ trace(divide.partial(10, _)(2));
 //  (- / 2) 10
 trace(divide.partial(_, 2)(10));
 
+// The new methods on +Function+ are also available as functions in +Functional+
+// (and, if +Functional.install+ has been called, in the global namespace too).
+// The latter can be applied to string lambda's, too:
+trace(curry('+', 1)(2));
+
 // ^ Using Functional with Prototype
 
-// Invoke +lambda+ on a string to create a function for Prototype.
 // Prototype defines a larger set of collection functions than
 // Functional, and attaches them to Array so that they can
 // be chained.
+// Invoke +lambda+ on a string to create a function for Prototype:
 trace([1, 2, 3].map('x*x'.lambda()));
 trace([1, 2, 3].map('x*x'.lambda()).map('x+1'.lambda()));
 

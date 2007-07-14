@@ -136,18 +136,16 @@ I bummed the +[].slice.call(arguments, 0)+ idiom from http://www.coryhudson.com/
 Agenda:
 Code:
 - rename args
-- rename prefilter
-- rename receiver
-- doc prefilter
-- doc portability
+- rename or remove intercept
+- test w/out prototype
 Blog:
 - credit FP explanation
 - rewrite last section of blog
-Literacy:
-- move the examples h3 outside pre
-Tweak:
-- make tl that take as fn instead of method?
+Later:
 - add methods to string?
+- move the examples h3 outside pre
+- doc portability
+- rename receiver
 
 Number.prototype.times = function(fn, receiver) {
     var limit = Math.max(0, this);
@@ -155,6 +153,14 @@ Number.prototype.times = function(fn, receiver) {
         fn.call(receiver, i);
 }
 
+for (var name in Function.prototype) {
+    Functional.name = function() {
+      var fn = Function.prototype[name];
+      return function(object) {
+        return fn.apply(Function.toFunction(object), arguments);
+      }
+  }
+}
 
 fwhile('<100', 'x*x')(2)
 

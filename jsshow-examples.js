@@ -72,7 +72,6 @@ JSShow.Examples.prototype.toHTML = function() {
         text = text.replace(/\/\//g, ' ');
         text = text.replace(/(\^+)\s*(.*)/, function(_, level, title) {
             var tagName = 'h' + (level.length - 1 + self.headingLevel);
-            info(level, title, tagName, level.length, self.headingLevel);
             return ['</div><', tagName, '>', title, '</', tagName, '><div class="comment">'].join('');
         });
         return '<div class="comment">'+text+'</div>';
