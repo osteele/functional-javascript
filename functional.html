@@ -27,32 +27,30 @@ h2 {margin:0}
     <a id="show-header" href="#" style="display:none">(show header)</a>
     </h1>
     <div id="header">
-    <p>The <dfn>Functional Javascript</dfn> library defines functions for using
-    Javascript for functional programming (FP).  It defines the
-    standard higher-order functions such as <code>map</code>,
-    <code>reduce</code> (aka <code>foldl</code>), and <code>select</code> (aka <code>filter</code>).  It also defines
-    functions for partial function application (<code>curry</code>, <code>rcurry</code>,
-    <code>partial</code>, <i>etc.</i>); and all these
-    functions accept strings that define lambda expressions, such as <code>'x
-    -> x+1'</code> or <code>'x+1'</code>, as synonyms for the more
-    verbose Javascript expressions such as <code>function(x) {return
-    x+1}</code>.</p>
+    <p>The <dfn>Functional Javascript</dfn> is a library for
+    functional programming.  It defines the standard higher-order
+    functions such as <code>map</code>, <code>reduce</code> (aka
+    <code>foldl</code>), and <code>select</code> (aka
+    <code>filter</code>).  It also defines functions for partial
+    function application, such as <code>curry</code>,
+    <code>rcurry</code>, <code>partial</code>, <i>etc.</i>).  And all
+    these functions accept strings, such as <code>'x -> x+1'</code>,
+    <code>'x+1'</code>, or <code>'+1'</code>, as synonyms for the more
+    verbose <code>function(x) {return x+1}</code>.</p>
     
     <div style="float:left; margin-right:5em">
-      <p><dfn>Functional</dfn> supports expressions such as these:</p>
+      <p><dfn>Functional</dfn> supports higher-order programming:</p>
       <pre>
-        compose('x*x', 'x+1')(2)
-          <span class="output">&rarr; 9</span>
         map('x*x', [1,2,3,4])
           <span class="output">&rarr; [1, 4, 9, 16]</span>
-        select('>2', [1,2,3,4])
-          <span class="output">&rarr; [3, 4]</span>
-        select('_.x > _.y', [{x:1,y:2},{x:2,y:1}])
-          <span class="output">&rarr; [{x:2, y:1}]</span>
+        select(not('%2'), [1,2,3,4])
+          <span class="output">&rarr; [2, 4]</span>
+        reduce('x*2+y', 0, [1,0,1,0])
+          <span class="output">&rarr; 10</span>
       </pre>
     </div>
     <div style="float:left">
-      <p>&hellip;or these <a href="http://haskell.org/haskellwiki/Pointfree#Problems_with_pointfree">pointless</a> <a href="http://en.wikipedia.org/wiki/Function-level_programming">function-level</a> examples:</p>
+      <p>&hellip;as well as a <a href="http://en.wikipedia.org/wiki/Function-level_programming">function-level</a> (or <a href="http://haskell.org/haskellwiki/Pointfree#Problems_with_pointfree">pointless</a>) style:</p>
       <pre>
         until('>100', 'x*x')(2)
           <span class="output">&rarr; 256</span>
@@ -67,10 +65,12 @@ h2 {margin:0}
     </div>
         
     <div id="noscript">
-      If you can read this, you either have JavaScript turned off
-      or you're using a browser I haven't tested.  Either way,
-      you're missing out on the page content, which is generated
-      from the source code.  Try <a href="http://www.mozilla.org/products/firefox/">Mozilla Firefox</a> or <a href="http://www.apple.com/safari/download/">Apple Safari</a>.
+      You either have JavaScript turned off or you're using a browser
+      I haven't tested.  Either way, you're missing out on the page
+      content, which is generated from the source code.  Try <a
+      href="http://www.mozilla.org/products/firefox/">Mozilla
+      Firefox</a> or <a
+      href="http://www.apple.com/safari/download/">Apple Safari</a>.
     </div>
     <table>
       <tr>
@@ -89,8 +89,8 @@ h2 {margin:0}
     </table>
     <div id="footer">
       Copyright 2007 by <a href="http://osteele.com">Oliver Steele</a>.  This work is licensed under the <a href="MIT-LICENSE">MIT license</a>.
-      <a href="partial.js" target="_blank">View source</a>;
-      <a href="#" id="run-tests">Run</a>/<a href="#" id="write-tests">show</a> tests.
+      <a href="functional.js" target="_blank">View source</a>;
+      <a href="#" id="run-tests">run</a>/<a href="#" id="write-tests">show</a> tests.
     </div>
   </body>
 </html>

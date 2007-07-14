@@ -12,50 +12,36 @@
 
 // +lambda+ creates a function from a string that contains a single
 // expression.  This function can then be applied to an argument list,
-// either at the time, or (or more usefully) later.
+// either at the time:
 trace('x+1'.lambda()(2));
 trace('x+2*y'.lambda()(2, 3));
+// or (more usefully) later:
 var square = 'x*x'.lambda();
 trace(square(3));
+trace(square(4));
+
 // If the string contains a ->, this separates the parameters
 // from the expression that is used as the function body.
 trace('x y -> x+2*y'.lambda()(2, 3));
-// Otherwise, if the string contains a '_', that's the parameter:
-trace('_+1'.lambda()(2));
-trace('_*_'.lambda()(2));
+trace('y x -> x+2*y'.lambda()(2, 3));
+
 // Otherwise, if the string starts with an operator or relation
-// besides -, or ends with an operator or relation, then it takes arguments
-// which are placed at the beginning and/or end:
+// besides -, or ends with an operator or relation, then its
+// implicit arguments are placed at the beginning and/or end:
 trace('*2'.lambda()(2));
 trace('/2'.lambda()(4));
 trace('2/'.lambda()(4));
 trace('/'.lambda()(2, 4));
-// Otherwise, the parameters are the symbols in the string, in the order
-// in which they occur.
-trace('x+2*y'.lambda()(2, 3));
 
-// ^^ Gotchas
-
-// +lambda+ doesn't know about keyword or property names,
-// and it looks for symbols inside regular expressions and strings.
-// Use _ (to define a unary function) or ->, if the string contains anything
-// that looks like a symbol but shouldn't be used as a parameter name, or
-// to specify parameters that are ordered differently from their first
-// occurrence in the string:
-trace('x / y'.lambda()(4, 2));
-trace('y / x'.lambda()(4, 2));
-trace('x y -> y / x'.lambda()(4, 2));
-// Implicit parameterization would mistake 'Math' and 'cos' for parameters:
-trace('Math.cos(_)'.lambda()(Math.PI));
-// Implicit parameterization would mistake 'x' for a parameter:
-trace('_.x'.lambda()({x:1, y:2}));
-
-// ^^ Advanced Features
+// ^^ Chaining
 
 // Chain -> to create curried functions.
 trace('x y -> x+y'.lambda()(2, 3));
 trace('x -> y -> x+y'.lambda()(2)(3));
 trace('x -> y -> x+y'.lambda()(2));
+
+// ^^ Duck-typing
+
 // Strings support +call+ and +apply+.  This duck-types them as
 // functions, to some callers.
 trace('x+1'.call(null, 2));

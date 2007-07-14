@@ -5,7 +5,7 @@
  * Homepage: http://osteele.com/javascripts/functional.html
  * Source: http://osteele.com/javascripts/functional-examples.js
  * Created: 2007-07-11
- * Modified: 2007-07-12
+ * Modified: 2007-07-14
  */
 
 var info = window.console && console.info || function(){};

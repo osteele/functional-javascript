@@ -5,7 +5,7 @@
  * Homepage: http://osteele.com/javascripts/functional.html
  * Source: http://osteele.com/javascripts/functional.js
  * Created: 2007-07-11
- * Modified: 2007-07-12
+ * Modified: 2007-07-14
  *
  * This file defines some higher-order functions for partial function
  * application, as well as some other utilities for functional programming.
@@ -442,7 +442,8 @@ Functional.zip = function(/*args...*/) {
 // Otherwise, if the string contains a '_', this is the parameter:
 // >> '_ + 1'.lambda()(1) -> 2
 // Otherwise if the string begins or ends with an operator or relation,
-// prepend or append a parameter:
+// prepend or append a parameter.  (The documentation refers to this type
+// of string as a "section".)
 // >> '/2'.lambda()(4) -> 2
 // >> '2/'.lambda()(4) -> 0.5
 // >> '/'.lambda()(2,4) -> 0.5
@@ -451,11 +452,36 @@ Functional.zip = function(/*args...*/) {
 // >> 'x + 2*y'.lambda()(1, 2) -> 5
 // >> 'y + 2*x'.lambda()(1, 2) -> 5
 // 
-// The implicit case won't do what you want if the expression contains
-// symbols that aren't variables.  In that case, use '_' or '->' to specify
-// the parameters explicitly:
-// >> 'Math.pow(_, 2)'.lambda()(3) -> 9
-// >> 'x -> Math.pow(x, 2)'.lambda()(3) -> 9
+// Sections can end, but not begin with, '-' (to avoid interpreting
+// e.g. '-2*x' as a section).  On the other hand, a string that either begins
+// or ends with '/' is a section, so you'll need to supply an explicit parameter
+// for a string that begins or ends with a regular expression literal.
+// 
+// +lambda+ doesn't know about keyword or property names,
+// and it looks for symbols inside regular expressions and strings.
+// Use _ (to define a unary function) or ->, if the string contains anything
+// that looks like a symbol but shouldn't be used as a parameter name, or
+// to specify parameters that are ordered differently from their first
+// occurrence in the string.
+// 
+// Implicit parameterization would mistake 'Math' and 'cos' for parameters;
+// use '_' or '->' instead:
+//   'Math.cos(angle)'.lambda()(Math.PI)
+// >> 'Math.cos(_)'.lambda()(Math.PI) -> -1
+// >> 'angle -> Math.cos(angle)'.lambda()(Math.PI) -> -1
+// Implicit parameterization would mistake 'x' for a parameter in this
+// project function; use a section, '_', '->', instead:
+//   'point.x'.lambda()({x:1, y:2})
+// >> '.x'.lambda()({x:1, y:2}) -> 1
+// >> '_.x'.lambda()({x:1, y:2}) -> 1
+// >> 'point -> point.x'.lambda()({x:1, y:2}) -> 1
+// The symbols in these strings are inside literals, but +lambda+
+// doesn't (currently) have a lexer.  The examples are contrived because
+// most things you could do with a literal involve a function name, which
+// runs into the previous limitation anyway.
+// >> map('"im"+_', ["probable", "possible"]) -> ["improbable", "impossible"]
+//   // Firefox only:
+//   select('(/im/)(_)', ["improbable", "unlikely"]) -> ["improbable"]
 // 
 // Chain '->'s to create a function in uncurried form:
 // >> 'x -> y -> x + 2*y'.lambda()(1)(2) -> 5

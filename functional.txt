@@ -2,65 +2,66 @@
 describes a problem into a program which describes a solution
 -- "Claus Reinke":http://www.haskell.org/pipermail/haskell-cafe/2006-December/020147.html
 
+
 Procedural programming manipulates values, applying a sequence of builtin operations and other functions to the inputs to produce an output.  Functional programming manipulates functions, applying operations to them and combining them to create a synthetic function which is applied to the input.  A function that takes a function as an argument or returns a function as a result is called (in functional programming) a higher-order function or (in math) a functional.
 
-Functional is a JavaScript library for functional programming.  It
-includes the standard higher-order functions (map, reduce, curry,
-etc.) that you can read about anywhere on the web.  I'm not going to
-describe them here..  But it's also go a couple of innovations: string
-lambda expressions, and partial function application.
+It defines the standard higher-order functions such as map, reduce (aka foldl), and select (aka filter). It also defines functions for partial function application (curry, rcurry, partial, etc.); and all these functions accept strings that define lambda expressions, such as 'x -> x+1' or 'x+1', as synonyms for the more verbose Javascript expressions such as function(x) {return x+1}.
 
-I've summarized the innovations
-below.  See the "example page":/sources/javascripts/functional.html
+
+Functional is a JavaScript library for functional programming.  It
+defines the standard higher-order functions (+map+, +reduce+, +filter+) that you can read about elsewhere on the web.
+It also defines a functions for partial function application (+curry+, +partial+, etc.) couple of innovations, as well as string lambda expressions, which let you write 'x -> x+1', 'x+1', or even '+1' as an argument to higher-order functions.
+
+See the "example page":/sources/javascripts/functional.html
 for more examples and for the documentation.  Get the file "here":/sources/javascripts/functional.js.
 
-This works in Firefox 2.0 and Safari 3.0.  I didn't intentionally use any non-standard constructs, but meta-programming such as this tends to turn up corners in the browser implementations.
+Functional is known to work in Firefox 2.0 and Safari 3.0.  I didn't intentionally use any non-standard ECMAScript constructs, but meta-programming such as this tends to turn up corners in the browser implementations.
 
 h4. String lambdas
 
-So you've got your +map+ and +select+ now.  Try using them.  Isn't this a pain?:
+Welcome to FP!  You've discovered +map+ and +filter+.  Try using them in JavaScript.  Isn't this a pain?:
   map(function(x){return x+1}, [1,2,3])
     -> [2,3,4]
-  select(function(x){return x>2}, [1,2,3,4]]
+  filter(function(x){return x>2}, [1,2,3,4]]
     -> [3,4]
   some(function(w){return w.length < 3}, 'are there any short words?'.split(' '))
     ->false
 
-String lambdas let you write this instead:
+String lambdas let you write these instead:
   map('x+1', [1,2,3])
   select('x>2', [1,2,3,4])
   some('_.length < 3', 'are there any short words?'.split(' '))
 
-The implementation of string lambdas makes strings callable:
-  'x+1'.call(null, 2)
-    -> 3
-  'x+y*2'.call(null, 2, 3)
-    -> 8
-  'x+y*2'.apply(null, [2, 3])
-
-A string lambda can take any of these forms (the example page and documentation discuss the tradeoffs):
-  x+1
-  x + y
-  _+1
+A string lambda can take any of these forms (the example page and documentation discuss the tradeoffs among them):
   x -> x+1
+  x+1
+  +1
   x, y -> x + y
-And '->' chains, to create function-returning functions:
+  x + y
+  +
+Chain '->' to create function-returning functions:
   x -> y -> x + y
 
 Some more examples:
-  // halve the items in a list
-  map('_/2', [1,2,3,4])
-  # -> [0.5, 1, 1.5, 2]
+  // double the items in a list
+  map('_/2', [1,2,3])
+  # -> [2, 4, 6]
+  // find the odd numbers
+  select('%2', [1,2,3,4])
+  # -> [1, 3]
+  // or the evens numbers
+  select(not('%2'), [1,2,3,4])
+  # -> [2, 4]
   // find the length of the longest word
   reduce(Math.max, 0, map('_.length', 'how long is the longest word?'.split(' ')))
   # -> 7
   // parse a binary array
   reduce('2*x+y', 0, [1,0,1,0])
   # -> 10
-  // parse a decimal string
-  reduce('x y -> x*10+y.charCodeAt(0)-48', 0, '123'.split(/(?=.)/))
+  // parse a (non-negative) decimal string
+  reduce('x*10+y', 0, map('.charCodeAt(0)-48', '123'.split(/(?=.)/)))
   # -> 123
-  
+
 Here's how to use +compose+ and +curry+ to generalize some of these examples
 into reusable functions.  I'm betting you'll like/hate these function definitions to the
 extent that you like/hate Haskell.
@@ -69,33 +70,32 @@ extent that you like/hate Haskell.
   # ->
   longest("I bet floccinaucinihilipipification is longer.");
   # -> 29
-  var parseUnsignedInt = compose(reduce.curry('x y -> x*10+y.charCodeAt(0)-48', 0), '_.split(/(?=.)/)')
+  var parseUnsignedInt = compose(reduce.curry('x*10+y.charCodeAt(0)-48', 0), '_.split(/(?=.)/)')
   parseUnsignedInt('123')
   # -> 123
 
 
 h4. Partial function application
 
-Partial function application, or function specialization, creates a new
+Partial function application, or specialization, creates a new
 function out of an old one.  For example, given a division function:
   function div(a, b) {return a/b}
-here's a partial application that divides its argument by two:
+a partial application of +div+ is a new function that divides its argument by two:
   var halve = div.partial(_, 2);
-Now halve(10) is the same as div(10, 2).  This is especially useful as an argument to the higher-order functions such as +map+, where, given a function +div+, we can apply it (the first line below) without an explicit wrapper (the second).
+Partial application is especially useful as an argument to the higher-order functions such as +map+, where, given a function +div+, we can apply it (the first line below) without an explicit wrapper (the second).
   map(div.partial(_, 10), [10, 20, 30])
   map(lambda(n) {return div(n, 10)}, [10, 20, 30])
 
-This example could have been handled via +curry+, which is a just a
-specialized form of partial function application.  Partial function
-application in all its generality is necessary when you're
++curry+ is a special case of partial function application, and the prevous example could have been handled via +curry+.  Partial function
+application in all its generality is only necessary when you're
 specializing not just on all the arguments on the left, or all the
 arguments on the right, but some distribution of arguments with holes
 in the middle.  To illustrate this requires a function with more than two
 parameters.
 
-JavaScript doesn't have many functions with more than two parameters (it has +splice+,
-but +splice+ isn't very functional).  I'll use a contrived example.  More realistic ones
-show up with programming libraries.
+JavaScript doesn't have many functions with more than two parameters. (+splice+ takes three, but +splice+ isn't very functional).  Here's a contrived example, to start (and a real-world example next).
+
+We'll borrow one of the few trinary predicates from math: "between".  +increasing+ tests whether +b+ (the middle argument) lies in the open interval bounded by +a+ and +c+.  Specializing the first and last arguments produces functions that test whether a number is positive, or negative.
 
   function increasing(a, b, c) {
     return a < b && b < c;
@@ -117,20 +117,23 @@ Is this better than the following?
   function onclick(element, handler) {
     Event.observe(elenent, 'click', handler);
   }
-It's a matter of taste, with some performance considerations as well.  The functional version is less efficient; on the
-other hand, it doesn't include as much plumbing, with its attendent opportunity
-for error.  (The second definition of +onclick+ has two such errors.  One shows
-up as soon as you use it; the second is considerably more subtle.)
+
+It's a matter of taste, with some performance considerations as well.  The functional version is less efficient, and to the untrained eye it's harder to read.  This version is not just functional, but "function-level":"http://en.wikipedia.org/wiki/Function-level_programming".  It's in a style that has been called "point-free":http://haskell.org/haskellwiki/Pointfree (and even pointless:"http://haskell.org/haskellwiki/Pointfree#Problems_with_pointfree").
+
+On the other hand, the functional version doesn't include as much
+plumbing, with its attendent opportunity for error.  The second
+definition  of +onclick+, considered as a general replacement for Event.observer(..., 'click', ...), has two such errors.  One shows up as soon as
+you use it; the second is considerably more subtle.  Whether functional programming is appropriate, for reasons of efficiency or readability, in any particular instance, it's nice to have it, at lest for prototyping, in your arsenal.
 
 h4. Future Directions
 
 Functional programming doesn't always mesh well with OO, especially with Javascript's absence of bound methods.  There are currently two sets of methods to partially apply a function: +bind+ binds its receiver (the first argument to +apply+); and [r][n]curry and +partial+ bind the other arguments (the arguments to +call+, which list is the second argument to +apply+).
 
-One problem with this is the syntax.  If you want to specialize both the receiver and the parameters, such as in the example with Event.observe above, you need two chained function calls.  This is a tradeoff: it's because each of +bind+ and +partial+ does a single thing.  I considered adding a single mondo function that bound everything, but it looked just as verbose, and more confusing, than the present solution.
+One problem with this is the syntax.  If you want to specialize both the receiver and the parameters, such as in the example with Event.observe above, you need two chained function calls.  This is a tradeoff: it's because each of +bind+ and +partial+ does a single thing.  I considered adding a single omnibus function that bound everything, but it looked just as verbose, and more confusing, than the present solution.
 
 The other problem is performance.  Invoking the function returned by fn.bind(a) goes through one extra function call beyond the cost of invoking fn().  That's unavoidable.  Invoking the function returned by fn.partial(b,c) also goes through one extra function call (as well as a loop and some conditionals to merge the argument lists).  That's unavoidable too.  But a call to the function returned by fn.bind(a).partial(b,c) or fn.partial(b,c).bind(a) goes through *two* extra function calls.  It only needs one.
 
-Soon I'll publish fast-functional.js, which patches functional.js to fix this problem.  It modifies fn.bind(a).partial(b,c) and fn.partial(b,c).bind(a) to return a function that calls the underlying function directly, instead of trampolining once for each method in the chain.  Later I'll describe a generalization of this technique, for defining function algebras with combinatoric reductions.
+Someday I'll publish fast-functional.js, which patches functional.js to fix this problem.  It modifies fn.bind(a).partial(b,c) and fn.partial(b,c).bind(a) to return a function that calls the underlying function directly, instead of trampolining once for each method in the chain.  Later I'll describe a generalization of this technique, for defining function algebras with combinatoric reductions.
 
 h4. Credits
 
@@ -138,10 +141,6 @@ I bummed the +[].slice.call(arguments, 0)+ idiom from http://www.coryhudson.com/
 
 
 Agenda:
-Blog:
-- distinction between FP and function-level programming
-- rewrite last section
-Later:
 - add methods to string?
 - doc portability
 - rename receiver

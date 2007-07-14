@@ -4,7 +4,7 @@
  * License: MIT License
  * Source: http://osteele.com/javascripts/jsshow-examples.js
  * Created: 2007-07-11
- * Modified: 2007-07-12
+ * Modified: 2007-07-14
  */
 
 Functional.install();
