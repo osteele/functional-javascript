@@ -7,10 +7,6 @@
  * Modified: 2007-07-14
  */
 
-Functional.install();
-
-var OSDoc = window.OSDoc || {};
-
 OSDoc.Examples = function() {
     this.headingLevel = 3;
 };
@@ -57,7 +53,9 @@ OSDoc.Examples.prototype.toHTML = function() {
     var outputs = this.trace;
     var lines = ['<pre>', chunks.shift()];
     chunks.each(function(segment, ix) {
-        var output = (outputs[ix]||'').escapeHTML();
+        var output = ix < outputs.length
+            ? outputs[ix].escapeHTML()
+            : 'execution did not get this far';
         var m = segment.indexOf(');');
         lines.push(segment.slice(0, m));
         lines.push(';\n <span class="output">&rarr; ');
@@ -84,25 +82,14 @@ OSDoc.Examples.prototype.runExamples = function() {
     var results = this.trace = [];
     try {
         trace = function() {
-            function toString(value) {
-                if (value instanceof Array) {
-                    var spans = map(toString, value);
-                    return '[' + spans.join(', ') + ']';
-                }
-                switch (typeof(value)) {
-                case 'function': return 'function()';
-                case 'string': return '"' + value + '"';
-                case 'undefined': return 'undefined';
-                default: return value;
-                }
-            }
-            var args = $A(arguments).map(toString);
+            var args = $A(arguments).map(OSDoc.toString);
             results.push(args.join(' '));
         }
         var fn = new Function('trace', this.text);
         fn(trace);
     } catch (e) {
-        console.error(e);
+        this.error = e;
+        results.push('Error: ' + e.toString());
     }
 }
 

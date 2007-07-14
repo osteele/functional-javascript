@@ -7,9 +7,22 @@
  * Modified: 2007-07-14
  */
 
+var OSDoc = window.OSDoc || {};
+
 Functional.install();
 
-var OSDoc = window.OSDoc || {};
+OSDoc.toString = function(value) {
+    if (value instanceof Array) {
+        var spans = map(OSDoc.toString, value);
+        return '[' + spans.join(', ') + ']';
+    }
+    switch (typeof(value)) {
+    case 'function': return 'function()';
+    case 'string': return '"' + value + '"';
+    case 'undefined': return 'undefined';
+    default: return value.toString();
+    }
+}
 
 OSDoc.Docs = function(options) {
     this.options = {headingLevel: 3, onLoad: Function.I};

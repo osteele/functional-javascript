@@ -9,19 +9,6 @@
  * Inspired by Tim Peter's wonderful doctest for Python.
  */
 
-OSDoc.toString = function(value) {
-    if (value instanceof Array) {
-        var spans = map(OSDoc.toString, value);
-        return '[' + spans.join(', ') + ']';
-    }
-    switch (typeof(value)) {
-    case 'function': return 'function()';
-    case 'string': return '"' + value + '"';
-    case 'undefined': return 'undefined';
-    default: return value.toString();
-    }
-}
-
 OSDoc.Docs.prototype.runTests = function() {
     var tests = [];
     var failures = [];
