@@ -255,7 +255,7 @@ Functional.compose = function(/*fn...*/) {
 }
 
 // Same as +compose+, except applies the functions in argument-list order.
-// == sequence(f1, f2, f3..., fn)(args) == fn(...(f3(f2(f1(args...)))))
+// == sequence(f1, f2, f3..., fn)(args...) == fn(...(f3(f2(f1(args...)))))
 // :: (a... -> a1) (a1 -> a2) (a2 -> a3)... (a[n-1] -> an)  -> a... -> an
 // >> sequence('1+', '2*')(2) -> 6
 Functional.sequence = function(/*fn...*/) {
@@ -390,6 +390,7 @@ Functional.not = function(fn) {
 // +object+'s +methodName+ method to +arguments+.
 // == fn(name)(object, args...) == object[name](args...)
 // :: name args.. -> object args2... -> object[name](args... args2...)
+// >> invoke('toString')(123) -> "123"
 Functional.invoke = function(methodName/*, arguments*/) {
     var args = [].slice.call(arguments, 1);
     return function(object) {
@@ -401,6 +402,7 @@ Functional.invoke = function(methodName/*, arguments*/) {
 // +name+ property.  +pluck(name)+ is the same as '_.name'.lambda().
 // == fn.pluck(name)(object) == object[name]
 // :: name -> object -> object[name]
+// >> pluck('length')"abc" -> 3
 Functional.pluck = function(name) {
     return function(object) {
         return object[name];
@@ -424,9 +426,9 @@ Functional.until = function(pred, fn) {
 
 // You know that +zip+ can transpose a matrix,
 // don't you?
-// >> zip.apply(null, [[1,2],[3,4]]) -> [[1, 3], [2, 4]]
-// == zip(a, b...) == [[a[0], b[0]], [a[1], b[1]], ...]
 // :: [a] [b]... -> [[a b]...]
+// == zip(a, b...) == [[a[0], b[0]], [a[1], b[1]], ...]
+// >> zip.apply(null, [[1,2],[3,4]]) -> [[1, 3], [2, 4]]
 Functional.zip = function(/*args...*/) {
     var n = Math.min.apply(null, map('.length', arguments));
     var results = new Array(n);
@@ -444,20 +446,29 @@ Functional.zip = function(/*args...*/) {
 // +Function+ that applies the expression.
 // 
 // If the string contains a '->', this separates the parameters from the body:
-//   x, y -> x + y
-//   x y -> x + y
-// Otherwise, if the expression contains a '_', this is the parameter:
-//   _ + 1
+// >> 'x -> x + 1'.lambda()(1) -> 2
+// >> 'x y -> x + y'.lambda()(1, 2) -> 5
+// >> 'x, y -> x + 2*y'.lambda()(1, 2) -> 5
+// Otherwise, if the string contains a '_', this is the parameter:
+// >> '_ + 1'.lambda()(1) -> 2
+// Otherwise if the string begins or ends with an operator or relation,
+// prepend or append a parameter:
+// >> '/2'.lambda()(4) -> 2
+// >> '2/'.lambda()(4) -> 0.5
+// >> '/'.lambda()(2,4) -> 0.5
 // Otherwise, each symbol is an implicit parameter:
-//   x + y
+// >> 'x + 1'.lambda()() -> 2
+// >> 'x + 2*y'.lambda()(1, 2) -> 5
+// >> 'y + 2*x'.lambda()(1, 2) -> 5
+// 
 // The implicit case won't do what you want if the expression contains
 // symbols that aren't variables.  In that case, use '_' or '->' to specify
 // the parameters explicitly:
-//   Math.pow(_, 2)
-//   x -> Math.pow(x, 2)
+// >> 'Math.pow(_, 2)'.lambda()(3) -> 9
+// >> 'x -> Math.pow(x, 2)'.lambda()(3) -> 9
 // 
 // Chain '->'s to create a function in uncurried form:
-//   x -> y -> x + y
+// >> 'x -> y -> x + 2*y'.lambda()(1)(2) -> 5
 String.prototype.lambda = function() {
     var params = [];
     var body = this;

@@ -76,7 +76,7 @@ JSShow.Docs.prototype.toHTML = function(string) {
     var self = this;
     this.records.each(function(rec) {
         spans.push(rec.toHTML().replace(/(<\/?h)(\d)([\s>])/g, function(_, left, n, right) {
-            return [left, n.charCodeAt(0) - 49 + self.headingLevel, right].join('');
+            return [left, n.charCodeAt(0) - 49 + self.options.headingLevel, right].join('');
         }));
     });
     return spans.join('\n');
@@ -126,10 +126,15 @@ JSShow.Docs.Definition.prototype.addDescriptionLine = function(line) {
     }
     function output(text) {
         endParagraph();
-        var line = text.escapeHTML().replace(/-&gt;(.*)/, '<span class="output">&rarr;$1</span>');
         var match = text.match(/\s*(.*)\s*->\s*(.*?)\s*$/);
-        match && self.tests.push({test: match[1].replace(/\s*$/,''), expect: match[2]});
-        pre('  ' + line);
+        var test = (match
+                    ? {test: match[1].replace(/\s+$/,''), result: match[2]}
+                    : {test: text});
+        self.tests.push(test);
+        var line = (match
+                    ? [test.test, ' <span class="output">&rarr; ', test.result, '</span>'].join('')
+                    : text);
+        pre(line);
     }
     function defn(text) {
         endParagraph();
