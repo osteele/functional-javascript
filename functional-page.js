@@ -23,26 +23,13 @@ Function.prototype.reporting = function() {
     }
 }
 
-// var oldRequest = Ajax.Request;
-// Ajax.Request = (function() {
-//     return function(url, options) {
-//         info(arguments);
-//         return oldRequest("functional-examples.js", arguments[1]);
-//         return oldRequest.apply(Ajax, arguments);
-//         if (options.onSuccess)
-//             options.onSuccess = options.onSuccess.reporting();
-//         return oldRequest.apply(this, url, [options].concat([].slice.call(arguments, 2)));
-//     }
-// })(Ajax.Request);
-
 // debugging references
 var gExamples, gDocs;
 
 function initialize() {
-    gExamples = JSShow.Examples.load('functional-examples.js').onSuccess(done.args('examples')).replace($('output'));
+    gExamples = JSShow.Examples.load('functional-examples.js').onSuccess(done.saturate('examples')).replace($('output'));
     gDocs = new JSShow.Docs({onLoad: function() {
         gDocs.replace($('docs'));
-        gDocs.runTests();
         done('docs');
     }});
     gDocs.load('functional.js');

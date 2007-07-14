@@ -111,7 +111,7 @@ trace(map(pluck('y'), [{x:10, y:20}, {x:15, y:25}, {x:0, y:-5}]));
 trace(until('>10', '*2')(1));
 trace(until('>100', 'x*x')(2));
 trace(until(not('<100'), 'x*x')(2));
-var fwhile = until.intercept(0, not);
+var fwhile = compose(until.ncurry(2), not).uncurry();
 trace(fwhile('<100', 'x*x')(2));
 
 // Higher order higher-order programming:
@@ -160,7 +160,8 @@ trace(right(3,4));
 var left = list.rcurry(1, 2);
 trace(left(3, 4));
 
-// Use +rcurry+ ("right curry") to create +halve+ and +double+ functions from +divide+:
+// Use +rcurry+ ("right curry") to create +halve+ and +double+ functions from
+// +divide+:
 function divide(a, b) {return a/b}
 var halve = divide.rcurry(2);
 var double = divide.rcurry(1/2);
@@ -208,4 +209,4 @@ var onclick = Event.observe.bind(Event).partial(_, 'click');
 // These next three lines are equivalent, just applied to different targets:
 Event.observe('e1', 'click', function(){alert('1')});
 onclick('e2', function(){alert('2')});
-onclick('e3', alert.bind(null).args('3'));
+onclick('e3', alert.bind(null).saturate('3'));

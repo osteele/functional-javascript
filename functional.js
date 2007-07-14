@@ -65,16 +65,6 @@ Function.prototype.uncurry = function() {
     }
 }
 
-Function.prototype.intercept = function(pos, filter) {
-    var fn = this;
-    filter = Function.toFunction(filter);
-    return function() {
-        var args = [].slice.call(arguments, 0);
-        args[pos] = filter(args[pos]);
-        return fn.apply(this, args);
-    }
-}
-
 // ^^ Partial function application
 
 // Returns a bound method on +object+; optionally currying +args+.
@@ -87,11 +77,11 @@ Function.prototype.bind = function(object/*, args...*/) {
     }
 }
 
-// Binds this function to +args+.  The returned function ignores
-// its arguments.
-// == fn.bind(args...)(args2..) == fn(args...)
+// Returns a function that ignores any further arguments.
 // :: (a... -> b) a... -> (... -> b)
-Function.prototype.args = function(/*args*/) {
+// == fn.saturate(args...)(args2..) == fn(args...)
+// >> Math.max.saturate(1, 2)(3, 4) -> 2
+Function.prototype.saturate = function(/*args*/) {
     var fn = this;
     var args = [].slice.call(arguments, 0);
     return function() {
@@ -229,7 +219,7 @@ var Functional = window.Functional || {};
 
 // Copies all the functions in +Functional+ (except this one)
 // into the global namespace.
-// >> Functional.install
+// >> Functional.install()
 Functional.install = function() {
     var source = Functional;
     var target = window;
@@ -402,7 +392,7 @@ Functional.invoke = function(methodName/*, arguments*/) {
 // +name+ property.  +pluck(name)+ is the same as '_.name'.lambda().
 // == fn.pluck(name)(object) == object[name]
 // :: name -> object -> object[name]
-// >> pluck('length')"abc" -> 3
+// >> pluck('length')("abc") -> 3
 Functional.pluck = function(name) {
     return function(object) {
         return object[name];

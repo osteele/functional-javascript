@@ -138,10 +138,6 @@ I bummed the +[].slice.call(arguments, 0)+ idiom from http://www.coryhudson.com/
 
 
 Agenda:
-Code:
-- rename args
-- rename or remove intercept
-- test w/out prototype
 Blog:
 - distinction between FP and function-level programming
 - rewrite last section
@@ -156,23 +152,14 @@ Number.prototype.times = function(fn, receiver) {
         fn.call(receiver, i);
 }
 
-for (var name in Function.prototype) {
-    Functional.name = function() {
-      var fn = Function.prototype[name];
-      return function(object) {
-        return fn.apply(Function.toFunction(object), arguments);
-      }
-  }
-}
-
-fwhile('<100', 'x*x')(2)
-
-fwhile = compose(until.uncurry(), not).curry()
-
-compose(until.curry(), not).curry(('<100')('x*x')(2)
-compose(until.curry(), not)('<100')('x*x')(2)
-until.curry()(not('<100' ))('x*x')(2)
-
-compose(until.curry)(not('<100'))('x*x')(2)
-until.curry(not('<100'))('x*x')(2)
-until(not('<100'), 'x*x')(2)
+// var oldRequest = Ajax.Request;
+// Ajax.Request = (function() {
+//     return function(url, options) {
+//         info(arguments);
+//         return oldRequest("functional-examples.js", arguments[1]);
+//         return oldRequest.apply(Ajax, arguments);
+//         if (options.onSuccess)
+//             options.onSuccess = options.onSuccess.reporting();
+//         return oldRequest.apply(this, url, [options].concat([].slice.call(arguments, 2)));
+//     }
+// })(Ajax.Request);

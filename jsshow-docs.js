@@ -63,12 +63,32 @@ JSShow.Docs.prototype.runTests = function() {
                 failures.push({defn: defn, test: test, result: result});
         });
     });
+    var lines = [];
     failures.each(function(failure) {
         var message = [failure.defn.name, ':', failure.test.test, ' -> ', toString(failure.result), ' != ', failure.test.expect].join('');
         if (failure.error)
             message = [failure.defn.name, '::', failure.test.test, ' -> ', failure.error].join('');
         info(message);
+        lines.push(message);
     });
+    this.testResults = {HTML: lines.join('\n')};
+}
+
+JSShow.Docs.prototype.createTestFunction = function() {
+    var lines = [];
+    info(this.records.length);
+    this.records.each(function(defn) {
+        defn.tests.length && lines.push('\n    // ' + defn.name);
+        defn.tests.each(function(test) {
+            if (test.result) {
+                lines.push('    console.info(' + test.test.toString() + ');');
+                lines.push(['    assertEquals(', test.result, ', ', test.test, ');'].join(''));
+            } else
+                lines.push('    ' + test.test);
+        });
+        lines.push('');
+    });
+    return 'function() {\n' + lines.join('\n') + '}';
 }
 
 JSShow.Docs.prototype.toHTML = function(string) {
