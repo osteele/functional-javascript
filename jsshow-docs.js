@@ -269,6 +269,10 @@ JSShow.Docs.Parser.prototype.processLine = function(line) {
         if (lines.length && (match = lines[0].match(/(\^+)\s*(.*)/))) {
             var tagName = 'h' + match[1].length;
             var html = ['<', tagName, '>', match[2], '</', tagName, '>'].join('');
+            if (lines.length > 1) {
+                var para = lines.slice(1).join(' ').escapeHTML().replace(/\+([\w()_]+)\+/g, '<var>$1</var>').replace(/\*(\w+)\*/g, '<em>$1</em>');
+                html += '<p>' + para + '</p>';
+            }
             self.records.push({toHTML: Function.K(html), tests:[]});
         }
     }

@@ -77,10 +77,12 @@ Function.prototype.bind = function(object/*, args...*/) {
     }
 }
 
-// Returns a function that ignores any further arguments.
+// Returns a function that ignores its arguments.
 // :: (a... -> b) a... -> (... -> b)
 // == fn.saturate(args...)(args2..) == fn(args...)
+// >> Math.max.curry(1, 2)(3, 4) -> 4
 // >> Math.max.saturate(1, 2)(3, 4) -> 2
+// >> Math.max.curry(1, 2).saturate()(3, 4) -> 2
 Function.prototype.saturate = function(/*args*/) {
     var fn = this;
     var args = [].slice.call(arguments, 0);
@@ -91,9 +93,17 @@ Function.prototype.saturate = function(/*args*/) {
 
 // Returns a function that, applied to an argument list +arg2+,
 // applies the underlying function to +args+ ++ +arg2+.
-// == fn.curry(args...)(args2...) == fn(args..., args2...)
-// Adapted from http://www.coryhudson.com/blog/2007/03/10/javascript-currying-redux/
 // :: (a... b... -> c) a... -> (b... -> c)
+// == fn.curry(args...)(args2...) == fn(args..., args2...)
+// Note that, unlike in languages with true partial application such as Haskell,
+// +curry+ and +uncurry+ are not inverses.  This is a repercussion of the
+// fact that in JavaScript, unlike Haskell, a fully saturated function is
+// not equivalent to the value that it returns.  The definition of +curry+
+// here matches semantics that most people have used when implementing curry
+// for procedural languages.
+// 
+// This implementation is adapted from
+// http://www.coryhudson.com/blog/2007/03/10/javascript-currying-redux/
 Function.prototype.curry = function(/*args...*/) {
     var fn = this;
     var args = [].slice.call(arguments, 0);
@@ -261,6 +271,10 @@ Functional.sequence = function(/*fn...*/) {
 // == map(f, [x1, x2...]) = [f(x, 0), f(x2, 1), ...]
 // :: (a ix -> boolean) [a] -> [a]
 // >> map('1+', [1,2,3]) -> [2, 3, 4]
+// The fusion rule:
+// >> map('+1', map('*2', [1,2,3]))) -> [3, 5, 7]
+// >> map(compose('+1', '*2'), [1,2,3])) -> [3, 5, 7]
+
 Functional.map = function(fn, sequence, object) {
     arguments.length < 3 && (receiver = this);
     fn = Function.toFunction(fn);
@@ -500,6 +514,8 @@ String.prototype.lambda = function() {
 }
 
 // ^^ Duck-Typing
+// Strings support +call+ and +apply+.  This duck-types them as
+// functions, to some callers.
 
 // Coerce the string to a function and then apply it.
 // >> 'x+1'.apply(null, [2]) -> 3

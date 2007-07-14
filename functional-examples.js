@@ -63,14 +63,7 @@ trace('x y -> x+y'.lambda()(2, 3));
 trace('x -> y -> x+y'.lambda()(2)(3));
 trace('x -> y -> x+y'.lambda()(2));
 
-// ^^ Duck-typing
-
-// Strings support +call+ and +apply+.  This duck-types them as
-// functions, to some callers.
-trace('x+1'.call(null, 2));
-trace('x+1'.apply(null, [2]));
-
-// ^^ String-lambda Gotchas
+// ^^ String-lambda gotchas
 
 // +lambda+ doesn't know about keywords or function and property names,
 // and it looks for symbols inside string and regular expressions literals.
@@ -113,10 +106,6 @@ trace(reduce('2*x+y', 0, [1,0,1,0]));
 trace(some('>2', [1,2,3,4]));
 trace(every('>2', [1,2,3,4]));
 
-// The fusion rule:
-trace(map('+1', map('*2', [1,2,3])));
-trace(map(compose('+1', '*2'), [1,2,3]));
-
 // +compose+ and +sequence+ compose sequences of functions
 // backwards and forwards, respectively:
 trace(compose('+1', '*2')(1));
@@ -148,13 +137,15 @@ trace(until(not('<100'), 'x*x')(2));
 var fwhile = compose(until.ncurry(2), not).uncurry();
 trace(fwhile('<100', 'x*x')(2));
 
-// Higher order higher-order programming:
+// Higher order higher-order programming, and the fusion rule:
 trace(map('_(1)', map('_.lambda()', ['x+1', 'x-1'])));
 trace(map(compose('_(1)', '_.lambda()'), ['x+1', 'x-1']));
 
 // ^ Partial function application
 
-// Create an unspecialized function that just lists its (four) arguments.
+// ^^ Partial
+
+// +list+ is an unspecialized function that returns an array of its (four) arguments.
 // We'll create partially applied (specialized) versions of this function
 // below.
 function list(a,b,c,d) {return [a,b,c,d]};
@@ -164,28 +155,36 @@ function list(a,b,c,d) {return [a,b,c,d]};
 var finterleave = list.partial(1,_,2,_);
 trace(finterleave(3, 4));
 
-// Specialize the outer two parameters, to produce a function that
-// plugs in the inners:
+// Specialize the outer two parameters, to produce a function whose
+// arguments supply the middle two arguments to +list+:
 var finners = list.partial(1,_,_,2);
 trace(finners(3, 4));
 
 // if not all the parameters are supplied, the result is a function...
 trace(finterleave(4));
-// ...which can be applied until the argument list is saturated:
+// ...which can be applied repeatedly until the argument list is saturated:
 trace(finterleave(3)(4));
 trace(finners(_,3));
 trace(finners(_,3)(4));
 trace(finners(3)(4));
 trace(list.partial(_,_,_,1)(2,_,3)(4));
 
-// An application: create some specialized versions of String replace.
-// The first function replaces vowels in its object with its argument:
+// Two specializations String replace.
+// The first function replaces vowels in its object with the value of its
+// argument:
 var replaceVowels = "".replace.partial(/[aeiou]/g, _);
 // This is a method, so use +call+ to invoke it on an object:
 trace(replaceVowels.call("change my vowels to underscores", '_'));
-// The second function replaces slices that match its argument with 'th':
+// The second function replaces slices that match the pattern of its argument,
+// with 'th':
 var replaceWithCoronalFricatives = "".replace.partial(_, 'th');
 trace(replaceWithCoronalFricatives.call("substitute my esses with tee-aitches", /s/g));
+
+// The syntax for partials is meant to suggest the hyphens that are used
+// as placeholders in abstract algebra:
+//   Hom(F-, -) = Hom(-, G-)):
+
+// ^^ Curry
 
 // +curry+ creates a new function that applies the original arguments, and
 // then the new arguments:
@@ -203,30 +202,29 @@ trace(halve(10));
 trace(double(10));
 
 // +ncurry+ and +rncurry+ wait until they're fully saturated before
-// applying the function.  [r]curry can't because it doesn't
-// in general know the polyadicity of the underlying function.
-trace(list.curry(1,2)(3));
+// applying the function.
 trace(list.ncurry(4,1,2)(3));
 trace(list.ncurry(4,1,2)(3)(4));
 trace(list.ncurry(4,1,2)(3,4));
 trace(list.rncurry(4,1,2)(3));
 trace(list.rncurry(4,1,2)(3,4));
+// [r]curry can't do this because it doesn't
+// in general know the polyadicity of the underlying function.
+// (Sometimes +fn.length+ works, but some functions don't declare
+// all their arguments, so sometimes this lies.)
+trace(list.curry(1,2)(3));
 
-// +curry+ and +partial+ overlap in their use, but curries are like Haskell sections:
-//  (10 /) 2
-trace(divide.curry(10)(2));
-//  (/ 2) 10
-trace(divide.rcurry(2)(10));
-// while partials are like the hyphens used in abstract algebra
-// (e.g. in Hom(F-, -) = Hom(-, G-)):
-//  (10 / -) 2
-trace(divide.partial(10, _)(2));
-//  (- / 2) 10
-trace(divide.partial(_, 2)(10));
+// +curry+ and +partial+ overlap in their use.  +partial+ can
+// specialize parameters in the middle of the parameter list;
+// the +curry+ functions have to fill them in from the end.
 
-// The new methods on +Function+ are also available as functions in +Functional+
-// (and, if +Functional.install+ has been called, in the global namespace too).
-// The latter can be applied to string lambda's, too:
+// ^^ Function versions of Function's methods
+
+// Functional's methods on +Function+ are also available as functions, that
+// take a function as their first argument, in +Functional+.
+// (+Functional.install+ also installs these functions in the global namespace.)
+// Unlike the methods, these functions can be applied to string lambda's, too:
+trace('+'.lambda().curry(1)(2));
 trace(curry('+', 1)(2));
 
 // ^ Using Functional with Prototype
