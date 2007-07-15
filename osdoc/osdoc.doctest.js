@@ -9,7 +9,7 @@
  * Inspired by Tim Peter's wonderful doctest for Python.
  */
 
-OSDoc.Docs.prototype.runTests = function() {
+OSDoc.APIDoc.prototype.runTests = function() {
     var tests = [];
     var failures = [];
     this.records.each(function(defn) {
@@ -44,7 +44,7 @@ OSDoc.Docs.prototype.runTests = function() {
     };
 }
 
-OSDoc.Docs.prototype.createTestText = function() {
+OSDoc.APIDoc.prototype.createTestText = function() {
     var lines = [];
     this.records.each(function(defn) {
         defn.tests.length && lines.push('// ' + defn.name);

@@ -29,7 +29,7 @@ var gEval;
 
 function initialize() {
    gExamples = OSDoc.Examples.load('examples.js').onSuccess(done.saturate('examples')).replace($('output'));
-    gDocs = new OSDoc.Docs({onLoad: function() {
+    gDocs = new OSDoc.APIDoc({onLoad: function() {
         gDocs.replace($('docs'));
         done('docs');
     }});
