@@ -7,40 +7,30 @@
  * Modified: 2007-07-14
  */
 
-OSDoc.Examples = function() {
-    this.headingLevel = 3;
+OSDoc.Examples = function(options) {
+    this.options = {headingLevel: 3, onLoad: Function.I};
+    for (var name in options||{})
+        this.options[name] = options[name];
 };
 
-OSDoc.Examples.load = function(url) {
-    var examples = new OSDoc.Examples;
+OSDoc.Examples.prototype.load = function(url) {
     new Ajax.Request(
         url,
         {method: 'GET',
-         onSuccess: Functional.compose(examples.parse.bind(examples), '_.responseText').reporting()});
-    return examples;
+         onSuccess: Functional.compose(this.parse.bind(this), '_.responseText').reporting()});
+    return this;
 }
 
 OSDoc.Examples.prototype.parse = function(text) {
     this.text = text.replace(/\s*\/\*(?:.|\n)*?\*\/[ \t]*/, '');
     this.runExamples();
-    this.loaded = true;
-    this.target && this.updateTarget();
-    return this;
-}
-
-OSDoc.Examples.prototype.replace = function(target) {
-    this.target = target;
-    this.loaded && this.updateTarget();
-    return this;
-}
-
-OSDoc.Examples.prototype.onSuccess = function(fn) {
-    this.onSuccessFn = fn;
+    this.options.target && this.updateTarget();
+    this.options.onLoad();
     return this;
 }
 
 OSDoc.Examples.prototype.updateTarget = function() {
-    this.target.innerHTML = this.toHTML();
+    this.options.target.innerHTML = this.toHTML();
     this.onSuccessFn && this.onSuccessFn();
     return this;
 }
@@ -70,7 +60,7 @@ OSDoc.Examples.prototype.toHTML = function() {
         //text = text.replace(/\n\s*\/\//g, '');
         text = text.replace(/\/\//g, ' ');
         text = text.replace(/(\^+)\s*(.*)/, function(_, level, title) {
-            var tagName = 'h' + (level.length - 1 + self.headingLevel);
+            var tagName = 'h' + (level.length - 1 + self.options.headingLevel);
             return ['</div><', tagName, '>', title, '</', tagName, '><div class="comment">'].join('');
         });
         return '<div class="comment">'+text+'</div>';

@@ -9,7 +9,6 @@
  */
 
 var info = window.console && console.info || function(){};
-var trace = info;
 
 Function.prototype.reporting = function() {
     var fn = this;
@@ -28,12 +27,12 @@ var gExamples, gDocs;
 var gEval;
 
 function initialize() {
-   gExamples = OSDoc.Examples.load('examples.js').onSuccess(done.saturate('examples')).replace($('output'));
-    gDocs = new OSDoc.APIDoc({onLoad: function() {
-        gDocs.replace($('docs'));
-        done('docs');
-    }});
-    gDocs.load('functional.js');
+    gExamples = new OSDoc.Examples({onLoad: done.saturate('examples'), target: $('output')}).load('examples.js');
+    gDocs = new OSDoc.APIDoc(
+        {onLoad: function() {
+            gDocs.replace($('docs'));
+            done('docs');
+        }}).load('functional.js');
     gEval = new EvalWorksheet('cin', 'cout', 'ceval');
     makeTogglePair('hide-header', 'show-header', 'header');
     Event.observe('run-tests', 'click', function(e) {
