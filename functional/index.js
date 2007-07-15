@@ -28,23 +28,14 @@ var gEval;
 
 function initialize() {
     gExamples = new OSDoc.Examples({onLoad: done.saturate('examples'), target: $('output')}).load('examples.js');
-    gDocs = new OSDoc.APIDoc(
-        {onLoad: function() {
-            gDocs.replace($('docs'));
-            done('docs');
-        }}).load('functional.js');
+    gDocs = new OSDoc.APIDoc({onLoad: done.saturate('docs'), target: $('docs')}).load('functional.js');
     gEval = new EvalWorksheet('cin', 'cout', 'ceval');
+    initializeHeaderToggle();
+    initializeTestLinks();
+}
+
+function initializeHeaderToggle() {
     makeTogglePair('hide-header', 'show-header', 'header');
-    Event.observe('run-tests', 'click', function(e) {
-        Event.stop(e);
-        var results = gDocs.runTests();
-        alert(results.toHTML());
-    });
-    Event.observe('write-tests', 'click', function(e) {
-        Event.stop(e);
-        var text = gDocs.createTestText();
-        document.write('<pre>'+text.escapeHTML()+'</pre>');
-    });
     function makeToggler(button, complement, action) {
         Event.observe(button, 'click', function(e) {
             Event.stop(e);
@@ -57,6 +48,19 @@ function initialize() {
         makeToggler(hider, shower, Element.hide.bind(Element, target));
         makeToggler(shower, hider, Element.show.bind(Element, target));
     }
+}
+
+function initializeTestLinks() {
+    Event.observe('run-tests', 'click', function(e) {
+        Event.stop(e);
+        var results = gDocs.runTests();
+        alert(results.toHTML());
+    });
+    Event.observe('write-tests', 'click', function(e) {
+        Event.stop(e);
+        var text = gDocs.createTestText();
+        document.write('<pre>'+text.escapeHTML()+'</pre>');
+    });
 }
 
 function EvalWorksheet(cin, cout, button) {

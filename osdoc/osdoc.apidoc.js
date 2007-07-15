@@ -23,12 +23,13 @@ OSDoc.APIDoc.prototype.load = function(url) {
 
 OSDoc.APIDoc.prototype.parse = function(string) {
     this.records = (new OSDoc.APIDoc.Parser).parse(string);
+    this.options.target && this.updateTarget();
     this.options.onLoad();
     return this;
 }
 
-OSDoc.APIDoc.prototype.replace = function(target) {
-    target.innerHTML = this.toHTML();
+OSDoc.APIDoc.prototype.updateTarget = function() {
+    this.options.target.innerHTML = this.toHTML();
     return this;
 }
 
