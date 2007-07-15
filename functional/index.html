@@ -23,7 +23,8 @@ h2 {margin:0}
       #footer {color:#888; margin-top:2em; padding-top:2px; border-top:1px solid; font-size:small}
       .input {cursor:pointer}
       .input:hover {color:red}
-      #cin, #ceval, #cout {float:left}
+      #cinup, #ceval, #coutup {float:left}
+      #cinup, #coutup {border:1px solid gray}
       #cin {font-size: x-large}
       #cout {font-size: x-large; float:left; border:1px dotted; min-width:25em; padding:5px}
     </style>
@@ -76,10 +77,21 @@ h2 {margin:0}
         <p>Try it!  Enter an expression below, or click on a line of
         code (from the examples above or the documentation below) to
         copy it here.</p>
-        <textarea id="cin" rows="1" cols="40">1+1</textarea>
+        <div id="cinup">
+          <pre id="cin-transcript"></pre>
+          <textarea id="cin" rows="1" cols="40">1+1</textarea><br/>
+        </div>
         <button id="ceval">&rarr;&nbsp;</button>
-        <pre id="cout"> </pre>
+        <div id="coutup">
+          <pre id="cout-transcript"></pre>
+          <pre id="cout" style="margin:0"> </pre><br/>
+        </div>
         <div style="clear:left"> </div>
+        <div id="transcript-controls">
+          Transcript:
+          <input id="toggle-transcript" type="checkbox"/>
+          <input id="clear-transcript" type="button" value="clear"/>
+        </div>
       </div>
       <hr/>
     </div>

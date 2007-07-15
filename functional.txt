@@ -142,7 +142,6 @@ I bummed the +[].slice.call(arguments, 0)+ idiom from http://www.coryhudson.com/
 
 Agenda:
 - click on examples
-- add version number
 - doc portability
 - add iframe version
 Later:
@@ -151,6 +150,7 @@ Later:
 - add methods to string?
 - environments
 OSDoc:
+- add version number
 - factor 'reporting'
 - doc requirements
 

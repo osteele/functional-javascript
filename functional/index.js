@@ -67,10 +67,26 @@ function EvalWorksheet(cin, cout, button) {
     this.cin = $(cin);
     this.cout = $(cout);
     this.button = $(button);
+    this.lastRecord = null;
     this.observe();
+    $F('toggle-transcript') || $('transcript-controls').hide();
+    this.setShowTranscript(false);
+}
+
+EvalWorksheet.prototype.setShowTranscript = function(visible) {
+    $('cin-transcript', 'cout-transcript', 'clear-transcript').invoke(visible ? 'show' : 'hide');
+    this.transcript = visible;
 }
 
 EvalWorksheet.prototype.observe = function() {
+    Event.observe('toggle-transcript', 'click', function() {
+        this.setShowTranscript($F('toggle-transcript'));
+    }.bind(this));
+    Event.observe('clear-transcript', 'click', function() {
+        $('cin-transcript').innerHTML = '';
+        $('cout-transcript').innerHTML = '';
+        $('clear-transcript').hide();
+    });
     Event.observe(this.cin, 'keyup', function(e) {
         if (e.keyCode == 13) {
             this.eval();
@@ -80,7 +96,6 @@ EvalWorksheet.prototype.observe = function() {
     Event.observe(this.button, 'click', this.eval.bind(this));
 }
 
-var gg = {};
 EvalWorksheet.prototype.eval = function() {
     var text = this.cin.value = this.cin.value.strip().replace('\n', '');
     text = text.replace(/^\s*var\s+/, '');
@@ -94,6 +109,13 @@ EvalWorksheet.prototype.eval = function() {
         html = 'Error: ' + e;
     }
     this.cout.innerHTML = html;
+    if (this.lastRecord) {
+        $('cin-transcript').innerHTML = $('cin-transcript').innerHTML + '\n' + this.lastRecord.input.escapeHTML();
+        $('cout-transcript').innerHTML = $('cout-transcript').innerHTML + '\n&rarr; ' + this.lastRecord.output;
+        $('transcript-controls').show();
+        $('clear-transcript').show();
+    }
+    this.lastRecord = {input: text, output: html};
     //window.location = '#cin';
 }
 
