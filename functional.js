@@ -13,219 +13,11 @@
  * 'x -> x+1' to be used as though it were a function.
  */
 
-// Record the current contents of Function.prototype, so that we
-// can see what we've added later.
-window.__functionalInitialState = (function() {
-    var record = {};
-    for (var name in Function.prototype)
-        record[name] = Function.prototype[name];
-    return record;
-})();
 
-// ^ First-order combinators
-
-// The identity function: x -> x.
-// == I(x) == x
-// :: a -> a
-// >> Function.I(1) -> 1
-Function.I = function(x) {return x};
-
-// Returns a constant function that returns +x+.
-// == K(x)(y) == x
-// :: a -> b -> a
-Function.K = function(x) {return function() {return x}}
-
-// ^ Higher-order methods
-
-// Returns a function that swaps its first two arguments before
-// passing them to the underlying function.
-// == fn.flip()(a, b, c...) == fn(b, a, c...)
-// :: (a b c...) -> (b a c...)
-// >> ('a/b'.lambda()).flip()(1,2) -> 2
-Function.prototype.flip = function() {
-    var fn = this;
-    return function() {
-        var args = [].slice.call(arguments, 0);
-        args = args.slice(1,2).concat(args.slice(0,1)).concat(args.slice(2));
-        return fn.apply(this, args);
-    }
-}
-
-// Returns a function that applies the underlying function to its
-// first argument, and the result of that application to the remaining
-// arguments.
-// == fn.uncurry(a, b...) == fn(a)(b...)
-// :: (a -> b -> c) -> (a, b) -> c
-// >> ('a -> b -> a/b'.lambda()).uncurry()(1,2) -> 0.5
-Function.prototype.uncurry = function() {
-    var fn = this;
-    return function() {
-        var f1 = fn.apply(this, [].slice.call(arguments, 0, 1));
-        return f1.apply(this, [].slice.call(arguments, 1));
-    }
-}
-
-// ^^ Partial function application
-
-// Returns a bound method on +object+; optionally currying +args+.
-// == fn.bind(obj, args...)(args2...) == fn.apply(obj, [args..., args2...])
-Function.prototype.bind = function(object/*, args...*/) {
-    var fn = this;
-    var args = [].slice.call(arguments, 1);
-    return function() {
-        return fn.apply(object, args.concat([].slice.call(arguments, 0)));
-    }
-}
-
-// Returns a function that ignores its arguments.
-// :: (a... -> b) a... -> (... -> b)
-// == fn.saturate(args...)(args2..) == fn(args...)
-// >> Math.max.curry(1, 2)(3, 4) -> 4
-// >> Math.max.saturate(1, 2)(3, 4) -> 2
-// >> Math.max.curry(1, 2).saturate()(3, 4) -> 2
-Function.prototype.saturate = function(/*args*/) {
-    var fn = this;
-    var args = [].slice.call(arguments, 0);
-    return function() {
-        return fn.apply(this, args);
-    }
-}
-
-// Returns a function that, applied to an argument list +arg2+,
-// applies the underlying function to +args+ ++ +arg2+.
-// :: (a... b... -> c) a... -> (b... -> c)
-// == fn.curry(args...)(args2...) == fn(args..., args2...)
-// Note that, unlike in languages with true partial application such as Haskell,
-// +curry+ and +uncurry+ are not inverses.  This is a repercussion of the
-// fact that in JavaScript, unlike Haskell, a fully saturated function is
-// not equivalent to the value that it returns.  The definition of +curry+
-// here matches semantics that most people have used when implementing curry
-// for procedural languages.
-// 
-// This implementation is adapted from
-// http://www.coryhudson.com/blog/2007/03/10/javascript-currying-redux/
-Function.prototype.curry = function(/*args...*/) {
-    var fn = this;
-    var args = [].slice.call(arguments, 0);
-    return function() {
-        return fn.apply(this, args.concat([].slice.call(arguments, 0)));
-    };
-}
-
-// Right curry.  Returns a function that, applied to an argumen list +args2+,
-// applies the underlying function to +args2+ + +args+.
-// == fn.curry(args...)(args2...) == fn(args2..., args...)
-// :: (a... b... -> c) b... -> (a... -> c)
-Function.prototype.rcurry = function(/*args...*/) {
-    var fn = this;
-    var args = [].slice.call(arguments, 0);
-    return function() {
-        return fn.apply(this, [].slice.call(arguments, 0).concat(args));
-    };
-}
-
-// Same as +curry+, except only applies the function when all
-// +n+ arguments are saturated.
-Function.prototype.ncurry = function(n/*, args...*/) {
-    var fn = this;
-    var largs = [].slice.call(arguments, 1);
-    return function() {
-        var args = largs.concat([].slice.call(arguments, 0));
-        if (args.length < n) {
-            args.unshift(n);
-            return fn.ncurry.apply(fn, args);
-        }
-        return fn.apply(this, args);
-    };
-}
-
-// Same as +rcurry+, except only applies the function when all
-// +n+ arguments are saturated.
-Function.prototype.rncurry = function(n/*, args...*/) {
-    var fn = this;
-    var rargs = [].slice.call(arguments, 1);
-    return function() {
-        var args = [].slice.call(arguments, 0).concat(rargs);
-        if (args.length < n) {
-            args.unshift(n);
-            return fn.rncurry.apply(fn, args);
-        }
-        return fn.apply(this, args);
-    };
-}
-
-// +_+ (underscore) is bound to a unique value for use in +partial()+, below.
-var _ = {};
-
-// Returns a function +f+ such that +f(args2)+ is equivalent to
-// the underlying function applied to a combination of +args+ and +args2+.
-// 
-// +args+ is a partially-specified argument: it's a list with "holes",
-// specified by the special value +_+.  It is combined with +args2+ as
-// follows:
-// 
-// From left to right, each value in +args2+ fills in the leftmost
-// remaining hole in +args+.  Any remaining values
-// in +args2+ are appended to the result of the filling-in process
-// to produce the combined argument list.
-// 
-// If the combined argument list contains any occurrences of +_+, the result
-// of the application of +f+ is another partial function.  Otherwise, the
-// result is the same as the result of applying the underlying function to
-// the combined argument list.
-Function.prototype.partial = function(/*args*/) {
-    var fn = this;
-    var args = [].slice.call(arguments, 0);
-    // substitution positions
-    var subpos = [], value;
-    for (var i = 0; i < arguments.length; i++)
-        arguments[i] == _ && subpos.push(i);
-    return function() {
-        var specialized = args.concat([].slice.call(arguments, subpos.length));
-        for (var i = 0; i < Math.min(subpos.length, arguments.length); i++)
-            specialized[subpos[i]] = arguments[i];
-        for (var i = 0; i < specialized.length; i++)
-            if (specialized[i] == _)
-                return fn.partial.apply(fn, specialized);
-        return fn.apply(this, specialized);
-    }
-}
-
-// For each method that this file defined on Function.prototype,
-// define a function on Functional that delegates to it.
-Function.functionalMethods = (function() {
-    var methods = {};
-    for (var name in Function.prototype)
-        if (Function.prototype[name] != window.__functionalInitialState[name])
-            methods[name] = Function.prototype[name];
-    return methods;
-})();
-
-delete window.__functionalInitialState;
-
-
-// ^ Higher-order functions
-
-// A namespace for higher-order functions.  In addition to the functions defined
-// below, every method defined above on +Function+ is also available as a function
-// in +Functional+, that coerces its first argument to a +Function+ and applies
-// the remaining arguments to it.
-// == curry(fn, args...) == fn.curry(args...)
-// >> Functional.flip('a/b')(1, 2) -> 2
-// >> Functional.curry('a/b', 1)(2) -> 0.5
+// A namespace for higher-order functions.
 var Functional = window.Functional || {};
 
-// For each method that this file defined on Function.prototype,
-// define a function on Functional that delegates to it.
-(function() {
-    for (var name in Function.functionalMethods)
-        Functional[name] = (function(name) {
-            var fn = Function.prototype[name];
-            return function(object) {
-                return fn.apply(Function.toFunction(object), [].slice.call(arguments, 1));
-            }
-        })(name);
-})();
+// ^ Higher-order functions
 
 // Copies all the functions in +Functional+ (except this one)
 // into the global namespace.
@@ -442,6 +234,217 @@ Functional.zip = function(/*args...*/) {
     };
     return results;
 }
+
+Functional._startRecordingMethodChanges = function(object) {
+    var initialMethods = {};
+    for (var name in object)
+        initialMethods[name] = object[name];
+    return {getChangedMethods: function() {
+        var changedMethods = {};
+        for (var name in object)
+        if (object[name] != initialMethods[name])
+            changedMethods[name] = object[name];
+        return changedMethods;
+    }};
+}
+
+// For each method that this file defined on Function.prototype,
+// define a function on Functional that delegates to it.
+Functional._attachMethodDelegates = function(methods) {
+    for (var name in methods)
+        Functional[name] = (function(name) {
+            var fn = methods[name];
+            return function(object) {
+                return fn.apply(Function.toFunction(object), [].slice.call(arguments, 1));
+            }
+        })(name);
+}
+
+// Record the current contents of Function.prototype, so that we
+// can see what we've added later.
+Functional.__initalFunctionState = Functional._startRecordingMethodChanges(Function.prototype);
+
+// ^ First-order combinators
+
+// The identity function: x -> x.
+// == I(x) == x
+// :: a -> a
+// >> Function.I(1) -> 1
+Function.I = function(x) {return x};
+
+// Returns a constant function that returns +x+.
+// == K(x)(y) == x
+// :: a -> b -> a
+Function.K = function(x) {return function() {return x}}
+
+// ^ Higher-order methods
+// 
+// In addition to the functions defined
+// below, every method defined above on +Function+ is also available as a function
+// in +Functional+, that coerces its first argument to a +Function+ and applies
+// the remaining arguments to it.
+// == curry(fn, args...) == fn.curry(args...)
+// >> Functional.flip('a/b')(1, 2) -> 2
+// >> Functional.curry('a/b', 1)(2) -> 0.5
+
+// Returns a function that swaps its first two arguments before
+// passing them to the underlying function.
+// == fn.flip()(a, b, c...) == fn(b, a, c...)
+// :: (a b c...) -> (b a c...)
+// >> ('a/b'.lambda()).flip()(1,2) -> 2
+Function.prototype.flip = function() {
+    var fn = this;
+    return function() {
+        var args = [].slice.call(arguments, 0);
+        args = args.slice(1,2).concat(args.slice(0,1)).concat(args.slice(2));
+        return fn.apply(this, args);
+    }
+}
+
+// Returns a function that applies the underlying function to its
+// first argument, and the result of that application to the remaining
+// arguments.
+// == fn.uncurry(a, b...) == fn(a)(b...)
+// :: (a -> b -> c) -> (a, b) -> c
+// >> ('a -> b -> a/b'.lambda()).uncurry()(1,2) -> 0.5
+Function.prototype.uncurry = function() {
+    var fn = this;
+    return function() {
+        var f1 = fn.apply(this, [].slice.call(arguments, 0, 1));
+        return f1.apply(this, [].slice.call(arguments, 1));
+    }
+}
+
+// ^^ Partial function application
+
+// Returns a bound method on +object+; optionally currying +args+.
+// == fn.bind(obj, args...)(args2...) == fn.apply(obj, [args..., args2...])
+Function.prototype.bind = function(object/*, args...*/) {
+    var fn = this;
+    var args = [].slice.call(arguments, 1);
+    return function() {
+        return fn.apply(object, args.concat([].slice.call(arguments, 0)));
+    }
+}
+
+// Returns a function that ignores its arguments.
+// :: (a... -> b) a... -> (... -> b)
+// == fn.saturate(args...)(args2..) == fn(args...)
+// >> Math.max.curry(1, 2)(3, 4) -> 4
+// >> Math.max.saturate(1, 2)(3, 4) -> 2
+// >> Math.max.curry(1, 2).saturate()(3, 4) -> 2
+Function.prototype.saturate = function(/*args*/) {
+    var fn = this;
+    var args = [].slice.call(arguments, 0);
+    return function() {
+        return fn.apply(this, args);
+    }
+}
+
+// Returns a function that, applied to an argument list +arg2+,
+// applies the underlying function to +args+ ++ +arg2+.
+// :: (a... b... -> c) a... -> (b... -> c)
+// == fn.curry(args...)(args2...) == fn(args..., args2...)
+// Note that, unlike in languages with true partial application such as Haskell,
+// +curry+ and +uncurry+ are not inverses.  This is a repercussion of the
+// fact that in JavaScript, unlike Haskell, a fully saturated function is
+// not equivalent to the value that it returns.  The definition of +curry+
+// here matches semantics that most people have used when implementing curry
+// for procedural languages.
+// 
+// This implementation is adapted from
+// http://www.coryhudson.com/blog/2007/03/10/javascript-currying-redux/
+Function.prototype.curry = function(/*args...*/) {
+    var fn = this;
+    var args = [].slice.call(arguments, 0);
+    return function() {
+        return fn.apply(this, args.concat([].slice.call(arguments, 0)));
+    };
+}
+
+// Right curry.  Returns a function that, applied to an argumen list +args2+,
+// applies the underlying function to +args2+ + +args+.
+// == fn.curry(args...)(args2...) == fn(args2..., args...)
+// :: (a... b... -> c) b... -> (a... -> c)
+Function.prototype.rcurry = function(/*args...*/) {
+    var fn = this;
+    var args = [].slice.call(arguments, 0);
+    return function() {
+        return fn.apply(this, [].slice.call(arguments, 0).concat(args));
+    };
+}
+
+// Same as +curry+, except only applies the function when all
+// +n+ arguments are saturated.
+Function.prototype.ncurry = function(n/*, args...*/) {
+    var fn = this;
+    var largs = [].slice.call(arguments, 1);
+    return function() {
+        var args = largs.concat([].slice.call(arguments, 0));
+        if (args.length < n) {
+            args.unshift(n);
+            return fn.ncurry.apply(fn, args);
+        }
+        return fn.apply(this, args);
+    };
+}
+
+// Same as +rcurry+, except only applies the function when all
+// +n+ arguments are saturated.
+Function.prototype.rncurry = function(n/*, args...*/) {
+    var fn = this;
+    var rargs = [].slice.call(arguments, 1);
+    return function() {
+        var args = [].slice.call(arguments, 0).concat(rargs);
+        if (args.length < n) {
+            args.unshift(n);
+            return fn.rncurry.apply(fn, args);
+        }
+        return fn.apply(this, args);
+    };
+}
+
+// +_+ (underscore) is bound to a unique value for use in +partial()+, below.
+var _ = {};
+
+// Returns a function +f+ such that +f(args2)+ is equivalent to
+// the underlying function applied to a combination of +args+ and +args2+.
+// 
+// +args+ is a partially-specified argument: it's a list with "holes",
+// specified by the special value +_+.  It is combined with +args2+ as
+// follows:
+// 
+// From left to right, each value in +args2+ fills in the leftmost
+// remaining hole in +args+.  Any remaining values
+// in +args2+ are appended to the result of the filling-in process
+// to produce the combined argument list.
+// 
+// If the combined argument list contains any occurrences of +_+, the result
+// of the application of +f+ is another partial function.  Otherwise, the
+// result is the same as the result of applying the underlying function to
+// the combined argument list.
+Function.prototype.partial = function(/*args*/) {
+    var fn = this;
+    var args = [].slice.call(arguments, 0);
+    // substitution positions
+    var subpos = [], value;
+    for (var i = 0; i < arguments.length; i++)
+        arguments[i] == _ && subpos.push(i);
+    return function() {
+        var specialized = args.concat([].slice.call(arguments, subpos.length));
+        for (var i = 0; i < Math.min(subpos.length, arguments.length); i++)
+            specialized[subpos[i]] = arguments[i];
+        for (var i = 0; i < specialized.length; i++)
+            if (specialized[i] == _)
+                return fn.partial.apply(fn, specialized);
+        return fn.apply(this, specialized);
+    }
+}
+
+// For each method that this file defined on Function.prototype,
+// define a function on Functional that delegates to it.
+Functional._attachMethodDelegates(Functional.__initalFunctionState.getChangedMethods());
+delete Functional.__initalFunctionState;
 
 
 // ^ String lambdas

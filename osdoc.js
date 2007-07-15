@@ -69,11 +69,11 @@ OSDoc.Docs.Definition = function(name, params) {
     }
     this.name = name;
     this.params = params && params.replace(/\/\*(.*?)\*\//g, '$1').replace(/\.\.\./g, '&hellip;');
+    this.tests = [];
+    this.blocks = [];
 }
 
 OSDoc.Docs.Definition.prototype.setDescription = function(lines) {
-    this.tests = [];
-    this.blocks = [];
     this.block = null;
     map(this.addDescriptionLine, lines, this);
 }
@@ -179,6 +179,15 @@ OSDoc.Docs.Definition.prototype.toHTML = function() {
     }
 }
 
+OSDoc.Docs.Section = function(header, lines) {
+    this.tests = [];
+    this.blocks = [];
+    this.addDescriptionLine = OSDoc.Docs.Definition.prototype.addDescriptionLine;
+    OSDoc.Docs.Definition.prototype.setDescription.call(this, lines.slice(1));
+    var html = header + this.blocks.join('');
+    this.toHTML = Function.K(html);
+}
+
 OSDoc.Docs.Parser = function(options) {};
 
 OSDoc.Docs.Parser.prototype.parse = function(text) {
@@ -220,11 +229,13 @@ OSDoc.Docs.Parser.prototype.processLine = function(line) {
         if (lines.length && (match = lines[0].match(/(\^+)\s*(.*)/))) {
             var tagName = 'h' + match[1].length;
             var html = ['<', tagName, '>', match[2], '</', tagName, '>'].join('');
-            if (lines.length > 1) {
+            if (lines.length > 1 && false) {
                 var para = lines.slice(1).join(' ').escapeHTML().replace(/\+([\w()_]+)\+/g, '<var>$1</var>').replace(/\*(\w+)\*/g, '<em>$1</em>');
                 html += '<p>' + para + '</p>';
             }
-            self.records.push({toHTML: Function.K(html), tests:[]});
+            //self.records.push({toHTML: Function.K(html), tests:[]});
+            var record = new OSDoc.Docs.Section(html, self.lines);
+            self.records.push(record);
         }
     }
 }
