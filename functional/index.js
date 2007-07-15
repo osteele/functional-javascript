@@ -28,7 +28,7 @@ var gExamples, gDocs;
 var gEval;
 
 function initialize() {
-    gExamples = OSDoc.Examples.load('functional-examples.js').onSuccess(done.saturate('examples')).replace($('output'));
+   gExamples = OSDoc.Examples.load('examples.js').onSuccess(done.saturate('examples')).replace($('output'));
     gDocs = new OSDoc.Docs({onLoad: function() {
         gDocs.replace($('docs'));
         done('docs');
