@@ -12,7 +12,7 @@
 
 // +lambda+ creates a function from a string that contains a single
 // expression.  This function can then be applied to an argument list,
-// either at the time:
+// either immediately:
 trace('x+1'.lambda()(2));
 trace('x+2*y'.lambda()(2, 3));
 // or (more usefully) later:
@@ -197,13 +197,13 @@ trace(list.curry(1,2)(3));
 
 // ^^ Function versions of Function's methods
 
-// Functional's methods on +Function+ are also available as functions, that
-// take a function as their first argument.  These functions are in the
-// +Functional+ namespace.  +Functional.install+ also installs these functions
-// in the global namespace.
+// The higher-order methods on +Function+ are also available as
+// functions, that take a function as their first argument.  These
+// functions are in the +Functional+ namespace.  +Functional.install+
+// also installs these functions in the global namespace.
 // 
-// Unlike the methodson Function, these functions can be applied to string
-// lambdas too:
+// Unlike the methods on Function, these functions can be applied to
+// string lambdas too:
 trace('+'.lambda().curry(1)(2));
 trace(curry('+', 1)(2));
 trace(bind('-> this', 1)());

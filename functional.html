@@ -18,73 +18,71 @@
 h2 {margin:0}
       a {color:#888}
       a:hover {color:blue}
-      #hide-header, #show-header {font-size:medium}
+      h1 a {font-size:medium}
       #footer {color:#888; margin-top:2em; padding-top:2px; border-top:1px solid; font-size:small}
       .input {cursor:pointer}
       .input:hover {color:red}
+      #cin, #ceval, #cout {float:left}
+      #cin {font-size: x-large}
+      #cout {font-size: x-large;float:left;border:1px dotted;width:25em}
     </style>
   </head>
   <body>
-    <h1>Functional Javascript
+    <h1>Functional Javascript<br/>
     <a id="hide-header" href="#">(hide header)</a>
     <a id="show-header" href="#" style="display:none">(show header)</a>
+    <a href="functional.js">(source)</a>
     </h1>
     <div id="header">
-    <p>The <dfn>Functional Javascript</dfn> is a library for
-    functional programming.  It defines the standard higher-order
-    functions such as <code>map</code>, <code>reduce</code> (aka
-    <code>foldl</code>), and <code>select</code> (aka
-    <code>filter</code>).  It also defines functions for partial
-    function application, such as <code>curry</code>,
-    <code>rcurry</code>, <code>partial</code>, <i>etc.</i>).  And all
-    these functions accept strings, such as <code>'x -> x+1'</code>,
-    <code>'x+1'</code>, or <code>'+1'</code> as synonyms for the more
-    verbose <code>function(x) {return x+1}</code>.</p>
+      <p>The <dfn>Functional Javascript</dfn> is a library for
+      functional programming.  It defines the standard higher-order
+      functions such as <code>map</code>, <code>reduce</code> (aka
+      <code>foldl</code>), and <code>select</code> (aka
+      <code>filter</code>).  It also defines functions for partial
+      function application, such as <code>curry</code>,
+      <code>rcurry</code>, and <code>partial</code>.  And
+      all these functions accept strings, such as <code>'x ->
+      x+1'</code>, <code>'x+1'</code>, or <code>'+1'</code> as
+      synonyms for the more verbose <code>function(x) {return
+      x+1}</code>.</p>
     
-    <div style="float:left; margin-right:5em">
-      <p><dfn>Functional</dfn> supports <a href="http://en.wikipedia.org/wiki/Higher-order_programming">higher-order programming</a>:</p>
-      <pre>
-        <span class="input">map('x*x', [1,2,3,4])</span>
-          <span class="output">&rarr; [1, 4, 9, 16]</span>
-        <span class="input">select(not('%2'), [1,2,3,4])</span>
-          <span class="output">&rarr; [2, 4]</span>
-        <span class="input">reduce('x*2+y', 0, [1,0,1,0])</span>
-          <span class="output">&rarr; 10</span>
-      </pre>
+      <div style="float:left; margin-right:5em">
+        <p><dfn>Functional</dfn> supports <a href="http://en.wikipedia.org/wiki/Higher-order_programming">higher-order programming</a>:</p>
+        <pre>
+          <span class="input">map('x*x', [1,2,3,4])</span>
+            <span class="output">&rarr; [1, 4, 9, 16]</span>
+            <span class="input">select(not('%2'), [1,2,3,4])</span>
+              <span class="output">&rarr; [2, 4]</span>
+            <span class="input">reduce('x*2+y', 0, [1,0,1,0])</span>
+              <span class="output">&rarr; 10</span>
+        </pre>
+      </div>
+      <div style="float:left">
+        <p>&hellip;as well as <a href="http://en.wikipedia.org/wiki/Function-level_programming">function-level</a> (or <a href="http://haskell.org/haskellwiki/Pointfree#Problems_with_pointfree">pointless</a>) style:</p>
+        <pre>
+          <span class="input">until('>100', 'x*x')(2)</span>
+            <span class="output">&rarr; 256</span>
+          <span class="input">var squareUntil = until.partial(_, 'x*x');</span>
+          <span class="input">var square2Until = squareUntil.uncurry().flip().curry(2);</span>
+          <span class="input">var firstSquare2Over = compose(square2Until, 'n -> i -> i > n');</span>
+          <span class="input">firstSquare2Over(100)</span>
+            <span class="output">&rarr; 256</span>
+        </pre>
+      </div>
+      <div style="clear:left"> </div>
+      
+      <div>
+        <p>Try it!  Enter an expression below, or click on a line of
+        code (from the examples above or the documentation below) to
+        copy it here.</p>
+        <textarea id="cin" rows="1" cols="40">1+1</textarea>
+        <button id="ceval">&rarr;&nbsp;</button>
+        <pre id="cout"> </pre>
+        <div style="clear:left"> </div>
+      </div>
+      <hr/>
     </div>
-    <div style="float:left">
-      <p>&hellip;as well as a <a href="http://en.wikipedia.org/wiki/Function-level_programming">function-level</a> (or <a href="http://haskell.org/haskellwiki/Pointfree#Problems_with_pointfree">pointless</a>) style:</p>
-      <pre>
-        <span class="input">until('>100', 'x*x')(2)</span>
-          <span class="output">&rarr; 256</span>
-        <span class="input">var squareUntil = until.partial(_, 'x*x');</span>
-        <span class="input">var square2Until = squareUntil.uncurry().flip().curry(2);</span>
-        <span class="input">var firstSquare2Over = compose(square2Until, 'n -> i -> i > n');</span>
-        <span class="input">firstSquare2Over(100)</span>
-          <span class="output">&rarr; 256</span>
-      </pre>
-    </div>
-    <div style="clear:left"> </div>
     
-    <table>
-      <tr><td colspan="2">Try it!  Enter an expression below, or click on a line from the documentation to copy it here.</td></tr>
-      <tr>
-        <td>
-          <textarea id="cin" rows="1" cols="50" style="text-align:left">
-            1+1
-          </textarea>
-        </td>
-        <td>
-          <button id="eval">&rarr;&nbsp;</button>
-        </td>
-        <td>
-          <pre id="cout" style="border:1px solid;width:30em;">
-          </pre>
-        </td>
-      </tr>
-    </table>
-    </div>
-        
     <div id="noscript">
       You either have JavaScript turned off or you're using a browser
       I haven't tested.  Either way, you're missing out on the page
@@ -110,8 +108,8 @@ h2 {margin:0}
     </table>
     <div id="footer">
       Copyright 2007 by <a href="http://osteele.com">Oliver Steele</a>.  This work is licensed under the <a href="MIT-LICENSE">MIT license</a>.
-      <a href="functional.js" target="_blank">View source</a>;
-      <a href="#" id="write-tests">view</a>/<a href="#" id="run-tests">run</a> tests.
+      <a href="#" id="write-tests">View</a>/<a href="#" id="run-tests">run</a> tests.
+      <a href="functional.js" target="_blank">View source</a>.
     </div>
   </body>
 </html>

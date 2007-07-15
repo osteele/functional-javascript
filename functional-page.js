@@ -5,7 +5,7 @@
  * Homepage: http://osteele.com/javascripts/functional.html
  * Source: http://osteele.com/javascripts/functional-examples.js
  * Created: 2007-07-11
- * Modified: 2007-07-14
+ * Modified: 2007-07-15
  */
 
 var info = window.console && console.info || function(){};
@@ -25,6 +25,7 @@ Function.prototype.reporting = function() {
 
 // debugging references
 var gExamples, gDocs;
+var gEval;
 
 function initialize() {
     gExamples = OSDoc.Examples.load('functional-examples.js').onSuccess(done.saturate('examples')).replace($('output'));
@@ -33,6 +34,7 @@ function initialize() {
         done('docs');
     }});
     gDocs.load('functional.js');
+    gEval = new EvalWorksheet('cin', 'cout', 'ceval');
     makeTogglePair('hide-header', 'show-header', 'header');
     Event.observe('run-tests', 'click', function(e) {
         Event.stop(e);
@@ -43,15 +45,6 @@ function initialize() {
         Event.stop(e);
         var text = gDocs.createTestText();
         document.write('<pre>'+text.escapeHTML()+'</pre>');
-    });
-    Event.observe('cin', 'keyup', function(e) {
-        if (e.keyCode == 13) {
-            doit();
-            Event.stop(e);
-        }
-    });
-    Event.observe('eval', 'click', function(e) {
-        doit();
     });
     function makeToggler(button, complement, action) {
         Event.observe(button, 'click', function(e) {
@@ -67,19 +60,37 @@ function initialize() {
     }
 }
 
+function EvalWorksheet(cin, cout, button) {
+    this.cin = $(cin);
+    this.cout = $(cout);
+    this.button = $(button);
+    this.observe();
+}
+
+EvalWorksheet.prototype.observe = function() {
+    Event.observe(this.cin, 'keyup', function(e) {
+        if (e.keyCode == 13) {
+            this.eval();
+            Event.stop(e);
+        }
+    }.bind(this));
+    Event.observe(this.button, 'click', this.eval.bind(this));
+}
+
 var gg = {};
-function doit() {
-    var cin = $('cin').value = $('cin').value.strip().replace('\n', '');
+EvalWorksheet.prototype.eval = function() {
+    var text = this.cin.value = this.cin.value.strip().replace('\n', '');
+    text = text.replace(/^\s*var\s+/, '');
+    text = text.replace(/^\s*function\s+([A-Z_$][A-Z_$\d]*)/i, '$1 = function');
     var html;
     try {
-        cin = cin.replace(/^\s*var\s+/, '');
-        var v;
-        with(gg) v = eval(cin);
-        html = OSDoc.toString(v).escapeHTML();
+        var value;
+        value = eval(text);
+        html = OSDoc.toString(value).escapeHTML();
     } catch (e) {
         html = 'Error: ' + e;
     }
-    $('cout').innerHTML = html;
+    this.cout.innerHTML = html;
     //window.location = '#cin';
 }
 
@@ -91,7 +102,7 @@ function done(name) {
         function handler(e) {
             var text = Event.element(e).innerHTML.unescapeHTML();
             $('cin').value = text;
-            doit();
+            gEval.eval();
         }
         map(Event.observe.bind(Event).partial(_, 'click', handler), $$('.input'));
     }
