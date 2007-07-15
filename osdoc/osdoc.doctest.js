@@ -2,7 +2,7 @@
  * Author: Oliver Steele
  * Copyright: Copyright 2007 by Oliver Steele.  All rights reserved.
  * License: MIT License
- * Source: http://osteele.com/javascripts/osdoc.doctest.js
+ * Source: http://osteele.com/javascripts/osdoc
  * Created: 2007-07-13
  * Modified: 2007-07-14
  *

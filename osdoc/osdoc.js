@@ -2,7 +2,7 @@
  * Author: Oliver Steele
  * Copyright: Copyright 2007 by Oliver Steele.  All rights reserved.
  * License: MIT License
- * Source: http://osteele.com/javascripts/jsshow-examples.js
+ * Source: http://osteele.com/javascripts/osdoc
  * Created: 2007-07-11
  * Modified: 2007-07-14
  */

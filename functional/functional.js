@@ -2,8 +2,9 @@
  * Author: Oliver Steele
  * Copyright: Copyright 2007 by Oliver Steele.  All rights reserved.
  * License: MIT License
- * Homepage: http://osteele.com/javascripts/functional.html
- * Source: http://osteele.com/javascripts/functional.js
+ * Homepage: http://osteele.com/javascripts/functional
+ * Source: http://osteele.com/javascripts/functional/functional.js
+ * Version: 1.0
  * Created: 2007-07-11
  * Modified: 2007-07-14
  *

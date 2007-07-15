@@ -141,11 +141,18 @@ I bummed the +[].slice.call(arguments, 0)+ idiom from http://www.coryhudson.com/
 
 
 Agenda:
+- click on examples
+- add version number
 - doc portability
-- rename receiver
+- add iframe version
 Later:
+- add transcript
+- rename receiver
 - add methods to string?
 - environments
+OSDoc:
+- factor 'reporting'
+- doc requirements
 
 Number.prototype.times = function(fn, receiver) {
     var limit = Math.max(0, this);
