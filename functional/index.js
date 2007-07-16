@@ -17,7 +17,7 @@ var gEval;
 function initialize() {
     gExamples = new OSDoc.Examples({onLoad: done.saturate('examples'), target: $('output')}).load('examples.js');
     gDocs = new OSDoc.APIDoc({onLoad: done.saturate('docs'), target: $('docs')}).load('functional.js');
-    gEval = new Evaluator('#evaluator');
+    gEval = new Evaluator('#evaluator', {onUpdate: 'this.show.bind(this)'.call($('header'))});
     initializeHeaderToggle();
     initializeTestLinks();
 }
@@ -48,7 +48,8 @@ function done(flag) {
     callee[flag] = true;
     if (callee.docs && callee.examples) {
         $('noscript').hide();
-        gEval.makeClickable($$('.input'));
+        var inputs = $$('.input');
+        gEval.makeClickable(inputs);
         window.location.search.match(/[\?&]test\b/) &&
             gDocs.runTests();
     }

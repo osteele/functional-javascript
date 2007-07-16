@@ -9,8 +9,9 @@
 
 Functional.install();
 
-function Evaluator(rootName, enableTranscript) {
-    this.enableTranscript = arguments.length >= 2 ? enableTranscript : true;
+function Evaluator(rootName, options) {
+    this.options = options || {};
+    this.enableTranscript = 'transcript' in options ? options.transcript : true;
     var elements = this.elements = {transcript:{}};
     setElements(elements, {
         input: '.input-column .current',
@@ -105,6 +106,7 @@ Evaluator.prototype.eval = function(text) {
         this.recenterButton();
     }
     this.lastRecord = {input: text, output: html};
+    this.options.onUpdate && this.options.onUpdate();
 }
 
 Evaluator.toString = function(value) {
