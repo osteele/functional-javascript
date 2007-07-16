@@ -24,29 +24,22 @@ Function.prototype.reporting = function() {
 
 // debugging references
 var gExamples, gDocs;
+
 var gEval;
 
 function initialize() {
     gExamples = new OSDoc.Examples({onLoad: done.saturate('examples'), target: $('output')}).load('examples.js');
     gDocs = new OSDoc.APIDoc({onLoad: done.saturate('docs'), target: $('docs')}).load('functional.js');
-    gEval = new EvalWorksheet('cin', 'cout', 'ceval');
+    gEval = new Evaluator('cin', 'cout', 'ceval');
     initializeHeaderToggle();
     initializeTestLinks();
 }
 
 function initializeHeaderToggle() {
-    makeTogglePair('hide-header', 'show-header', 'header');
-    function makeToggler(button, complement, action) {
-        Event.observe(button, 'click', function(e) {
-            Event.stop(e);
-            Element.hide(button);
-            Element.show(complement);
-            action();
-        });
-    }
-    function makeTogglePair(hider, shower, target) {
-        makeToggler(hider, shower, Element.hide.bind(Element, target));
-        makeToggler(shower, hider, Element.show.bind(Element, target));
+    Event.observe('header-toggle', 'click', updateHeaderState);
+    updateHeaderState();
+    function updateHeaderState(e) {
+        $$('#header').invoke($F('header-toggle') ? 'show' : 'hide');
     }
 }
 
@@ -63,29 +56,29 @@ function initializeTestLinks() {
     });
 }
 
-function EvalWorksheet(cin, cout, button) {
+function Evaluator(cin, cout, button) {
     this.cin = $(cin);
     this.cout = $(cout);
     this.button = $(button);
     this.lastRecord = null;
     this.observe();
-    $F('toggle-transcript') || $('transcript-controls').hide();
-    this.setShowTranscript(false);
+    $F('toggle-transcript') || this.setShowTranscript(false);
+    $('transcript-controls').hide();
 }
 
-EvalWorksheet.prototype.setShowTranscript = function(visible) {
-    $('cin-transcript', 'cout-transcript', 'clear-transcript').invoke(visible ? 'show' : 'hide');
+Evaluator.prototype.setShowTranscript = function(visible) {
+    $$('#cinup .transcript', '#coutup .transcript', '#clear-transcript').invoke(visible ? 'show' : 'hide');
     this.transcript = visible;
 }
 
-EvalWorksheet.prototype.observe = function() {
+Evaluator.prototype.observe = function() {
     Event.observe('toggle-transcript', 'click', function() {
         this.setShowTranscript($F('toggle-transcript'));
     }.bind(this));
     Event.observe('clear-transcript', 'click', function() {
-        $('cin-transcript').innerHTML = '';
-        $('cout-transcript').innerHTML = '';
-        $('clear-transcript').hide();
+        $$('#cinup .transcript')[0].innerHTML = '';
+        $$('#coutup .transcript')[0].innerHTML = '';
+        $('transcript-controls').hide();
     });
     Event.observe(this.cin, 'keyup', function(e) {
         if (e.keyCode == 13) {
@@ -96,7 +89,7 @@ EvalWorksheet.prototype.observe = function() {
     Event.observe(this.button, 'click', this.eval.bind(this));
 }
 
-EvalWorksheet.prototype.eval = function() {
+Evaluator.prototype.eval = function() {
     var text = this.cin.value = this.cin.value.strip().replace('\n', '');
     text = text.replace(/^\s*var\s+/, '');
     text = text.replace(/^\s*function\s+([A-Z_$][A-Z_$\d]*)/i, '$1 = function');
@@ -110,8 +103,11 @@ EvalWorksheet.prototype.eval = function() {
     }
     this.cout.innerHTML = html;
     if (this.lastRecord) {
-        $('cin-transcript').innerHTML = $('cin-transcript').innerHTML + '\n' + this.lastRecord.input.escapeHTML();
-        $('cout-transcript').innerHTML = $('cout-transcript').innerHTML + '\n&rarr; ' + this.lastRecord.output;
+        function update(elt, text) {
+            elt.innerHTML = elt.innerHTML ? elt.innerHTML + '\n' + text : text;
+        }
+        update($$('#cinup .transcript')[0], this.lastRecord.input.escapeHTML());
+        update($$('#coutup .transcript')[0], this.lastRecord.output);
         $('transcript-controls').show();
         $('clear-transcript').show();
     }
@@ -119,17 +115,21 @@ EvalWorksheet.prototype.eval = function() {
     //window.location = '#cin';
 }
 
+Evaluator.prototype.makeClickable = function(elements) {
+    function handler(e) {
+        var text = Event.element(e).innerHTML.unescapeHTML();
+        $('cin').value = text;
+        gEval.eval();
+    }
+    map(Event.observe.bind(Event).partial(_, 'click', handler), elements);
+}
+
 function done(name) {
     var me = arguments.callee;
     me[name] = true;
     if (me.docs && me.examples) {
         $('noscript').hide();
-        function handler(e) {
-            var text = Event.element(e).innerHTML.unescapeHTML();
-            $('cin').value = text;
-            gEval.eval();
-        }
-        map(Event.observe.bind(Event).partial(_, 'click', handler), $$('.input'));
+        gEval.makeClickable($$('.input'));
     }
 }
 

@@ -19,7 +19,7 @@
 h2 {margin:0}
       a {color:#888}
       a:hover {color:blue}
-      h1 a {font-size:medium}
+      h1 a, h1 .checkbox {font-size:medium; color:gray}
       #footer {color:#888; margin-top:2em; padding-top:2px; border-top:1px solid; font-size:small}
       .input {cursor:pointer}
       .input:hover {color:red}
@@ -31,9 +31,8 @@ h2 {margin:0}
   </head>
   <body>
     <h1>Functional Javascript<br/>
-    <a id="hide-header" href="#">(hide header)</a>
-    <a id="show-header" href="#" style="display:none">(show header)</a>
-    <a href="functional.js">(source)</a>
+    <span class="checkbox">(<input type="checkbox" id="header-toggle" value="on"/> header)</span>
+    <a href="functional.js">(view source)</a>
     </h1>
     <div id="header">
       <p>The <dfn>Functional Javascript</dfn> is a library for
@@ -78,12 +77,12 @@ h2 {margin:0}
         code (from the examples above or the documentation below) to
         copy it here.</p>
         <div id="cinup">
-          <pre id="cin-transcript"></pre>
+          <pre class="transcript"></pre>
           <textarea id="cin" rows="1" cols="40">1+1</textarea><br/>
         </div>
         <button id="ceval">&rarr;&nbsp;</button>
         <div id="coutup">
-          <pre id="cout-transcript"></pre>
+          <pre class="transcript"></pre>
           <pre id="cout" style="margin:0"> </pre><br/>
         </div>
         <div style="clear:left"> </div>
