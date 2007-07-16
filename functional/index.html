@@ -22,10 +22,13 @@
       #footer {color:#888; margin-top:2em; padding-top:2px; border-top:1px solid; font-size:small}
       .input {cursor:pointer}
       .input:hover {color:red}
-      #cinup, #ceval, #coutup {float:left}
-      #cinup, #coutup {border:1px solid gray}
-      #cin {font-size: x-large}
-      #cout {font-size: x-large; float:left; border:1px dotted; min-width:25em; padding:5px}
+      #evaluator .input-column,
+      #evaluator .output-column,
+      #evaluator .eval-column {float:left}
+      #evaluator .eval-button {padding-right:12px}
+      #evaluator .input-column .current,
+      #evaluator .output-column .current {border:1px solid gray; font-size: x-large}
+      #evaluator .output-column .current {border:1px dotted; min-width:25em; padding:5px}
     </style>
   </head>
   <body>
@@ -73,24 +76,26 @@
       </div>
       <div style="clear:left"> </div>
       
-      <div>
+      <div id="evaluator">
         <p>Try it!  Enter an expression below, or click on a line of
         code (from the examples above or the documentation below) to
         copy it here.</p>
-        <div id="cinup">
+        <div class="input-column">
           <pre class="transcript"></pre>
-          <textarea id="cin" rows="1" cols="40">map('1+', [2, 3])</textarea><br/>
+          <textarea class="current" rows="1" cols="40">map('1+', [2, 3])</textarea><br/>
         </div>
-        <button id="ceval">&rarr;&nbsp;</button>
-        <div id="coutup">
+        <div class="eval-column">
+          <button class="eval-button">&rarr;&nbsp;</button>
+        </div>
+        <div class="output-column">
           <pre class="transcript"></pre>
-          <pre id="cout" style="margin:0"> </pre><br/>
+          <pre class="current" style="margin:0"> </pre><br/>
         </div>
         <div style="clear:left"> </div>
-        <div id="transcript-controls">
-          Transcript:
-          <input id="toggle-transcript" type="checkbox"/>show
-          <input id="clear-transcript" type="button" value="clear"/>
+        <div class="transcript-controls">
+          History:
+          <input class="toggle" type="checkbox"/>show
+          <input class="clear" type="button" value="clear"/>
         </div>
       </div>
       <hr/>

@@ -1,6 +1,10 @@
 Functional is a JavaScript library for functional programming.  It
-defines the standard higher-order functions (+map+, +reduce+, +filter+) that you can read about elsewhere on the web.
-It also defines a functions for partial function application (+curry+, +partial+, etc.) couple of innovations, as well as string lambda expressions, which let you write 'x -> x+1', 'x+1', or even '+1' as an argument to higher-order functions.
+defines the standard higher-order functions (+map+, +reduce+,
++filter+) that you can read about elsewhere on the web.  It also
+defines a functions for partial function application (+curry+,
++partial+, etc.) couple of innovations, as well as string lambda
+expressions, which let you write 'x -> x+1', 'x+1', or even '+1' as an
+argument to higher-order functions.
 
 See the "example page":/sources/javascripts/functional.html
 for the API documentation, more examples, and a link to the sources.
@@ -126,6 +130,19 @@ Here are some examples of function-level programming with Functional.  There's m
   until(compose('>2', pluck('length'), String), '2*')(1)
   until(sequence(String, pluck('length'), '>2'), '2*')(1)
 
+h4. A Note on Performance
+
+In most languages, including JavaScript, invoking a function is one of the slowest
+things you can do.  The implementations of languages designed for functional programming
+use a variety of techniques to optimize function calls.  JavaScript is not one of those languages.
+
+Functional attempts to reduce the cost of higher-order-programming where this doesn't add to the code complexity or readability too much.  Each higher-order function and method is a small number of lines, and each function-returning method attempts to do as much work as possible outside the function that it returns, to optimize the case where the returned function is called more than once (as an argument to a higher-order function such as +map+, for example).
+
+Still, using functional is expensive.  No individual function is more expensive than using a function in Prototype, but if the more of your program you write in a functional style, the slower it will be.  For some parts of your program this may not matter, but for some it may.
+
+I tend to use a functional style a lot for exploratory programming, and less in production.  When I using exploratory programming to understand a problem domain, I make a lot of changes, write code that's hardwired with constants, and continuously refactor anything that lasts for more than an hour.  By the time something reaches 
+***
+
 h4. Compatibility
 
 Functional is known to work in Firefox 2.0 and Safari 3.0.  I didn't intentionally use any non-standard ECMAScript constructs, but meta-programming such as this tends to turn up corners in the browser implementations.
@@ -151,6 +168,7 @@ Agenda:
 - osdoc: click on examples
 - add jsmin version
 Blog:
+- search for ***
 - add iframe version
 Later:
 - move reporting() to osdoc; or lift from zardoz

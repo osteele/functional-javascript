@@ -516,7 +516,7 @@ Function.prototype.compose = function(fn) {
 // to the result of the application of +fn+.
 // == f.sequence(g)(args...) == g(f(args...))
 // == f.sequence(g) == g.compose(f)
-// >> '1+'.lambda().sequence('2*')(3) -> 6
+// >> '1+'.lambda().sequence('2*')(3) -> 8
 // 
 // Note that, unlike +Functional.compose+, the +sequence+ method on
 // function only takes a single argument.
