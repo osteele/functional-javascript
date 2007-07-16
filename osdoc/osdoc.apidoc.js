@@ -112,7 +112,7 @@ OSDoc.APIDoc.Definition.prototype.addDescriptionLine = function(line) {
     }
     function para(line) {
         block || blocks.push(this.block = block = []);
-        line = line.escapeHTML().replace(/\+([\w()_]+)\+/g, '<var>$1</var>').replace(/\*(\w+)\*/g, '<em>$1</em>');
+        line = line.escapeHTML().replace(/\+(\S+)\+/g, '<var>$1</var>').replace(/\*(\w+)\*/g, '<em>$1</em>');
         block.push(line);
     }
     // adders

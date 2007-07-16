@@ -16,7 +16,6 @@
       h2 .download {font-size: small}
       p, pre {line-height:1.25em; margin-top:0}
       .output {color:blue}
-h2 {margin:0}
       a {color:#888}
       a:hover {color:blue}
       h1 a, h1 .checkbox {font-size:medium; color:gray}
@@ -56,6 +55,10 @@ h2 {margin:0}
             <span class="output">&rarr; [2, 4]</span>
           <span class="input">reduce('x*2+y', 0, [1,0,1,0])</span>
             <span class="output">&rarr; 10</span>
+          <span class="input">map(guard('1+'), [1,2,null,3])</span>
+            <span class="output">&rarr; [2, 3, null, 4]</span>
+          <span class="input">map(guard('10+', '%2'), [1,2,3,4])</span>
+            <span class="output">&rarr; [11, 2, 13, 4]</span>
         </pre>
       </div>
       <div style="float:left">

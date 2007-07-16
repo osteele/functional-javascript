@@ -63,13 +63,13 @@ trace('x -> y -> x+y'.lambda()(2));
 
 // ^ Higher-order functions
 
-// The +Functional+ namespace defines the higher-order functions (HOFs):
+// The +Functional+ namespace defines the higher-order functions (functionals):
 // +map+, +reduce+, +select+, and a bunch of others.
 trace(Functional.map(function(x){return x+1}, [1,2,3]));
-// Lambda strings are useful as arguments to HOFs.  HOFs
+// Lambda strings are useful as arguments to functionals.  Functionals
 // convert the string to a function once per call, not once per application.
 trace(Functional.map('_+1', [1,2,3]));
-// +Functional.install()+ imports the HOFs into the global namespace (+window+),
+// +Functional.install()+ imports the functionals into the global namespace (+window+),
 // so that they needn't be qualified with Functional.* each time.
 Functional.install();
 trace(map('+1', [1,2,3]));
@@ -114,9 +114,48 @@ trace(fwhile('<100', 'x*x')(2));
 trace(map('_(1)', map('_.lambda()', ['x+1', 'x-1'])));
 trace(map(compose('_(1)', '_.lambda()'), ['x+1', 'x-1']));
 
-// ^ Partial function application
+// ^ Function methods
 
-// ^^ Partial
+// Functional attaches a number of methods to +Function+, that are
+// useful for functional method chaining and functional-level programming.
+// Here are a few.
+
+// ^^ Curry
+
+// +curry+ creates a new function that applies the original arguments, and
+// then the new arguments:
+var right = list.curry(1, 2);
+trace(right(3,4));
+var left = list.rcurry(1, 2);
+trace(left(3, 4));
+
+// Use +rcurry+ ("right curry") to create +halve+ and +double+ functions from
+// +divide+:
+function divide(a, b) {return a/b}
+var halve = divide.rcurry(2);
+var double = divide.rcurry(1/2);
+trace(halve(10));
+trace(double(10));
+
+// +ncurry+ and +rncurry+ wait until they're fully saturated before
+// applying the function.
+trace(list.ncurry(4,1,2)(3));
+trace(list.ncurry(4,1,2)(3)(4));
+trace(list.ncurry(4,1,2)(3,4));
+trace(list.rncurry(4,1,2)(3));
+trace(list.rncurry(4,1,2)(3,4));
+// [r]curry can't do this because it doesn't
+// in general know the polyadicity of the underlying function.
+// (Sometimes +fn.length+ works, but some functions don't declare
+// all their arguments, so sometimes this lies.)
+trace(list.curry(1,2)(3));
+
+// ^^ Partial function application
+
+// +curry+ is a special case of partial function application.
+// +partial+ is the general case.  +partial+ can
+// specialize parameters in the middle of the parameter list;
+// the +curry+ functions have to fill them in from the end.
 
 // +list+ is an unspecialized function that returns an array of its (four) arguments.
 // We'll create partially applied (specialized) versions of this function
@@ -161,41 +200,7 @@ trace(replaceWithCoronalFricatives.call("substitute my esses with tee-aitches", 
 // And  there's no facility for binding two hyphens to the same parameter
 // position.
 
-// ^^ Curry
-
-// +curry+ creates a new function that applies the original arguments, and
-// then the new arguments:
-var right = list.curry(1, 2);
-trace(right(3,4));
-var left = list.rcurry(1, 2);
-trace(left(3, 4));
-
-// Use +rcurry+ ("right curry") to create +halve+ and +double+ functions from
-// +divide+:
-function divide(a, b) {return a/b}
-var halve = divide.rcurry(2);
-var double = divide.rcurry(1/2);
-trace(halve(10));
-trace(double(10));
-
-// +ncurry+ and +rncurry+ wait until they're fully saturated before
-// applying the function.
-trace(list.ncurry(4,1,2)(3));
-trace(list.ncurry(4,1,2)(3)(4));
-trace(list.ncurry(4,1,2)(3,4));
-trace(list.rncurry(4,1,2)(3));
-trace(list.rncurry(4,1,2)(3,4));
-// [r]curry can't do this because it doesn't
-// in general know the polyadicity of the underlying function.
-// (Sometimes +fn.length+ works, but some functions don't declare
-// all their arguments, so sometimes this lies.)
-trace(list.curry(1,2)(3));
-
-// +curry+ and +partial+ overlap in their use.  +partial+ can
-// specialize parameters in the middle of the parameter list;
-// the +curry+ functions have to fill them in from the end.
-
-// ^^ Function versions of Function's methods
+// ^^ Methods on Function are object-free functions too
 
 // The higher-order methods on +Function+ are also available as
 // functions, that take a function as their first argument.  These
