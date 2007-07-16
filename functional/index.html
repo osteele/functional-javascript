@@ -34,13 +34,13 @@
     <a href="functional.js">(view source)</a>
     </h1>
     <div id="header">
-      <p>The <dfn>Functional Javascript</dfn> is a library for
-      functional programming.  It defines the standard higher-order
+      <p><dfn>Functional</dfn> is a library for
+      functional programming in JavaScript.  It defines the standard higher-order
       functions such as <code>map</code>, <code>reduce</code> (aka
       <code>foldl</code>), and <code>select</code> (aka
-      <code>filter</code>).  It also defines functions for partial
-      function application, such as <code>curry</code>,
-      <code>rcurry</code>, and <code>partial</code>.  And
+      <code>filter</code>).  It also defines functions such as <code>curry</code>,
+      <code>rcurry</code>, and <code>partial</code> for partial
+      function application; and <code>compose</code>, <code>guard</code>, and <code>until</code> for  <a href="http://en.wikipedia.org/wiki/Function-level_programming">function-level</a> programming.  And
       all these functions accept strings, such as <code>'x ->
       x+1'</code>, <code>'x+1'</code>, or <code>'+1'</code> as
       synonyms for the more verbose <code>function(x) {return
@@ -55,8 +55,6 @@
             <span class="output">&rarr; [2, 4]</span>
           <span class="input">reduce('x*2+y', 0, [1,0,1,0])</span>
             <span class="output">&rarr; 10</span>
-          <span class="input">map(guard('1+'), [1,2,null,3])</span>
-            <span class="output">&rarr; [2, 3, null, 4]</span>
           <span class="input">map(guard('10+', '%2'), [1,2,3,4])</span>
             <span class="output">&rarr; [11, 2, 13, 4]</span>
         </pre>
