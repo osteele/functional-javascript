@@ -7,7 +7,10 @@
  * Modified: 2007-07-16
  */
 
-function Evaluator(rootName) {
+Functional.install();
+
+function Evaluator(rootName, enableTranscript) {
+    this.enableTranscript = arguments.length >= 2 ? enableTranscript : true;
     var elements = this.elements = {transcript:{}};
     setElements(elements, {
         input: '.input-column .current',
@@ -79,7 +82,7 @@ Evaluator.prototype.eval = function(text) {
     try {
         var value;
         value = eval(text);
-        html = OSDoc.toString(value).escapeHTML();
+        html = Evaluator.toString(value).escapeHTML();
     } catch (e) {
         html = 'Error: ' + e;
     }
@@ -95,11 +98,25 @@ Evaluator.prototype.eval = function(text) {
         transcriptElements.input.appendChild(e);
         this.makeClickable([e]);
         update(transcriptElements.output, this.lastRecord.output);
-        transcriptElements.controls.show();
-        transcriptElements.clear.show();
+        if (this.enableTranscript) {
+            transcriptElements.controls.show();
+            transcriptElements.clear.show();
+        }
         this.recenterButton();
     }
     this.lastRecord = {input: text, output: html};
+}
+
+Evaluator.toString = function(value) {
+    if (value instanceof Array) {
+        var spans = map(Evaluator.toString, value);
+        return '[' + spans.join(', ') + ']';
+    }
+    switch (typeof(value)) {
+    case 'function': return 'function()';
+    case 'string': return '"' + value + '"';
+    default: return value ? value.toString() : ''+value;
+    }
 }
 
 // I'm not smart enough to figure out how to do this in CSS.
@@ -107,7 +124,8 @@ Evaluator.prototype.eval = function(text) {
 Evaluator.prototype.recenterButton = function() {
     var button = this.elements.evalButton;
     var heights = map('Element.getHeight(_)', [this.elements.input, this.elements.output, button]);
-    var y = Math.floor((Math.max(heights[0], heights[1]) - heights[2]) / 2) + 10;
+    var max = Math.max(heights[0], heights[1]);
+    var y = Math.floor((max - heights[2]) / 2) + 10;
     if (this.transcript)
         y += Element.getHeight(this.elements.transcript.input);
     button.style.marginTop = y + 'px';
