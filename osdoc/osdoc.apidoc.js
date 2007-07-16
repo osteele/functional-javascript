@@ -153,22 +153,39 @@ OSDoc.APIDoc.Definition.prototype.toHTML = function() {
         this.signature && spans.push('<div class="type"><span class="label">Type:</span> '+this.signature.escapeHTML().replace(/-&gt;/g, '&rarr;').replace(/\.\.\./g, '&hellip;')+'</div>');
     }
     function description() {
-        var paras = this.blocks.select(pluck('length')).map(function(block) {
-            if (typeof block == 'string') return block;
-            return ['<p>', block.join(' '), '</p>'].join('')
-        });
-        spans.push('<div class="description">');
-        spans = spans.concat(paras);
-        spans.push('</div>');
+        spans.push(this.getDescriptionHTML());
     }
 }
 
-OSDoc.APIDoc.Section = function(header, lines) {
+OSDoc.APIDoc.Definition.prototype.getDescriptionHTML = function() {
+    var spans = [];
+    var paras = this.blocks.select(pluck('length')).map(function(block) {
+        // it may have already been formatted:
+        if (typeof block == 'string') return block;
+        return html = ['<p>', block.join(' ').replace(
+                /\bhttp:\S*/, function(url) {
+                    var punct = '', match = url.match(/(.*)([\.,!])$/);
+                    if (match) {
+                        url = match[1];
+                        punct = match[2];
+                    }
+                    return ['<a href="', url, '">', url, '</a>', punct].join('');
+                }), '</p>'].join('');
+    });
+    spans.push('<div class="description">');
+    spans = spans.concat(paras);
+    spans.push('</div>');
+    return spans.join('');
+ }
+
+OSDoc.APIDoc.Section = function(title, level, lines) {
     this.tests = [];
     this.blocks = [];
     this.addDescriptionLine = OSDoc.APIDoc.Definition.prototype.addDescriptionLine;
-    OSDoc.APIDoc.Definition.prototype.setDescription.call(this, lines.slice(1));
-    var html = header + this.blocks.join('');
+    OSDoc.APIDoc.Definition.prototype.setDescription.call(this, lines);
+    var tagName = 'h' + level;
+    var html = ['<', tagName, '>', title, '</', tagName, '>'].join('');
+    html += OSDoc.APIDoc.Definition.prototype.getDescriptionHTML.call(this);
     this.toHTML = Function.K(html);
 }
 
@@ -189,7 +206,9 @@ OSDoc.APIDoc.Parser.prototype.processLine = function(line) {
     if (match = line.match(/^\/\/ (.*)/)) {
         this.lines.push(match[1]);
     } else if (this.lines.length) {
-        if (match = line.match(/^((?:\w+\.)*\w+)\s*=\s*function\s*\((.*?)\)/)) {
+        if (this.lines.grep(/@nodoc/).length) {
+            ;
+        } else if (match = line.match(/^((?:\w+\.)*\w+)\s*=\s*function\s*\((.*?)\)/)) {
             recordDefinition(match[1], match[2]);
         } else if (match = line.match(/^((?:\w+\.)*\w+)\s*=\s*(.*?);/)) {
             var master = this.keys[match[2]];
@@ -211,14 +230,9 @@ OSDoc.APIDoc.Parser.prototype.processLine = function(line) {
     function processNondefinitionComment(lines) {
         var match;
         if (lines.length && (match = lines[0].match(/(\^+)\s*(.*)/))) {
-            var tagName = 'h' + match[1].length;
-            var html = ['<', tagName, '>', match[2], '</', tagName, '>'].join('');
-            if (lines.length > 1 && false) {
-                var para = lines.slice(1).join(' ').escapeHTML().replace(/\+([\w()_]+)\+/g, '<var>$1</var>').replace(/\*(\w+)\*/g, '<em>$1</em>');
-                html += '<p>' + para + '</p>';
-            }
-            //self.records.push({toHTML: Function.K(html), tests:[]});
-            var record = new OSDoc.APIDoc.Section(html, self.lines);
+            var title = match[2];
+            var level = match[1].length;
+            var record = new OSDoc.APIDoc.Section(title, level, lines.slice(1));
             self.records.push(record);
         }
     }

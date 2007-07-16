@@ -251,6 +251,7 @@ Functional._startRecordingMethodChanges = function(object) {
 
 // For each method that this file defined on Function.prototype,
 // define a function on Functional that delegates to it.
+// @nodoc
 Functional._attachMethodDelegates = function(methods) {
     for (var name in methods)
         Functional[name] = (function(name) {
@@ -263,58 +264,10 @@ Functional._attachMethodDelegates = function(methods) {
 
 // Record the current contents of Function.prototype, so that we
 // can see what we've added later.
+// @nodoc
 Functional.__initalFunctionState = Functional._startRecordingMethodChanges(Function.prototype);
 
-// ^ First-order combinators
-
-// The identity function: x -> x.
-// == I(x) == x
-// :: a -> a
-// >> Function.I(1) -> 1
-Function.I = function(x) {return x};
-
-// Returns a constant function that returns +x+.
-// == K(x)(y) == x
-// :: a -> b -> a
-Function.K = function(x) {return function() {return x}}
-
 // ^ Higher-order methods
-// 
-// In addition to the functions defined
-// below, every method defined above on +Function+ is also available as a function
-// in +Functional+, that coerces its first argument to a +Function+ and applies
-// the remaining arguments to it.
-// == curry(fn, args...) == fn.curry(args...)
-// >> Functional.flip('a/b')(1, 2) -> 2
-// >> Functional.curry('a/b', 1)(2) -> 0.5
-
-// Returns a function that swaps its first two arguments before
-// passing them to the underlying function.
-// == fn.flip()(a, b, c...) == fn(b, a, c...)
-// :: (a b c...) -> (b a c...)
-// >> ('a/b'.lambda()).flip()(1,2) -> 2
-Function.prototype.flip = function() {
-    var fn = this;
-    return function() {
-        var args = [].slice.call(arguments, 0);
-        args = args.slice(1,2).concat(args.slice(0,1)).concat(args.slice(2));
-        return fn.apply(this, args);
-    }
-}
-
-// Returns a function that applies the underlying function to its
-// first argument, and the result of that application to the remaining
-// arguments.
-// == fn.uncurry(a, b...) == fn(a)(b...)
-// :: (a -> b -> c) -> (a, b) -> c
-// >> ('a -> b -> a/b'.lambda()).uncurry()(1,2) -> 0.5
-Function.prototype.uncurry = function() {
-    var fn = this;
-    return function() {
-        var f1 = fn.apply(this, [].slice.call(arguments, 0, 1));
-        return f1.apply(this, [].slice.call(arguments, 1));
-    }
-}
 
 // ^^ Partial function application
 
@@ -354,7 +307,7 @@ Function.prototype.saturate = function(/*args*/) {
 // for procedural languages.
 // 
 // This implementation is adapted from
-// http://www.coryhudson.com/blog/2007/03/10/javascript-currying-redux/
+// http://www.coryhudson.com/blog/2007/03/10/javascript-currying-redux/.
 Function.prototype.curry = function(/*args...*/) {
     var fn = this;
     var args = [].slice.call(arguments, 0);
@@ -441,6 +394,71 @@ Function.prototype.partial = function(/*args*/) {
         return fn.apply(this, specialized);
     }
 }
+
+// ^^ Combinators
+
+// ^^^ First-order combinators
+// 
+// These aren't actually methods on +Function+ (they don't bind to an
+// object); they're simply higher-order functions attached to +Function+
+// as a namespace.  Still, they hang together with the combinator methods
+// below, so it's convenient to describe them here.
+
+// The identity function: x -> x.
+// == I(x) == x
+// :: a -> a
+// >> Function.I(1) -> 1
+Function.I = function(x) {return x};
+
+// Returns a constant function that returns +x+.
+// == K(x)(y) == x
+// :: a -> b -> a
+Function.K = function(x) {return function() {return x}}
+
+// ^^^ Combinator methods
+
+// Returns a function that swaps its first two arguments before
+// passing them to the underlying function.
+// == fn.flip()(a, b, c...) == fn(b, a, c...)
+// :: (a b c...) -> (b a c...)
+// >> ('a/b'.lambda()).flip()(1,2) -> 2
+Function.prototype.flip = function() {
+    var fn = this;
+    return function() {
+        var args = [].slice.call(arguments, 0);
+        args = args.slice(1,2).concat(args.slice(0,1)).concat(args.slice(2));
+        return fn.apply(this, args);
+    }
+}
+
+// Returns a function that applies the underlying function to its
+// first argument, and the result of that application to the remaining
+// arguments.
+// == fn.uncurry(a, b...) == fn(a)(b...)
+// :: (a -> b -> c) -> (a, b) -> c
+// >> ('a -> b -> a/b'.lambda()).uncurry()(1,2) -> 0.5
+// 
+// Note that +uncurry+ is *not* the inverse of +curry+.
+Function.prototype.uncurry = function() {
+    var fn = this;
+    return function() {
+        var f1 = fn.apply(this, [].slice.call(arguments, 0, 1));
+        return f1.apply(this, [].slice.call(arguments, 1));
+    }
+}
+
+
+// ^^ Function methods as functions
+// 
+// In addition to the functions defined above, every method defined
+// on +Function+ is also available as a function in +Functional+, that
+// coerces its first argument to a +Function+ and applies
+// the remaining arguments to this.
+// 
+// A few examples will make this clearer:
+// == curry(fn, args...) == fn.curry(args...)
+// >> Functional.flip('a/b')(1, 2) -> 2
+// >> Functional.curry('a/b', 1)(2) -> 0.5
 
 // For each method that this file defined on Function.prototype,
 // define a function on Functional that delegates to it.
