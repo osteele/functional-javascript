@@ -68,7 +68,6 @@ Functional.sequence = function(/*fn...*/) {
 // >> map(compose('+1', '*2'), [1,2,3])) -> [3, 5, 7]
 
 Functional.map = function(fn, sequence, object) {
-    arguments.length < 3 && (receiver = this);
     fn = Function.toFunction(fn);
     var len = sequence.length;
     var result = new Array(len);
@@ -83,7 +82,6 @@ Functional.map = function(fn, sequence, object) {
 // :: (a b -> a) a [b] -> a
 // >> reduce('x y -> 2*x+y', 0, [1,0,1,0]) -> 10
 Functional.reduce = function(fn, init, sequence, object) {
-    arguments.length < 4 && (receiver = this);
     fn = Function.toFunction(fn);
     var len = sequence.length;
     var result = init;
@@ -96,14 +94,13 @@ Functional.reduce = function(fn, init, sequence, object) {
 // +fn(x)+ returns true.
 // :: (a -> boolean) [a] -> [a]
 // >> select('%2', [1,2,3,4]) -> [1, 3]
-Functional.select = function(fn, sequence, receiver) {
-    arguments.length < 3 && (receiver = this);
+Functional.select = function(fn, sequence, object) {
     fn = Function.toFunction(fn);
     var len = sequence.length;
     var result = [];
     for (var i = 0; i < len; i++) {
         var x = sequence[i];
-        fn.apply(receiver, [x, i]) && result.push(x);
+        fn.apply(object, [x, i]) && result.push(x);
     }
     return result;
 }
@@ -119,7 +116,6 @@ Functional.foldl = Functional.reduce;
 // :: (a b -> b) b [a] -> b
 // >> foldr('x y -> 2*x+y', 100, [1,0,1,0]) -> 104
 Functional.foldr = function(fn, init, sequence, object) {
-    arguments.length < 4 && (receiver = this);
     fn = Function.toFunction(fn);
     var len = sequence.length;
     var result = init;
@@ -136,14 +132,13 @@ Functional.foldr = function(fn, init, sequence, object) {
 // :: (a -> boolean) [a] -> [a]
 // >> some('>2', [1,2,3]) -> true
 // >> some('>10', [1,2,3]) -> false
-Functional.some = function(fn, sequence, receiver) {
-    arguments.length < 3 && (receiver = this);
+Functional.some = function(fn, sequence, object) {
     fn = Function.toFunction(fn);
     var len = sequence.length;
     var result = [];
     var value = false;
     for (var i = 0; i < len; i++) {
-        value = fn.call(receiver, sequence[i]);
+        value = fn.call(object, sequence[i]);
         if (value) return value;
     }
     return value;
@@ -155,14 +150,13 @@ Functional.some = function(fn, sequence, receiver) {
 // :: (a -> boolean) [a] -> [a]
 // >> every('<2', [1,2,3]) -> false
 // >> every('<10', [1,2,3]) -> true
-Functional.every = function(fn, sequence, receiver) {
-    arguments.length < 3 && (receiver = this);
+Functional.every = function(fn, sequence, object) {
     fn = Function.toFunction(fn);
     var len = sequence.length;
     var result = [];
     var value = true;
     for (var i = 0; i < len; i++) {
-        value = fn.call(receiver, sequence[i]);
+        value = fn.call(object, sequence[i]);
         if (!value) return value;
     }
     return value;
@@ -549,9 +543,8 @@ Function.prototype.sequence = function(fn) {
 // >> '[_]'.lambda().guard()(1) -> [1]
 // >> '[_]'.lambda().guard()(null) -> null
 // >> '[_]'.lambda().guard(null, Function.K('n/a'))(null) -> "n/a"
-// >> 'x+1'.lambda().guard('<10')(1) -> 2
-// >> 'x+1'.lambda().guard('<10')(10) -> null
-// >> 'x+1'.lambda().guard('<10', Function.I)(10) -> 10
+// >> 'x+1'.lambda().guard('<10', Function.K(null))(1) -> 2
+// >> 'x+1'.lambda().guard('<10', Function.K(null))(10) -> null
 // >> '/'.lambda().guard('p q -> q', Function.K('n/a'))(1, 2) -> 0.5
 // >> '/'.lambda().guard('p q -> q', Function.K('n/a'))(1, 0) -> "n/a"
 // >> '/'.lambda().guard('p q -> q', '-> "n/a"')(1, 0) -> "n/a"

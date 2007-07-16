@@ -108,9 +108,9 @@ h4. Function-level programming
 Value-level programming manipulates values, transforming a sequence of inputs into an output.  Function-level programming manipulates functions, applying operations to functions to synthesize a function that transforms inputs into outputs.
 
 Here are some examples of function-level programming with Functional.  There's more in the "docs":http://osteele.com/javascript/sources/functional.
-  // apply '1+' only to values that test as true
-  map(guard('1+'), [1,2,null,3])
-    -> [2, 3, null, 4]
+  // apply '/' only to values that test as true
+  map(guard('1/'), [1,2,null,4])
+    -> [1, 0.5, null, 0.25]
   // apply '10+' only to even values, leaving the odd ones alone
   map(guard('10+', not('%2')), [1,2,3,4])
     -> [1, 4, 3, 8]
@@ -134,9 +134,9 @@ String lambda use regular expressions and +eval+.  The rest of the code is free 
 
 h4. Future Directions
 
-Functional programming doesn't always mesh well with OO, especially with Javascript's absence of bound methods.  There are currently two sets of methods to partially apply a function: +bind+ binds its receiver (the first argument to +apply+); and [r][n]curry and +partial+ bind the other arguments (the arguments to +call+, which list is the second argument to +apply+).
+Functional programming doesn't always mesh well with OO, especially with Javascript's absence of bound methods.  There are currently two sets of methods to partially apply a function: +bind+ binds its object (the first argument to +apply+); and [r][n]curry and +partial+ bind the other arguments (the arguments to +call+, which list is the second argument to +apply+).
 
-One problem with this is the syntax.  If you want to specialize both the receiver and the parameters, such as in the example with Event.observe above, you need two chained function calls.  This is a tradeoff: it's because each of +bind+ and +partial+ does a single thing.  I considered adding a single omnibus function that bound everything, but it looked just as verbose, and more confusing, than the present solution.
+One problem with this is the syntax.  If you want to specialize both the object and the parameters, such as in the example with Event.observe above, you need two chained function calls.  This is a tradeoff: it's because each of +bind+ and +partial+ does a single thing.  I considered adding a single omnibus function that bound everything, but it looked just as verbose, and more confusing, than the present solution.
 
 The other problem is performance.  Invoking the function returned by fn.bind(a) goes through one extra function call beyond the cost of invoking fn().  That's unavoidable.  Invoking the function returned by fn.partial(b,c) also goes through one extra function call (as well as a loop and some conditionals to merge the argument lists).  That's unavoidable too.  But a call to the function returned by fn.bind(a).partial(b,c) or fn.partial(b,c).bind(a) goes through *two* extra function calls.  It only needs one.
 
@@ -157,21 +157,12 @@ Later:
 - add +specialize+, same as partial but doesn't curry; "non-standard distinction"
 - +arity+
 - add prototype library
-- rename receiver
-- add methods to string?
-- environments
+- string environments
 OSDoc:
 - add version number
 - factor 'reporting'
 - doc requirements
 
-chain(fn, args) { // after?
-  var self = this;
-  var args = 
-  return function() {
-    return fn.apply(this, [self.apply(this, arguments)].concat(args));
-  }
-}
 
 //Function.prototype.postfilter = Functional.sequence.curry;
 
@@ -244,9 +235,3 @@ String.prototype.lambda = function(binding) {
 .bq [T]he aim of functional programming is to transform a program which
 describes a problem into a program which describes a solution
 -- "Claus Reinke":http://www.haskell.org/pipermail/haskell-cafe/2006-December/020147.html
-
-
-
-It defines the standard higher-order functions such as map, reduce (aka foldl), and select (aka filter). It also defines functions for partial function application (curry, rcurry, partial, etc.); and all these functions accept strings that define lambda expressions, such as 'x -> x+1' or 'x+1', as synonyms for the more verbose Javascript expressions such as function(x) {return x+1}.
-
-
