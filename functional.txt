@@ -141,11 +141,20 @@ I bummed the +[].slice.call(arguments, 0)+ idiom from http://www.coryhudson.com/
 
 
 Agenda:
-- click on examples
+- osdoc: click on examples
 - doc portability
+- add +specialize+, same as partial but doesn't curry; "non-standard distinction"
+- add returning (wraps, and returns this)
+- move reporting() to osdoc; or lift from zardoz
+- add intercept; demonstrate it on prototype; add prototype library
+- add jsmin version
+- note about implementation style: keep eval out of the top
+Blog:
+- functional programming and function-level programming
 - add iframe version
 Later:
-- add transcript
+- 
+- add prototype library
 - rename receiver
 - add methods to string?
 - environments
@@ -153,6 +162,158 @@ OSDoc:
 - add version number
 - factor 'reporting'
 - doc requirements
+
+chain(fn, args) { // after?
+  var self = this;
+  var args = 
+  return function() {
+    return fn.apply(this, [self.apply(this, arguments)].concat(args));
+  }
+}
+
+//Function.prototype.postfilter = Functional.sequence.curry;
+
+
+// make sure this doesn't overwrite the other one
+s
+
+// This is useful to remove optional arguments from a function that is passed
+// to a higher-order function that supplies *different* optional arguments.
+// For example, Prototype's +Event.observe+ takes an optional final argument,
+// and +Enumerable.each+ supplies one, so this won't work as expected:
+//   $$('p').each(Event.s
+// '[a,b]'.lambda()(1,2) => [1, 2]
+// '[a,b]'.lambda().arity(1)(1,2) => [1, undefined]
+Function.prototype.arity = function(n) {
+  var fn = this;
+  return function() {
+    return fn.apply(this, [].slice.call(arguments, 0, n);
+  }
+]
+
+// +compose+ returns a function that ap
+// == f.compose(g)(args...) == g(f(args...))
+// == f.compose(g)(args...) == Functional.compose(g, f)
+// Note that, unlike +Functional.compose+, the +compose+ method on
+// function only takes a single argument.
+Function.prototype.compose = function(fn) {
+  return function() {
+    return fn.apply(this, [self.apply(this, arguments)]);
+  }
+}
+
+// ^^ Filters
+// 
+// Filters intercept a value before it is passed to a function, and apply the
+// underlying function to the modified value.
+
+// +filterObject+ returns a function that applies the underlying function
+// to the same arguments, but to an object that is the result of appyling
+// +filter+ to the invocation object.
+// == fn.filterObject(filter).apply(object, args...) == fn.apply(filter(object), args...)
+// == fn.bind(object) == compose(fn.filterObject, Function.K(object))
+// >> 'this'.lambda().filterObject('n+1').apply(1) -> 2
+Function.prototype.filterObject = function(filter) {
+  filter = Function.toFunction(filter);
+  var fn = this;
+  return function() {
+    return fn.apply(filter(this), arguments);
+  }
+}
+
+// +prefilterAt+ returns a function that applies the underlying function
+// to a copy of the arguments, where the +index+th argument has been
+// replaced by +filter(argument[index])+.
+// == fn.prefilterAt(i, filter)(a1, a2, ..., an) == fn(a1, a2, ..., filter(ai), ..., an)
+>> '[a,b,c]'.lambda().prefilterAt(1, '2*')(2,3,4) -> [2, 6, 4]
+Function.prototype.prefilterAt = function(index, filter) {
+  filter = Function.toFunction(filter);
+  var fn = this;
+  return function() {
+    var args = 
+    args[index] = filter.apply(this, args[index]);
+    return fn.apply(this, args);
+  }
+}
+
+// +prefilterAt+ returns a function that applies the underlying function
+// to a copy of the arguments, where the arguments +start+ through
+// +end+ have been replaced by +filter(argument.slice(start,end))+.
+// == fn.prefilterAt(i, filter)(a1, a2, ..., an) == fn(a1, a2, ..., filter(ai), ..., an)
+// == fn.prefilterSlice(i0, i1, filter)(a1, a2, ..., an) == fn(a1, a2, ..., filter(ai0, ..., ain), ..., an)
+>> '[a,b,c]'.lambda().prefilterSlice('+', 1, 2)(1,2,3,4) -> [1,5,4]
+>> '[a,b]'.lambda().prefilterSlice('+', 1)(1,2,3) -> [1,5]
+>> '[a]'.lambda().prefilterSlice(Math.max)(1,2,3) -> [3]
+Function.prototype.prefilterSlice = function(start, end, filter) {
+  filter = Function.toFunction(filter);
+  var fn = this;
+  return function() {
+    var args = 
+    args.splice.apply(args, [start, end].concat(filter.apply(this, [].slice.call(filterArgs, start, end))));
+    return fn.apply(this, args);
+}
+
+ @parameters filter
+postfilter = Functional.compose.curry.compose(Function.toFunction);
+
+wrappedBy = function() {}
+
+// Returns a function that has the same effect as this function, but returns
+// itself.  This is useless for pure-functional functions, but can be used
+// to make chainable methods in procedural/OO code.
+// == f.returning.apply(this, args...) == this, but with side effect of f()
+// >> var value = 1
+// >> (function(a, b){value=[this, a, b]; return 4}).call(1, 2, 3) -> 4
+// >> value => [1, 2, 3]
+// >> value = 1
+// >> (function(a, b){value=[this, a, b]; return 4}).returning().call(1, 2, 3) -> 1
+// >> value => [1, 2, 3]
+Function.returning = function(/*args...*/) {
+  var fn = this;
+  return function() {
+    fn.apply(this, arguments) ;
+    return fn;
+  }
+}
+
+// Returns a function that is equivalent to the underlying function when
+// +guard+ returns true, and otherwise is equivalent to the application
+// of +otherwise+ to the same arguments.
+// 
+// +guard+ defaults to +Function.I+ (which tests for true, in this contextt),
+// and +otherwise+ defaults to +Function.K(null)+ (which returns null).
+// == f.guard(g, h)(args...) == f(args...), when g(args...) is true
+// == f.guard(g ,h)(args...) == h(args...), when g(args...) is false
+// >> '[_]'.lambda().guard()(1) -> [1]
+// >> '[_]'.lambda().guard()(null) -> null
+// >> '[_]'.lambda().guard()(null, Function.K('-')) -> '-'
+// >> 'x+1'.lambda().guard('<10')(1) -> 2
+// >> 'x+1'.lambda().guard('<10')(10) -> null
+// >> 'x+1'.lambda().guard('<10', Function.I)(10) -> 10
+// >> '/'.lambda().guard('p q -> q != 0', Function.K('/0'))(1, 2) -> 0.5
+// >> '/'.lambda().guard('p q -> q != 0', Function.K('/0'))(1, 0) -> '/0'
+Function.prototype.guard = function(guard, otherwise) {
+  var fn = this;
+  guard = Function.toFunction(guard || Function.I);
+  otherwise = Function.toFunction(otherwise || Function.K(null));
+  return function() {
+    return (guard.apply(this, arguments) ? this : otherwise)(this, arguments);
+  }
+}
+
+// install on proto Array each; Enumerable all any collect detect each find findAll
+// grep: 2 inject 2, map min 2, partition reject select sortBy; 
+//synonyms: Array.each Hash.each
+'all any collect detect each find findAll map partition reject select sortBy grep[1] inject[1] min[1]'.each(function(name) {
+  var index = 0;
+  var parts = name.split(/\[\]/);
+  if (parts) {name = parts[0]; index = parseInt(parts[1]]
+  // excpet: they can be nulls
+  if (typeof iterable[name] == 'function')
+    Iterable[name] = wrapped(iterable[name]);
+Function.toFunction.guard(Function.K)
+  wrapped = Functonal.prefilterAt.rcurry(_, 0, Function.toFunction.rcurry(true));
+}
 
 Number.prototype.times = function(fn, receiver) {
     var limit = Math.max(0, this);
@@ -176,7 +337,7 @@ Number.prototype.times = function(fn, receiver) {
 // If +binding+ is supplied, it acts an environment for the new function.
 // >> 'x -> x+a'.lambda({a:1})(2)
 String.prototype.lambda = function(binding) {
-
+    
     var body = 'return (' + expr + ')';
     alert(binding, new Function(params, body));
         with (binding)

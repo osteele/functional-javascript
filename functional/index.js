@@ -124,12 +124,14 @@ Evaluator.prototype.makeClickable = function(elements) {
     map(Event.observe.bind(Event).partial(_, 'click', handler), elements);
 }
 
-function done(name) {
-    var me = arguments.callee;
-    me[name] = true;
-    if (me.docs && me.examples) {
+function done(flag) {
+    var callee = arguments.callee;
+    callee[flag] = true;
+    if (callee.docs && callee.examples) {
         $('noscript').hide();
         gEval.makeClickable($$('.input'));
+        window.location.search.match(/[\?&]test\b/) &&
+            gDocs.runTests();
     }
 }
 

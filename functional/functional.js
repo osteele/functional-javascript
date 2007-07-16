@@ -359,7 +359,9 @@ Function.prototype.rncurry = function(n/*, args...*/) {
 }
 
 // +_+ (underscore) is bound to a unique value for use in +partial()+, below.
-var _ = {};
+// This is a global variable, but it's also a property of +Function+ in case
+// you overwrite or bind over the global one.
+_ = Function._ = {};
 
 // Returns a function +f+ such that +f(args2)+ is equivalent to
 // the underlying function applied to a combination of +args+ and +args2+.
@@ -379,6 +381,7 @@ var _ = {};
 // the combined argument list.
 Function.prototype.partial = function(/*args*/) {
     var fn = this;
+    var _ = Function._;
     var args = [].slice.call(arguments, 0);
     // substitution positions
     var subpos = [], value;
@@ -406,12 +409,14 @@ Function.prototype.partial = function(/*args*/) {
 
 // The identity function: x -> x.
 // == I(x) == x
+// == I == 'x'.lambda()
 // :: a -> a
 // >> Function.I(1) -> 1
 Function.I = function(x) {return x};
 
 // Returns a constant function that returns +x+.
 // == K(x)(y) == x
+// == K(1) == '->1'.lambda()
 // :: a -> b -> a
 Function.K = function(x) {return function() {return x}}
 
@@ -444,6 +449,52 @@ Function.prototype.uncurry = function() {
     return function() {
         var f1 = fn.apply(this, [].slice.call(arguments, 0, 1));
         return f1.apply(this, [].slice.call(arguments, 1));
+    }
+}
+
+// Returns a function that is equivalent to the underlying function when
+// +guard+ returns true, and otherwise is equivalent to the application
+// of +otherwise+ to the same arguments.
+// 
+// +guard+ defaults to +Function.I+ (which tests for true, in this contextt),
+// and +otherwise+ defaults to +Function.K(null)+ (which returns null).
+// == f.guard(g, h)(args...) == f(args...), when g(args...) is true
+// == f.guard(g ,h)(args...) == h(args...), when g(args...) is false
+// >> '[_]'.lambda().guard()(1) -> [1]
+// >> '[_]'.lambda().guard()(null) -> null
+// >> '[_]'.lambda().guard(null, Function.K('n/a'))(null) -> "n/a"
+// >> 'x+1'.lambda().guard('<10')(1) -> 2
+// >> 'x+1'.lambda().guard('<10')(10) -> null
+// >> 'x+1'.lambda().guard('<10', Function.I)(10) -> 10
+// >> '/'.lambda().guard('p q -> q', Function.K('n/a'))(1, 2) -> 0.5
+// >> '/'.lambda().guard('p q -> q', Function.K('n/a'))(1, 0) -> "n/a"
+// >> '/'.lambda().guard('p q -> q', '-> "n/a"')(1, 0) -> "n/a"
+Function.prototype.guard = function(guard, otherwise) {
+    var fn = this;
+    guard = Function.toFunction(guard || Function.I);
+    otherwise = Function.toFunction(otherwise || Function.K(null));
+    return function() {
+        return (guard.apply(this, arguments) ? fn : otherwise).apply(this, arguments);
+    }
+}
+
+// ^^ Utilities
+
+// Returns a function that has the same effect as this function, but returns
+// itself.  This is useless for pure-functional functions, but can be used
+// to make chainable methods in procedural/OO code.
+// == f.returning.apply(this, args...) == this, but with side effect of f()
+// >> var value = 1
+// >> (function(a, b){value=[this, a, b]; return 4}).call(1, 2, 3) -> 4
+// >> value -> [1, 2, 3]
+// >> value = 1
+// >> (function(a, b){value=[this, a, b]; return 4}).returning().apply(1, [2, 3]) -> 1
+// >> value -> [1, 2, 3]
+Function.prototype.returning = function(/*args...*/) {
+    var fn = this;
+    return function() {
+        fn.apply(this, arguments);
+        return this;
     }
 }
 
@@ -593,7 +644,7 @@ Function.prototype.toFunction = function() {
 // It might seem convenient to treat
 // Function.toFunction(value) as though it were the
 // constant function that returned +value+, but it's rarely
-// useful and it hides errors.  Use Function.K(value) instead.
+// useful and it hides errors.  Use +Function.K(value)+ instead.
 Function.toFunction = function(value) {
     return value.toFunction();
 }

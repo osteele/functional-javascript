@@ -29,7 +29,8 @@ OSDoc.APIDoc.prototype.runTests = function() {
     failures.each(function(failure) {
         var message = (failure.error
                        ? [failure.test.text, ' throws ', failure.error]
-                       : [failure.test.text, ' -> ', toString(failure.result), ' != ', failure.test.expect]).join('');
+                       : [failure.test.text, ' -> ', OSDoc.toString(failure.result), ' != ', failure.test.expect]).join('');
+        window.console && console.info(message);
         lines.push(failure.defn.name + ': ' + message);
     });
     return this.testResults = {
@@ -38,8 +39,8 @@ OSDoc.APIDoc.prototype.runTests = function() {
         success: !failures.length,
         toHTML: function() {
             return (failures.length
-                    ? ['Failed', failures.length, 'out of', tests.length, 'tests:\n'+lines.join('\n')]
-                    : ['Passed all', tests.length, 'tests.']).join(' ');
+                    ? ['Failed', failures.length, 'out of', tests.length, 'API tests:\n'+lines.join('\n')]
+                    : ['Passed all', tests.length, 'API tests.']).join(' ');
         }
     };
 }
