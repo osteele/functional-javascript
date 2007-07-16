@@ -11,6 +11,18 @@ var OSDoc = window.OSDoc || {};
 
 Functional.install();
 
+Function.prototype.reporting = function() {
+    var fn = this;
+    return function() {
+        try {
+            fn.apply(this, arguments);
+        } catch (e) {
+            window.console && console.info(e);
+            throw e;
+        }
+    }
+}
+
 OSDoc.toString = function(value) {
     if (value instanceof Array) {
         var spans = map(OSDoc.toString, value);

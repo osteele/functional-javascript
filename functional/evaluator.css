@@ -1,0 +1,14 @@
+#evaluator .input-column,
+#evaluator .output-column,
+#evaluator .eval-column {float: left}
+#evaluator .eval-button {padding-right: 12px}
+#evaluator .input-column .current,
+#evaluator .output-column .current {
+    border: 1px solid gray;
+    font-size: x-large;
+}
+#evaluator .output-column .current {
+    border: 1px dotted;
+    min-width: 25em;
+    padding: 5px;
+}
