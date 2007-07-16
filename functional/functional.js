@@ -723,8 +723,8 @@ String.prototype.lambda = function() {
     } else if (expr.match(/\b_\b/)) {
         params = '_';
     } else {
-        var m1 = expr.match(/^\s*[+*\/%&|^!\.=<>]/);
-        var m2 = expr.match(/[+\-*\/%&|^!\.=<>]\s*$/);
+        var m1 = expr.match(/^\s*[+*\/%&|\^\.=<>]/);
+        var m2 = expr.match(/[+\-*\/%&|\^\.=<>!]\s*$/);
         if (m1 || m2) {
             if (m1) {
                 params.push('$1');

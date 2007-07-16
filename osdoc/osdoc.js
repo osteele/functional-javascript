@@ -9,7 +9,33 @@
 
 var OSDoc = window.OSDoc || {};
 
-Functional.install();
+OSDoc.checkRequirements = function() {
+    if (!window.Prototype || parseFloat(Prototype.Version) < 1.5)
+        throw "OSDoc requires the Prototype JavaScript framework version >= 1.5";
+    if (!window.Function)
+        throw "OSDoc requires the Functional JavaScript library";
+}
+
+OSDoc.loaded = [];
+
+// The loader logic is adapted from the Scriptaculous loader.
+OSDoc.require = function(path) {
+    if (OSDoc.loaded.include(path))
+        return;
+    document.write('<script type="text/javascript" src="' + path + '"></script>');
+    console.info(path);
+    OSDoc.loaded.push(path);
+}
+
+OSDoc.load = function() {
+    OSDoc.checkRequirements();
+    Functional.install();
+    var src = map('.src', document.getElementsByTagName('script')).grep(/\bosdoc\.js/)[0];
+    if (!src) return;
+    var modules = Function.K([_,'examples,apidoc,doctest']).guard('!')(src.match(/\?.*load=([a-z,]*)/))[1].split(',');
+    modules.include('doctest') && modules.unshift('apidoc');
+    map('a -> b -> a+"osdoc."+b+".js"'.call(null, src.replace(/[^/]*$/,'')), modules).each(OSDoc.require);
+}
 
 Function.prototype.reporting = function() {
     var fn = this;
@@ -34,3 +60,5 @@ OSDoc.toString = function(value) {
     default: return value ? value.toString() : ''+value;
     }
 }
+
+OSDoc.load();
