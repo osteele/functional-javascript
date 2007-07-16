@@ -7,12 +7,17 @@
  * Modified: 2007-07-14
  */
 
+// Options:
+//   headingLevel: hn for topmost headings; default 3
+//   onLoad: called when load completes
+//   target: an HTML Element that is set to the docs on completion
 OSDoc.Examples = function(options) {
     this.options = {headingLevel: 3, onLoad: Function.I};
     for (var name in options||{})
         this.options[name] = options[name];
 };
 
+// Load +url+ and parse its contents.
 OSDoc.Examples.prototype.load = function(url) {
     new Ajax.Request(
         url,
@@ -21,6 +26,7 @@ OSDoc.Examples.prototype.load = function(url) {
     return this;
 }
 
+// Parse +text+.  If +options.target+ is specified, update it.
 OSDoc.Examples.prototype.parse = function(text) {
     this.text = text.replace(/\s*\/\*(?:.|\n)*?\*\/[ \t]*/, '');
     this.runExamples();

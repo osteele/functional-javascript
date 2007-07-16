@@ -1,0 +1,74 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>OSDoc</title>
+    <script type="text/javascript" src="/javascripts/prototype.js"></script>
+    <script type="text/javascript" src="../functional/functional.js"></script>
+    <script type="text/javascript" src="osdoc.js"></script>
+    <script type="text/javascript" src="index.js"></script>
+    <link rel="stylesheet" type="text/css" href="osdoc.css"/>
+    <style type="text/css">
+      body {padding:0pt 10pt 0 10pt; color:#222; background:#fff}
+      h1 {text-align:center}
+      h2 .download {font-size: small}
+      p, pre {line-height:1.25em; margin-top:0}
+      .output {color:blue}
+      a {color:#888}
+      a:hover {color:blue}
+      h1 a, h1 .checkbox {font-size:medium; color:gray}
+      #footer {color:#888; margin-top:2em; padding-top:2px; border-top:1px solid; font-size:small}
+      #evaluator {border-top: 1px dashed gray}
+      .input {cursor:pointer}
+      .input:hover {color:red}
+    </style>
+  </head>
+  <body>
+    <h1>OSDoc<br/>
+    <span class="checkbox">(<input type="checkbox" id="header-toggle" value="on"/> header)</span>
+    <a href="functional.js">(view source)</a>
+    </h1>
+    <div id="header">
+      <p><dfn>Functional</dfn> is a library for functional programming
+      in JavaScript.  It defines the standard higher-order functions
+      such as <code>map</code>, <code>reduce</code> (aka
+      <code>foldl</code>), and <code>select</code> (aka
+      <code>filter</code>).  It also defines functions such as
+      <code>curry</code>, <code>rcurry</code>, and
+      <code>partial</code> for partial function application; and
+      <code>compose</code>, <code>guard</code>, and <code>until</code>
+      for <a
+      href="http://en.wikipedia.org/wiki/Function-level_programming">function-level</a>
+      programming.  And all these functions accept strings, such as
+      <code>'x -> x+1'</code>, <code>'x+1'</code>, or
+      <code>'+1'</code> as synonyms for the more verbose
+      <code>function(x) {return x+1}</code>.</p>
+      <hr/>
+    </div>
+    
+    <div id="noscript">
+      You either have JavaScript turned off or you're using a browser
+      I haven't tested.  Either way, you're missing out on the page
+      content, which is generated from the source code.  Try <a
+      href="http://www.mozilla.org/products/firefox/">Mozilla
+      Firefox</a> or <a
+      href="http://www.apple.com/safari/download/">Apple Safari</a>.
+    </div>
+    <table>
+      <tr>
+        <td id="doc1" valign="top">
+          <h2>Examples <span class="download">(<a href="examples.js">source</a>)</span></h2>
+          <div style="padding-right:5em" id="output" class="jsshow examples">Examples failed to load.</div>
+        </td>
+        <td id="documentation" valign="top">
+          <h2>Documentation <span class="download">(<a href="functional.js">source</a>)</span></h2>
+          <div id="docs" class="jsshow docs">Documentation failed to load.</div>
+        </td>
+      </tr>
+    </table>
+    <div id="footer">
+      Copyright 2007 by <a href="http://osteele.com">Oliver Steele</a>.  This work is licensed under the <a href="MIT-LICENSE">MIT license</a>.
+      <a href="#" id="write-tests">View</a>/<a href="#" id="run-tests">run</a> tests.
+      <a href="functional.js" target="_blank">View source</a>.
+    </div>
+  </body>
+</html>
