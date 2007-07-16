@@ -18,7 +18,8 @@ OSDoc.APIDoc.prototype.runTests = function() {
             try {
                 var result = eval(test.text);
             } catch (e) {
-                failures.push({defn: defn, test: test, error: e});
+                test.expect == 'error'
+                    || failures.push({defn: defn, test: test, error: e});
                 return;
             }
             if (test.expect != undefined && OSDoc.toString(result) != test.expect)

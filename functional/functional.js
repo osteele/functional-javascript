@@ -288,6 +288,31 @@ Function.prototype.saturate = function(/*args*/) {
     }
 }
 
+// Invoking the function returned by this function will only pass +n+
+// arguments to the underlying function.  If the underlying function
+// is not saturated, the result is a function that will pass all its
+// arguments to the underlying function.  (That is, +aritize+ only
+// affects its immediate caller, and not subsequent calls.)
+// 
+// This is useful to remove optional arguments from a function that is passed
+// to a higher-order function that supplies *different* optional arguments.
+// For example, many implementations of +map+ and other collection
+// functions call the function argument with both the collection element
+// and its position.  This is convenient when expected, but an wreak
+// havoc when the function argument is a curried function that expects
+// a single argument from +map+ and the remaining arguments from when
+// the result of +map+ is applied.
+// >> '[a,b]'.lambda()(1,2) -> [1, 2]
+// >> '[a,b]'.lambda().aritize(1)(1,2) -> [1, undefined]
+// >> '+'.lambda()(1,2)(3) -> error
+// >> '+'.lambda().ncurry(2).aritize(1)(1,2)(3) -> 4
+Function.prototype.aritize = function(n) {
+    var fn = this;
+    return function() {
+        return fn.apply(this, [].slice.call(arguments, 0, n));
+    }
+}
+
 // Returns a function that, applied to an argument list +arg2+,
 // applies the underlying function to +args+ ++ +arg2+.
 // :: (a... b... -> c) a... -> (b... -> c)
@@ -409,18 +434,23 @@ Function.I = function(x) {return x};
 Function.K = function(x) {return function() {return x}}
 
 // Returns a function that applies the first function to the
-// result of the second, but passes all its arguments but the
-// first to both of them.
+// result of the second, but passes all its arguments too.
 // == S(f, g)(args...) == f(g(args...), args...)
-// >> Function.S('+', '*')(2,3) -> 9
 // 
-// Curry this to get a version that chains:
+// This is useful to compose functions when each needs access
+// to the arguments to the composed function.  For example,
+// the following function multiples its last two arguments,
+// and adds the first to that.
+// >> Function.S('+', '_ a b -> a*b')(2,3,4) -> 14
+// 
+// Curry this to get a version that takes its arguments in
+// separate calls:
 // >> Function.S.curry('+')('*')(2,3)
 Function.S = function(f, g) {
     f = Function.toFunction(f);
     g = Function.toFunction(g);
     return function() {
-        return f.apply(this, [g.apply(this, arguments)].concat([].slice.call(arguments, 1)));
+        return f.apply(this, [g.apply(this, arguments)].concat([].slice.call(arguments, 0)));
     }
 }
 
@@ -595,13 +625,16 @@ Function.prototype.returning = function(/*args...*/) {
     }
 }
 
+// Returns a function that identical to this function except that
+// it prints its arguments on entry and its return value on exit.
+// This is useful for debugging function-level programs.
 Function.prototype.traced = function(name) {
     var self = this;
-    name = name || '';
+    name = name || self;
     return function() {
-        console.info('[', name, this, arguments);
+        window.console && console.info('[', name, 'apply', this, ',', arguments, ')');
         var result = self.apply(this, arguments);
-        console.info(']', name, ' -> ', result);
+        window.console && console.info(']', name, ' -> ', result);
         return result;
     }
 }
@@ -763,7 +796,10 @@ Function.prototype.toFunction = function() {
 // It might seem convenient to treat
 // Function.toFunction(value) as though it were the
 // constant function that returned +value+, but it's rarely
-// useful and it hides errors.  Use +Function.K(value)+ instead.
+// useful and it hides errors.  Use +Function.K(value)+ instead,
+// or a lambda string when the value is a compile-time literal:
+// >> Function.K('a string')() -> "a string"
+// >> Function.toFunction('"a string"')() -> "a string"
 Function.toFunction = function(value) {
     return value.toFunction();
 }

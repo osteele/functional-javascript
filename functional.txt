@@ -165,15 +165,16 @@ I bummed the +[].slice.call(arguments, 0)+ idiom from http://www.coryhudson.com/
 
 Agenda:
 - osdoc: click on examples
-- add jsmin version
-- permutations; annihilators; S to compose an n-ary function
+- remove arg from map?
 Blog:
 - search for ***
 - add iframe version
 Later:
-- move reporting() to osdoc; or lift from zardoz
+- S to compose an n-ary function
+- filtering arguments: permutations, annihilators, prefilter
+- oo integration: bind, 'this'
+- add jsmin version
 - add +specialize+, same as partial but doesn't curry; "non-standard distinction"
-- +arity+
 - add prototype library
 - string environments
 OSDoc:
@@ -184,30 +185,19 @@ OSDoc:
 Generalized a+b*c, over its operators:
   ops(op1, op2, a, b, c) = a `op1` (b `op2` c)
 var ap = curry.uncurry();
-var ops = S(compose(ap, 'op1 op2 a b -> [op1, a, b]'), compose(ap, 'op1 op2 a b c -> [op2, b, c]'))('+', '*', 2, 3, 4)
+var ops = Function.S(ap.prefilterSlice('c op1 op2 a -> [op1, a, c]'), ap.prefilterSlice('op1 op2 a b c -> [op2,b,c]'))
+ops('+','*',2,3,4)
 
 Array.prototype.sum = reduce.curry('+', 0).compose('this')
 
+map.rcurry(map(compose(ncurry('f(x)', 2).aritize(1), Function.toFunction), [invoke('toUpperCase'),'.length'])).compose('x -> f -> f(x)')(3)
+
+var mapFunctions = map.rcurry(map(compose(ncurry('f(x)', 2).aritize(1), Function.toFunction), [invoke('toUpperCase'),'.length'])).compose('x -> f -> f(x)');
+
+mapFunctions(['1+', '2+', '3+'], 1)
 
 //Function.prototype.postfilter = Functional.sequence.curry;
 
-
-// make sure this doesn't overwrite the other one
-s
-
-// This is useful to remove optional arguments from a function that is passed
-// to a higher-order function that supplies *different* optional arguments.
-// For example, Prototype's +Event.observe+ takes an optional final argument,
-// and +Enumerable.each+ supplies one, so this won't work as expected:
-//   $$('p').each(Event.s
-// '[a,b]'.lambda()(1,2) => [1, 2]
-// '[a,b]'.lambda().arity(1)(1,2) => [1, undefined]
-Function.prototype.arity = function(n) {
-  var fn = this;
-  return function() {
-    return fn.apply(this, [].slice.call(arguments, 0, n);
-  }
-]
 
 
 postfilter = Functional.compose.curry.compose(Function.toFunction);
@@ -266,4 +256,3 @@ describes a problem into a program which describes a solution
 
 injection, projection, modification, and composition.  Injection lets you create a function when you don't have one.  In JavaScript, the +function+ keywords and the builtin functions.  Projection gets out of the function level; function application (to a value) does this.  Within the system, a function can be modified, and funcions can be composed.
 Function-level programming rests on three pedestals: composition, control, specialization.  First, it must be possible to combine existing functions into new functions.  The higher-order functions (and methods) +compose+, +sequence+, and +filterAt+ do this; "adjectives" such as +uncurry+ and +flip+ modify functions so that they can be properly composed.  Second, there need to be control structures.  +map+ and +reduce+ are examples of control structures; more exotic examples are +guard+ and +until+.  Finally, it must be possible to create specialized functions out of general ones.  Partial function application, of which +curry+ is a special case, does this.
-
