@@ -1,17 +1,15 @@
 Functional is a JavaScript library for functional programming.  It
 defines the standard higher-order functions (+map+, +reduce+,
 +filter+) that you can read about elsewhere on the web.  It also
-defines a functions for partial function application (+curry+,
-+partial+, etc.) couple of innovations, as well as string lambda
-expressions, which let you write 'x -> x+1', 'x+1', or even '+1' as an
-argument to higher-order functions.
+defines functions for <a href="http://en.wikipedia.org/wiki/Function-level_programming">function-<em>level</em></a> programming: partial function application (+curry+ and +partial+), +compose+, +guard+, and +until+.  Finally, it introduces "string lambdas", which let you write 'x -> x+1', 'x+1', or even '+1' as an
+synonym for function(x) {return x+1}.
 
 See the "example page":/sources/javascripts/functional.html
 for the API documentation, more examples, and a link to the sources.
 
 h4. String lambdas
 
-Welcome to functional programming!  You've probably already discovered +map+ and +filter+.  (If not, spend a few minutes with Google.)  Try using them in JavaScript.  Isn't this a pain?:
+Welcome to functional programming!  You've probably already discovered +map+ and +filter+.  (If not, spend a few minutes with Google.)  Try using them in JavaScript.  Isn't it a pain?
   map(function(x){return x+1}, [1,2,3])
     -> [2,3,4]
   filter(function(x){return x>2}, [1,2,3,4]]
@@ -19,7 +17,7 @@ Welcome to functional programming!  You've probably already discovered +map+ and
   some(function(w){return w.length < 3}, 'are there any short words?'.split(' '))
     ->false
 
-String lambdas let you write this way instead:
+String lambdas let you write these instead:
   map('x+1', [1,2,3])
   select('x>2', [1,2,3,4])
   some('_.length < 3', 'are there any short words?'.split(' '))
@@ -27,35 +25,45 @@ String lambdas let you write this way instead:
 Some more examples, using just +map+, +filter+, and +reduce+:
   // double the items in a list
   map('_/2', [1,2,3])
-  # -> [2, 4, 6]
+    -> [2, 4, 6]
   // find the odd numbers
   filter('%2', [1,2,3,4])
-  # -> [1, 3]
+    -> [1, 3]
   // or the evens
   filter(not('%2'), [1,2,3,4])
-  # -> [2, 4]
+    -> [2, 4]
   // find the length of the longest word
   reduce(Math.max, 0, map('_.length', 'how long is the longest word?'.split(' ')))
-  # -> 7
+    -> 7
   // parse a binary array
   reduce('2*x+y', 0, [1,0,1,0])
-  # -> 10
+    -> 10
   // parse a (non-negative) decimal string
   reduce('x*10+y', 0, map('.charCodeAt(0)-48', '123'.split(/(?=.)/)))
-  # -> 123
+    -> 123
 
-The next section is a quick tour through partial function application, including +compose+ and +curry+.  As a preview, here's how to use +compose+ and +curry+ to generalize some of these examples
-into reusable functions.  I'm betting you'll like/hate these function definitions to the
-extent that you like/hate Haskell.
-  var longest = compose(reduce.curry(Math.max, 0), map.curry('_.length'), "_.split(' ')");
-  longest("how long is the longest word?");
-  # ->
-  longest("I bet floccinaucinihilipipification is longer.");
-  # -> 29
-  var parseUnsignedInt = compose(reduce.curry('x*10+y.charCodeAt(0)-48', 0), '_.split(/(?=.)/)')
-  parseUnsignedInt('123')
-  # -> 123
+h4. Function-level programming
 
+Value-level programming manipulates values, transforming a sequence of inputs into an output.  "Function-level programming:"http://en.wikipedia.org/wiki/Function-level_programming manipulates functions, applying operations to functions to synthesize a new function.  It's this new function that transforms inputs into outputs.
+
+Here are some examples of function-level programming with Functional.  There's more in the "docs":http://osteele.com/javascript/sources/functional.
+  // apply '/' only to values that test true
+  map(guard('1/'), [1,2,null,4])
+    -> [1, 0.5, null, 0.25]
+  // apply '10+' only to even values, leaving the odd ones alone
+  map(guard('10+', not('%2')), [1,2,3,4])
+    -> [1, 4, 3, 8]
+  // write a version of map that only applies to the evens
+  var even = not('%2');
+  var mapEvens = map.prefilterAt(0, guard.rcurry(even));
+  mapEvens('10+', [1,2,3,4])
+  // find the first power of two that's greater than 100
+  until('>100', '2*')(1)
+    -> 128
+  // or the first three-digit power of two (these are all the same)
+  until('String(_).length>2', '2*')(1)
+  until(compose('>2', pluck('length'), String), '2*')(1)
+  until(sequence(String, pluck('length'), '>2'), '2*')(1)
 
 h4. Partial function application
 
@@ -77,7 +85,7 @@ parameters.
 
 JavaScript doesn't have many functions with more than two parameters. (+splice+ takes three, but +splice+ isn't very functional).  Here's a contrived example, to start (and a real-world example next).
 
-We'll borrow one of the few trinary predicates from math: "between".  +increasing+ tests whether +b+ (the middle argument) lies in the open interval bounded by +a+ and +c+.  Specializing the first and last arguments produces functions that test whether a number is positive, or negative.
+We'll borrow one of the few trinary predicates from math: "between".  +increasing+ tests whether +b+ (the middle argument) lies in the open interval bounded by +a+ and +c+.  Specialize the first and last arguments to produce a functions that tests whether a number is positive, for example.
 
   function increasing(a, b, c) {
     return a < b && b < c;
@@ -89,7 +97,24 @@ We'll borrow one of the few trinary predicates from math: "between".  +increasin
   map(negative, [-1, 0, 1]) 
     -> [true, false, false]
 
-A real-world example:  If you're using Prototype, you can replace the first line below by the second:
+Here's how to use +compose+ and +curry+ to generalize some of the examples from the first section
+into reusable functions.  You'll probaby like or hate these function definitions to the
+extent that you like or hate Haskell.
+  var longest = compose(reduce.curry(Math.max, 0), map.curry('_.length'), "_.split(' ')");
+  longest("how long is the longest word?");
+    -> 7
+  longest("I bet floccinaucinihilipipification is longer.");
+    -> 29
+  var parseUnsignedInt = compose(reduce.curry('x*10+y.charCodeAt(0)-48', 0), '_.split(/(?=.)/)')
+  parseUnsignedInt('123')
+    -> 123
+
+A real-world example:  This adds a +sum+ method to Array.  Note how the 'this' lambda, which is short for function()[return this}, moves the object from object position to argument position so that the curried reduce can apply to it.
+  Array.prototype.sum = reduce.curry('+', 0).compose('this')
+  [1,2,3].sum()
+     -> 6
+
+Another example:  If you're using Prototype, you can replace the first line below by the second:
   Event.observe('myobj', 'click', function() {...})
   onclick(''myobj', function() {...})
 by defining a specialized version of Event.observe:
@@ -100,35 +125,12 @@ Is this better than the following?
     Event.observe(elenent, 'click', handler);
   }
 
-It's a matter of taste, with some performance considerations as well.  The functional version is less efficient, and to the untrained eye it's harder to read.  This version is not just functional, but "function-level":"http://en.wikipedia.org/wiki/Function-level_programming".  It's in a style that has been called "point-free":http://haskell.org/haskellwiki/Pointfree (and even pointless:"http://haskell.org/haskellwiki/Pointfree#Problems_with_pointfree").
+It's a matter of taste, with some performance considerations as well.  The function-level version is less efficient, and to the untrained eye it's also harder to read.
 
 On the other hand, the functional version doesn't include as much
 plumbing, with its attendent opportunity for error.  The second
 definition  of +onclick+, considered as a general replacement for Event.observer(..., 'click', ...), has two such errors.  One shows up as soon as
 you use it; the second is considerably more subtle.  Whether functional programming is appropriate, for reasons of efficiency or readability, in any particular instance, it's nice to have it, at lest for prototyping, in your arsenal.
-
-h4. Function-level programming
-
-Value-level programming manipulates values, transforming a sequence of inputs into an output.  Function-level programming manipulates functions, applying operations to functions to synthesize a function that transforms inputs into outputs.
-
-Here are some examples of function-level programming with Functional.  There's more in the "docs":http://osteele.com/javascript/sources/functional.
-  // apply '/' only to values that test as true
-  map(guard('1/'), [1,2,null,4])
-    -> [1, 0.5, null, 0.25]
-  // apply '10+' only to even values, leaving the odd ones alone
-  map(guard('10+', not('%2')), [1,2,3,4])
-    -> [1, 4, 3, 8]
-  // write a version of map that only applies to the evens
-  var even = not('%2');
-  var mapEvens = map.prefilterAt(0, guard.rcurry(even));
-  mapEvens('10+', [1,2,3,4])
-  // find the first power of two that's greater than 100
-  until('>100', '2*')(1)
-    -> 128
-  // or the first three-digit power of two (these are all the same)
-  until('String(_).length>2', '2*')(1)
-  until(compose('>2', pluck('length'), String), '2*')(1)
-  until(sequence(String, pluck('length'), '>2'), '2*')(1)
 
 h4. A Note on Performance
 
@@ -136,12 +138,9 @@ In most languages, including JavaScript, invoking a function is one of the slowe
 things you can do.  The implementations of languages designed for functional programming
 use a variety of techniques to optimize function calls.  JavaScript is not one of those languages.
 
-Functional attempts to reduce the cost of higher-order-programming where this doesn't add to the code complexity or readability too much.  Each higher-order function and method is a small number of lines, and each function-returning method attempts to do as much work as possible outside the function that it returns, to optimize the case where the returned function is called more than once (as an argument to a higher-order function such as +map+, for example).
+Functional attempts to reduce the cost of higher-order-programming where doing so doesn't add to the code complexity or readability too much.  Each higher-order function and method is a small number of lines, and each function-returning method attempts to do as much work as possible outside the function that it returns, to optimize the case where the returned function is called more than once (as an argument to a higher-order function such as +map+, for example).
 
-Still, using functional is expensive.  No individual function is more expensive than using a function in Prototype, but if the more of your program you write in a functional style, the slower it will be.  For some parts of your program this may not matter, but for some it may.
-
-I tend to use a functional style a lot for exploratory programming, and less in production.  When I using exploratory programming to understand a problem domain, I make a lot of changes, write code that's hardwired with constants, and continuously refactor anything that lasts for more than an hour.  By the time something reaches 
-***
+Still, using Functional is expensive.  Invoking a synthetic function results in at least twice as many invocations as invoking the underlying function.  This isn't any different from using +bind+ in the Prototype library, say, but, the more of your program you write in a functional style --- and therefore the more method calls you introduce --- the slower it will be.  As with any library, be aware that you may have to hand-compile performance-critical sections of your code into an approximation of you would have written without the library anyway; if you think you already know what needs to be optimized (or that your whole program does), or you aren't comfortable with measuring performance periodically in order to intelligently trade execution time against implementation time, you may want to eschew libraries, especially higher-order ones.
 
 h4. Compatibility
 
@@ -161,12 +160,13 @@ Someday I'll publish fast-functional.js, which patches functional.js to fix this
 
 h4. Credits
 
-I bummed the +[].slice.call(arguments, 0)+ idiom from http://www.coryhudson.com/blog/2007/03/10/javascript-currying-redux, and used it all over the place to avoid an iteratio or a non-native function call.  The ECMAScript Language Specification is careful to define +slice+ in such a way that this works, but I don't think I would have thought of it.
+I bummed the +[].slice.call(arguments, 0)+ idiom from http://www.coryhudson.com/blog/2007/03/10/javascript-currying-redux, and used it all over the place to avoid an iteration or non-native function call.  The ECMAScript Language Specification is careful to define +slice+ in such a way that this works, but I don't think I would have thought of it.
 
 
 Agenda:
 - osdoc: click on examples
 - add jsmin version
+- permutations; annihilators; S to compose an n-ary function
 Blog:
 - search for ***
 - add iframe version
@@ -180,6 +180,13 @@ OSDoc:
 - add version number
 - factor 'reporting'
 - doc requirements
+
+Generalized a+b*c, over its operators:
+  ops(op1, op2, a, b, c) = a `op1` (b `op2` c)
+var ap = curry.uncurry();
+var ops = S(compose(ap, 'op1 op2 a b -> [op1, a, b]'), compose(ap, 'op1 op2 a b c -> [op2, b, c]'))('+', '*', 2, 3, 4)
+
+Array.prototype.sum = reduce.curry('+', 0).compose('this')
 
 
 //Function.prototype.postfilter = Functional.sequence.curry;
@@ -253,3 +260,10 @@ String.prototype.lambda = function(binding) {
 .bq [T]he aim of functional programming is to transform a program which
 describes a problem into a program which describes a solution
 -- "Claus Reinke":http://www.haskell.org/pipermail/haskell-cafe/2006-December/020147.html
+
+
+, but "function-level".  It's in a style that has been called "point-free":http://haskell.org/haskellwiki/Pointfree (and even pointless:"http://haskell.org/haskellwiki/Pointfree#Problems_with_pointfree").
+
+injection, projection, modification, and composition.  Injection lets you create a function when you don't have one.  In JavaScript, the +function+ keywords and the builtin functions.  Projection gets out of the function level; function application (to a value) does this.  Within the system, a function can be modified, and funcions can be composed.
+Function-level programming rests on three pedestals: composition, control, specialization.  First, it must be possible to combine existing functions into new functions.  The higher-order functions (and methods) +compose+, +sequence+, and +filterAt+ do this; "adjectives" such as +uncurry+ and +flip+ modify functions so that they can be properly composed.  Second, there need to be control structures.  +map+ and +reduce+ are examples of control structures; more exotic examples are +guard+ and +until+.  Finally, it must be possible to create specialized functions out of general ones.  Partial function application, of which +curry+ is a special case, does this.
+

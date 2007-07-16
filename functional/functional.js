@@ -402,11 +402,27 @@ Function.prototype.partial = function(/*args*/) {
 // >> Function.I(1) -> 1
 Function.I = function(x) {return x};
 
-// Returns a constant function that returns +x+.
+// Returns a "constant function" that returns +x+.
 // == K(x)(y) == x
 // == K(1) == '->1'.lambda()
 // :: a -> b -> a
 Function.K = function(x) {return function() {return x}}
+
+// Returns a function that applies the first function to the
+// result of the second, but passes all its arguments but the
+// first to both of them.
+// == S(f, g)(args...) == f(g(args...), args...)
+// >> Function.S('+', '*')(2,3) -> 9
+// 
+// Curry this to get a version that chains:
+// >> Function.S.curry('+')('*')(2,3)
+Function.S = function(f, g) {
+    f = Function.toFunction(f);
+    g = Function.toFunction(g);
+    return function() {
+        return f.apply(this, [g.apply(this, arguments)].concat([].slice.call(arguments, 1)));
+    }
+}
 
 // ^^^ Combinator methods
 
@@ -557,6 +573,8 @@ Function.prototype.guard = function(guard, otherwise) {
     }
 }
 
+// ^^ Utilities
+
 // Returns a function that has the same effect as this function, but returns
 // itself.  This is useless for pure-functional functions, but can be used
 // to make chainable methods in procedural/OO code.
@@ -574,6 +592,17 @@ Function.prototype.returning = function(/*args...*/) {
     return function() {
         fn.apply(this, arguments);
         return this;
+    }
+}
+
+Function.prototype.traced = function(name) {
+    var self = this;
+    name = name || '';
+    return function() {
+        console.info('[', name, this, arguments);
+        var result = self.apply(this, arguments);
+        console.info(']', name, ' -> ', result);
+        return result;
     }
 }
 
@@ -644,6 +673,10 @@ delete Functional.__initalFunctionState;
 // Chain '->'s to create a function in uncurried form:
 // >> 'x -> y -> x + 2*y'.lambda()(1)(2) -> 5
 // >> 'x -> y -> z -> x + 2*y+3*z'.lambda()(1)(2)(3) -> 14
+// 
+// +this+ and +arguments+ are special:
+// >> 'this'.call(1) -> 1
+// >> '[].slice.call(arguments, 0)'.call(null,1,2) -> [1, 2]
 String.prototype.lambda = function() {
     var params = [];
     var expr = this;
@@ -669,7 +702,7 @@ String.prototype.lambda = function() {
                 expr = expr + '$2';
             }
         } else {
-            var vars = this.replace(/(?:\b[A-Z]|\.[a-zA-Z_$])[a-zA-Z_$\d]*|[a-zA-Z_$][a-zA-Z_$\d]*:|this|'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g, '').match(/([a-z_$][a-z_$\d]*)/gi) || []; // '
+            var vars = this.replace(/(?:\b[A-Z]|\.[a-zA-Z_$])[a-zA-Z_$\d]*|[a-zA-Z_$][a-zA-Z_$\d]*:|this|arguments|'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g, '').match(/([a-z_$][a-z_$\d]*)/gi) || []; // '
             for (var i = 0, v; v = vars[i++]; )
                 params.indexOf(v) >= 0 || params.push(v);
         }
