@@ -19,16 +19,19 @@ var Functional = window.Functional || {};
 
 // ^ Higher-order functions
 
-// Copies all the functions in +Functional+ (except this one)
-// into the global namespace.
+// Copies all the public functions in +Functional+, except this function
+// and the functions named in the optional hash +except+, into the global
+// namespace.
 // >> Functional.install()
-Functional.install = function() {
+Functional.install = function(except) {
     var source = Functional;
     var target = window;
-    // the {}[name] works around Prototype
     for (var name in source)
-        name == 'install' || name == 'functionMethods' || {}[name] || (target[name] = source[name]);
-    Functional.install = Function.I;
+        name == 'install'
+        || name.charAt(0) == '_'
+        || except && name in except
+        || {}[name] // work around Prototype
+        || (target[name] = source[name]);
 }
 
 // Returns a function that applies the last argument of this

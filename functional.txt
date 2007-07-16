@@ -172,6 +172,7 @@ Blog:
 Later:
 - S to compose an n-ary function
 - filtering arguments: permutations, annihilators, prefilter
+- something better for the oo bridge
 - oo integration: bind, 'this'
 - add jsmin version
 - add +specialize+, same as partial but doesn't curry; "non-standard distinction"
