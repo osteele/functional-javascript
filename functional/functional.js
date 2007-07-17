@@ -74,8 +74,8 @@ Functional.sequence = function(/*fn...*/) {
  * :: (a ix -> boolean) [a] -> [a]
  * >> map('1+', [1,2,3]) -> [2, 3, 4]
  * The fusion rule:
- * >> map('+1', map('*2', [1,2,3]))) -> [3, 5, 7]
- * >> map(compose('+1', '*2'), [1,2,3])) -> [3, 5, 7]
+ * >> map('+1', map('*2', [1,2,3])) -> [3, 5, 7]
+ * >> map(compose('+1', '*2'), [1,2,3]) -> [3, 5, 7]
  */
 Functional.map = function(fn, sequence, object) {
     fn = Function.toFunction(fn);

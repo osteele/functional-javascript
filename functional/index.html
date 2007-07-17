@@ -12,9 +12,10 @@
     <link rel="stylesheet" type="text/css" href="evaluator.css"/>
     <style type="text/css">
       body {padding:0pt 10pt 0 10pt; color:#222; background:#fff}
-      h1 {text-align:center;margin-bottom:5pt}
-      h1 a, h1 .checkbox {font-size:medium; color:gray}
+      h1 {text-align:center;margin-bottom:2pt}
       h2 .download {font-size: small}
+      .navbar {font-size:medium; color:gray;text-align:center;margin-bottom:5pt}
+      .navbar a {}
       p, pre {line-height:1.25em; margin-top:0}
       a {color:#888}
       a:hover {color:blue}
@@ -37,10 +38,13 @@
     </style>
   </head>
   <body>
-    <h1>Functional Javascript<br/>
-    <span class="checkbox">(<input type="checkbox" id="header-toggle" value="on" checked="checked"/> header)</span>
-    <a href="functional.js">(view source)</a>
-    </h1>
+    <h1>Functional Javascript</h1>
+    <div class="navbar">
+      <input type="checkbox" id="header-toggle" value="on" checked="checked"/> header
+      | <a href="http://osteele.com/blog/">announcement</a>
+      | <a href="http://code.google.com/p/functional-javascript/">project page</a>
+      | <a href="functional.js">view/download source</a>
+    </div>
     <div id="header">
       <div id="intro">
       <p><dfn>Functional</dfn> is a library for functional programming
