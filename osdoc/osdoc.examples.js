@@ -58,9 +58,9 @@ OSDoc.Examples.prototype.toHTML = function(fast) {
             ? outputs[ix].escapeHTML()
             : 'execution did not get this far';
         var m = segment.indexOf(');');
-        fast || lines.push('<span class="input">');
+        fast || lines.push('<kbd>');
         lines.push(segment.slice(0, m));
-        fast || lines.push('</span>');
+        fast || lines.push('</kbd>');
         lines.push(';\n <samp>&rarr; ');
         lines.push(output.strip());
         lines.push('</samp>');
@@ -68,9 +68,9 @@ OSDoc.Examples.prototype.toHTML = function(fast) {
         fast || segment.slice(m+2).split('\n').each(function(line, ix) {
             ix && lines.push('\n');
             var hasContent = line.match(/\S/) && !line.match(/\/\//);
-            hasContent && lines.push('<span class="input">');
+            hasContent && lines.push('<kbd>');
             lines.push(line);
-            hasContent && lines.push('</span>');
+            hasContent && lines.push('</kbd>');
         });
     });
     lines.push('</pre>');

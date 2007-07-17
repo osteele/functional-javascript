@@ -20,8 +20,8 @@
       h1 a, h1 .checkbox {font-size:medium; color:gray}
       #footer {color:#888; margin-top:2em; padding-top:2px; border-top:1px solid; font-size:small}
       #evaluator {border-top: 1px dashed gray}
-      .input {cursor:pointer}
-      .input:hover {color:red}
+      kbd {cursor:pointer}
+      kbd:hover {color:red}
     </style>
   </head>
   <body>
@@ -48,25 +48,25 @@
       <div style="float:left; margin-right:5em">
         <p><dfn>Functional</dfn> supports <a href="http://en.wikipedia.org/wiki/Higher-order_programming">higher-order programming</a>:</p>
         <pre>
-          <span class="input">map('x*x', [1,2,3,4])</span>
+          <kbd>map('x*x', [1,2,3,4])</kbd>
             <samp>&rarr; [1, 4, 9, 16]</samp>
-          <span class="input">select(not('%2'), [1,2,3,4])</span>
+          <kbd>select(not('%2'), [1,2,3,4])</kbd>
             <samp>&rarr; [2, 4]</samp>
-          <span class="input">reduce('x*2+y', 0, [1,0,1,0])</span>
+          <kbd>reduce('x*2+y', 0, [1,0,1,0])</kbd>
             <samp>&rarr; 10</samp>
-          <span class="input">map(guard('10+', '%2'), [1,2,3,4])</span>
+          <kbd>map(guard('10+', '%2'), [1,2,3,4])</kbd>
             <samp>&rarr; [11, 2, 13, 4]</samp>
         </pre>
       </div>
       <div style="float:left">
         <p>&hellip;as well as <a href="http://en.wikipedia.org/wiki/Function-level_programming">function-level</a> (or <a href="http://haskell.org/haskellwiki/Pointfree#Problems_with_pointfree">pointless</a>) style:</p>
         <pre>
-          <span class="input">until('>100', 'x*x')(2)</span>
+          <kbd>until('>100', 'x*x')(2)</kbd>
             <samp>&rarr; 256</samp>
-          <span class="input">var squareUntil = until.partial(_, 'x*x');</span>
-          <span class="input">var square2Until = squareUntil.uncurry().flip().curry(2);</span>
-          <span class="input">var firstSquare2Over = compose(square2Until, 'n -> i -> i > n');</span>
-          <span class="input">firstSquare2Over(100)</span>
+          <kbd>var squareUntil = until.partial(_, 'x*x');</kbd>
+          <kbd>var square2Until = squareUntil.uncurry().flip().curry(2);</kbd>
+          <kbd>var firstSquare2Over = compose(square2Until, 'n -> i -> i > n');</kbd>
+          <kbd>firstSquare2Over(100)</kbd>
             <samp>&rarr; 256</samp>
         </pre>
       </div>

@@ -105,9 +105,9 @@ OSDoc.APIDoc.Definition.prototype.addDescriptionLine = function(line) {
                     : {text: input});
         self.tests.push(test);
         var line = (match
-                    ? ['<span class="input">', input.escapeHTML(), '</span>',
+                    ? ['<kbd>', input.escapeHTML(), '</kbd>',
                        ' <samp>&rarr; ', output.escapeHTML(), '</samp>'].join('')
-                    : '<span class="input">' + text.escapeHTML()) + '</span>';
+                    : '<kbd>' + text.escapeHTML()) + '</kbd>';
         pre(line);
     }
     function defn(text) {

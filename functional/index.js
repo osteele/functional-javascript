@@ -61,7 +61,7 @@ function done(flag) {
     callee[flag] = true;
     if (callee.docs && callee.examples) {
         $('noscript').hide();
-        var inputs = $$('.input');
+        var inputs = $$('kbd');
         gEval.makeClickable(inputs);
         window.location.search.match(/[\?&]test\b/) &&
             gDocs.runTests();
