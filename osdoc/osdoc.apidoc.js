@@ -117,13 +117,13 @@ OSDoc.APIDoc.Definition.prototype.addDescriptionLine = function(line) {
         var line = (match
                     ? ['<kbd>', input.escapeHTML(), '</kbd>',
                        ' <samp>&rarr; ', output.escapeHTML(), '</samp>'].join('')
-                    : '<kbd>' + text.escapeHTML()) + '</kbd>';
-        pre(line);
+                    : '<kbd>' + text.escapeHTML() + '</kbd>');
+        addLine('<div class="io">'+line+'<div class="clear"> </div></div>');
     }
     function defn(text) {
         endParagraph();
         var line = text.replace(/\.\.\./g, '&hellip;').replace(/==/, '=<sub>def</sub>');
-        blocks.push('<pre class="equivalence">  ' + line + '</pre>');
+        blocks.push('<pre class="equivalence">' + line + '</pre>');
     }
     function indented(line) {
         endParagraph();
@@ -139,11 +139,14 @@ OSDoc.APIDoc.Definition.prototype.addDescriptionLine = function(line) {
         self.block = null;
     }
     function pre(line) {
+        addLine('<pre>&nbsp;&nbsp;' + line + '</pre>');
+    }
+    function addLine(line) {
         var prev = blocks[blocks.length - 1];
         var match;
         if (typeof prev == 'string' && (match = prev.match(/<pre>(.*)<\/pre>/)))
             return blocks[blocks.length-1] = '<pre>' + match[1] + '\n&nbsp;&nbsp;' + line + '</pre>';
-        blocks.push('<pre>&nbsp;&nbsp;' + line + '</pre>');
+        blocks.push(line);
     }
 }
 

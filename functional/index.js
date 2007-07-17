@@ -22,35 +22,8 @@ function initialize() {
     gEval = new Evaluator('#evaluator', {onUpdate: showEvaluator});
     initializeHeaderToggle();
     initializeTestLinks();
-    shoe();
-}
-
-function shoe() {
-        //OSGradient.applyGradient({'gradient-start-color':0xccffcc,'gradient-end-color':0xffffff, 'border-radius': 5}, );
-        //OSGradient.applyGradient({'gradient-start-color':,'gradient-end-color':0xffffff, 'border-radius': 5}, $$('table')[0]);
-    $('evaluator').style.display != 'none' && foot('evaluator', 0xeeffee);
-    foot('intro', 0xeeeeff);
-}
-
-function foot(name, color) {
-    var elt = $$('#'+name+' .gradient')[0];
-    if (!elt) {
-        elt = document.createElement('div');
-        elt.className = 'gradient';
-        elt.style.width = elt.style.height = '100%';
-        elt.style.position = 'absolute';
-        elt.style.padding = '-5px';
-        var parent = $(name);
-        parent.style.position = 'relative';
-        parent.insertBefore(elt, parent.firstChild);
-    }
-    elt.innerHTML = '';
-    //elt.style.height = Element.getHeight($(name));
-    //info(name, Element.getHeight(name));
-    OSGradient.applyGradient({'gradient-start-color': color,
-                              'gradient-end-color': 0xffffff,
-                              'border-radius': 5},
-                             elt);
+    $$('#header pre').each('_.innerHTML = OSDoc.unindent(_.innerHTML)'.lambda());
+    resetGradients();
 }
 
 function showEvaluator() {
@@ -63,6 +36,7 @@ function showEvaluator() {
         var y = elt.y ? element.y : elt.offsetTop;
         window.scrollTo(0, y);
     }
+    resetGradients();
 }
 
 function initializeHeaderToggle() {
@@ -96,17 +70,43 @@ function done(flag) {
         gEval.makeClickable(inputs);
         window.location.search.match(/[\?&]test\b/) &&
             gDocs.runTests();
-        var resizer;
-        window.onresize = function() {
-            resizer = resizer || window.setTimeout(function() {
-                resizer = null;
-                shoe();
-            }, 60);
-        }
-        window.onresize();
+        queueGradientReset();
+        window.onresize = queueGradientReset;
     }
 }
 
+//
+// Gradients
+//
+
+queueGradientReset = (function() {
+    var resizer;
+    return function() {
+        resizer = resizer || window.setTimeout(function() {
+            resizer = null;
+            resetGradients();
+        }, 60);
+    }
+})();
+
+function resetGradients() {
+    $('evaluator').style.display != 'none'
+        && resetGradient('evaluator', 0xeeffee, 0xddffdd);
+    resetGradient('intro', 0xeeeeff);
+}
+
+function resetGradient(name, color, c2) {
+    var parent = $(name);
+    var old = ($A(parent.childNodes).select('.className=="grad"'.lambda()));
+    old.each(parent.removeChild.bind(parent));
+    var children = $A(parent.childNodes).slice(0);
+    OSGradient.applyGradient({'gradient-start-color': color,
+                              'gradient-end-color': arguments.length>2?c2:0xffffff,
+                              'border-radius': 15},
+                             parent);
+    var newed = $A(parent.childNodes).reject(children.include.bind(children));
+    newed.each('.className="grad"'.lambda());
+}
 
 
 Event.observe(window, 'load', initialize);

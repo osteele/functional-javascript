@@ -1,6 +1,6 @@
 #evaluator .input-column,
 #evaluator .output-column,
-#evaluator .eval-column {float: left}
+#evaluator .eval-column {float: left; margin-bottom: 5px; margin-right: 5px}
 #evaluator .eval-button {padding-right: 12px; margin: 10px}
 #evaluator .input-column,
 #evaluator .output-column {
@@ -13,7 +13,7 @@
     font-size: x-large;
 }
 #evaluator .output-column .current {
-    min-width: 25em;
+    min-width: 15em;
     padding: 5px;
 }
 #evaluator .input-column .current {color:#080; border:none}
@@ -24,6 +24,5 @@
 #evaluator .output-column .transcript samp {color:#88c}
 
 #evaluator .input-column .current {padding:5px}
-#evaluator pre {margin:0;margin-bottom:3px;margin-left:2px}
-#evaluator .output-column pre {margin-left:5px}
+#evaluator pre {margin:0 0 3px 8px}
 #evaluator .output-column .current {margin:0;padding:0;margin-left:5px}

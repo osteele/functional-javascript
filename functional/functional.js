@@ -14,10 +14,8 @@
  */
 
 
-// A namespace for higher-order functions.
+// This defines the namespace for higher-order functions.
 var Functional = window.Functional || {};
-
-// ^ Higher-order functions
 
 // Copies all the public functions in +Functional+, except this function
 // and the functions named in the optional hash +except+, into the global
@@ -33,6 +31,8 @@ Functional.install = function(except) {
         || {}[name] // work around Prototype
         || (target[name] = source[name]);
 }
+
+// ^ Higher-order functions
 
 // Returns a function that applies the last argument of this
 // function to its input, and the penultimate argument to this,
@@ -182,7 +182,7 @@ Functional.not = function(fn) {
 // Returns a function that takes an object as an argument, and applies
 // +object+'s +methodName+ method to +arguments+.
 // == fn(name)(object, args...) == object[name](args...)
-// :: name args.. -> object args2... -> object[name](args... args2...)
+// :: name args... -> object args2... -> object[name](args... args2...)
 // >> invoke('toString')(123) -> "123"
 Functional.invoke = function(methodName/*, arguments*/) {
     var args = [].slice.call(arguments, 1);
@@ -279,7 +279,7 @@ Function.prototype.bind = function(object/*, args...*/) {
 
 // Returns a function that ignores its arguments.
 // :: (a... -> b) a... -> (... -> b)
-// == fn.saturate(args...)(args2..) == fn(args...)
+// == fn.saturate(args...)(args2...) == fn(args...)
 // >> Math.max.curry(1, 2)(3, 4) -> 4
 // >> Math.max.saturate(1, 2)(3, 4) -> 2
 // >> Math.max.curry(1, 2).saturate()(3, 4) -> 2
@@ -291,9 +291,9 @@ Function.prototype.saturate = function(/*args*/) {
     }
 }
 
-// Invoking the function returned by this function will only pass +n+
+// Invoking the function returned by this function only passes +n+
 // arguments to the underlying function.  If the underlying function
-// is not saturated, the result is a function that will pass all its
+// is not saturated, the result is a function that passes all its
 // arguments to the underlying function.  (That is, +aritize+ only
 // affects its immediate caller, and not subsequent calls.)
 // 
@@ -523,10 +523,11 @@ Function.prototype.prefilterAt = function(index, filter) {
     }
 }
 
-// +prefilterAt+ returns a function that applies the underlying function
+// +prefilterSlice+ returns a function that applies the underlying function
 // to a copy of the arguments, where the arguments +start+ through
 // +end+ have been replaced by +filter(argument.slice(start,end))+.
-// == fn.prefilterSlice(i0, i1, filter)(a1, a2, ..., an) == fn(a1, a2, ..., filter(args[i0], ..., args[in-1]), ..., an)
+// == fn.prefilterSlice(i0, i1, filter)(a1, a2, ..., an)
+// ==   == fn(a1, a2, ..., filter(args[i0], ..., args[in-1]), ..., an)
 // >> '[a,b,c]'.lambda().prefilterSlice('[a+b]', 1, 3)(1,2,3,4) -> [1, 5, 4]
 // >> '[a,b]'.lambda().prefilterSlice('[a+b]', 1)(1,2,3) -> [1, 5]
 // >> '[a]'.lambda().prefilterSlice(compose('[_]', Math.max))(1,2,3) -> [3]
@@ -613,13 +614,13 @@ Function.prototype.guard = function(guard, otherwise) {
 // to make chainable methods in procedural/OO code.
 // == f.returning.apply(this, args...) == this, but with side effect of f()
 // Without +returning+:
-// >> var value = 1
-// >> (function(a, b){value=[this, a, b]; return 4}).call(1, 2, 3) -> 4
-// >> value -> [1, 2, 3]
+// >> var value = 1;
+// >> var object = {effector: function() {value += 1}};
+// >> object.effector() == object -> false
 // With +returning+:
-// >> value = 1
-// >> (function(a, b){value=[this, a, b]; return 4}).returning().apply(1, [2, 3]) -> 1
-// >> value -> [1, 2, 3]
+// >> object.effector.bind(object).returning() == object -> true
+// >> returning(object.effector(object)) == object -> true
+// >> value -> 4
 Function.prototype.returning = function(/*args...*/) {
     var fn = this;
     return function() {
@@ -628,7 +629,7 @@ Function.prototype.returning = function(/*args...*/) {
     }
 }
 
-// Returns a function that identical to this function except that
+// Returns a function identical to this function except that
 // it prints its arguments on entry and its return value on exit.
 // This is useful for debugging function-level programs.
 Function.prototype.traced = function(name) {
@@ -650,7 +651,7 @@ Function.prototype.traced = function(name) {
 // coerces its first argument to a +Function+ and applies
 // the remaining arguments to this.
 // 
-// A few examples will make this clearer:
+// A few examples make this clearer:
 // == curry(fn, args...) == fn.curry(args...)
 // >> Functional.flip('a/b')(1, 2) -> 2
 // >> Functional.curry('a/b', 1)(2) -> 0.5

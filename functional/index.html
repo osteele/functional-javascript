@@ -12,7 +12,7 @@
     <link rel="stylesheet" type="text/css" href="evaluator.css"/>
     <style type="text/css">
       body {padding:0pt 10pt 0 10pt; color:#222; background:#fff}
-      h1 {text-align:center}
+      h1 {text-align:center;margin-bottom:5pt}
       h1 a, h1 .checkbox {font-size:medium; color:gray}
       h2 .download {font-size: small}
       p, pre {line-height:1.25em; margin-top:0}
@@ -21,12 +21,18 @@
       samp {color:blue}
       kbd {cursor:pointer}
       kbd:hover {color:#080}
-      #footer {color:#888; margin-top:2em; padding-top:2px; border-top:1px solid; font-size:small}
+      #header p {margin:0pt 20pt 0pt 20pt; padding-top:5pt}
+      #intro {padding-top:10pt;display:relative}
+      #header pre.example {margin-left: 4em}
+      #footer {color:#888; margin-top:2em; padding-top:2px; border-top:1px solid; font-size:small; text-align:center}
+      #intro {margin-bottom:5px}
       #intro p {padding: 5px}
-      #evaluator {padding-top: 10px; margin-top:25px}
+      #evaluator .content {margin-left:10px;padding-bottom:5px}
+      #evaluator p {text-align:center; padding:5px; padding-top:10px;font-family:sans-serif}
       #evaluator .input-column {background:white}
       #evaluator .output-column {background:white}
       #evaluator samp {color: black}
+      table {background:#f9f9f9}
     </style>
   </head>
   <body>
@@ -53,20 +59,20 @@
       
       <div style="float:left; margin-right:5em">
         <p><dfn>Functional</dfn> supports <a href="http://en.wikipedia.org/wiki/Higher-order_programming">higher-order programming</a>:</p>
-        <pre>
+        <pre class="example">
           <kbd>map('x*x', [1,2,3,4])</kbd>
             <samp>&rarr; [1, 4, 9, 16]</samp>
-          <kbd>select(not('%2'), [1,2,3,4])</kbd>
-            <samp>&rarr; [2, 4]</samp>
+          <kbd>select('>2', [1,2,3,4])</kbd>
+            <samp>&rarr; [3, 4]</samp>
           <kbd>reduce('x*2+y', 0, [1,0,1,0])</kbd>
             <samp>&rarr; 10</samp>
-          <kbd>map(guard('10+', '%2'), [1,2,3,4])</kbd>
-            <samp>&rarr; [11, 2, 13, 4]</samp>
+          <kbd>map(guard('2*', not('%2')), [1,2,3,4])</kbd>
+            <samp>&rarr; [1, 4, 3, 8]</samp>
         </pre>
       </div>
       <div style="float:left">
         <p>&hellip;as well as <a href="http://en.wikipedia.org/wiki/Function-level_programming">function-level</a> (or <a href="http://haskell.org/haskellwiki/Pointfree#Problems_with_pointfree">pointless</a>) style:</p>
-        <pre>
+        <pre class="example">
           <kbd>until('>100', 'x*x')(2)</kbd>
             <samp>&rarr; 256</samp>
           <kbd>var squareUntil = until.partial(_, 'x*x');</kbd>
@@ -83,6 +89,7 @@
         <p>Try it!  Enter an expression below, or click on a line of
         code (from the examples above or the documentation below) to
         copy it here.</p>
+	<div class="content">
         <div class="input-column">
           <pre class="transcript"></pre>
           <textarea class="current" rows="1" cols="40">map('1+', [2, 3])</textarea><br/>
@@ -100,6 +107,7 @@
           <input class="toggle" type="checkbox"/>show <span class="count"> </span>
           <input class="clear" type="button" value="clear"/>
         </div>
+	</div>
       </div>
       <hr/>
     </div>

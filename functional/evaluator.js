@@ -132,7 +132,8 @@ Evaluator.toString = function(value) {
 // I'm not smart enough to figure out how to do this in CSS.
 // This won't keep up with some display change, but oh well.
 Evaluator.prototype.recenterButton = function() {
-    return;
+    var oc = this.elements.output.parentNode;
+    oc.style.minHeight = Element.getHeight(this.elements.input.parentNode) - parseInt(oc.style.paddingTop) - parseInt(oc.style.paddingBottom) + 'px';
     var button = this.elements.evalButton;
     var heights = map('Element.getHeight(_)', [this.elements.input, this.elements.output, button]);
     var max = Math.max(heights[0], heights[1]);

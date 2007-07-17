@@ -43,7 +43,7 @@ OSDoc.Examples.prototype.updateTarget = function(stage) {
         this.options.target.innerHTML = OSDoc.previewText(text);
         break;
     case 1:
-        this.options.target.innerHTML = this.toHTML(true);
+        this.options.target.innerHTML = OSDoc.previewHeader + this.toHTML(true);
         break;
     case 2:
         this.runExamples();
@@ -57,7 +57,7 @@ OSDoc.Examples.prototype.updateTarget = function(stage) {
 
 OSDoc.Examples.prototype.toHTML = function(fast) {
     var self = this;
-    var chunks = (unindent(this.text)
+    var chunks = (OSDoc.unindent(this.text)
                   .escapeHTML()
                   .split('trace('));
     var outputs = this.trace || [];
@@ -112,7 +112,7 @@ OSDoc.Examples.prototype.runExamples = function() {
     }
 }
 
-function unindent(text) {
+OSDoc.unindent = function(text) {
     var lines = text.split('\n');
     var min = lines.grep(/\S/).map('_.match(/^\\s*/)[0].length'.lambda()).min();
     return lines.map(function(line) {

@@ -96,9 +96,10 @@ trace(map(invoke('toUpperCase'), ['two', 'words']));
 trace(map('.length', ['two', 'words']));
 trace(map('.toUpperCase()', ['two', 'words']));
 // and +pluck+ and +lambda+ can both implement projections:
-trace(map('_[0]', [['NYC', 'NY'], ['Boston', 'MA'], ['Sacremento', 'CA']]));
-trace(map(pluck(0), [['NYC', 'NY'], ['Boston', 'MA'], ['Sacremento', 'CA']]));
-trace(map(pluck(1), [['NYC', 'NY'], ['Boston', 'MA'], ['Sacremento', 'CA']]));
+var cities =  [['NYC', 'NY'], ['Boston', 'MA'], ['Sacremento', 'CA']];
+trace(map('_[0]',cities));
+trace(map(pluck(0), cities));
+trace(map(pluck(1), cities));
 trace(map('_.x', [{x:10, y:20}, {x:15, y:25}, {x:0, y:-5}]));
 trace(map(pluck('x'), [{x:10, y:20}, {x:15, y:25}, {x:0, y:-5}]));
 trace(map(pluck('y'), [{x:10, y:20}, {x:15, y:25}, {x:0, y:-5}]));
@@ -212,7 +213,8 @@ trace(replaceVowels.call("change my vowels to underscores", '_'));
 // The second function replaces slices that match the pattern of its argument,
 // with 'th':
 var replaceWithCoronalFricatives = "".replace.partial(_, 'th');
-trace(replaceWithCoronalFricatives.call("substitute my esses with tee-aitches", /s/g));
+var str = "substitute my esses with tee-aitches"
+trace(replaceWithCoronalFricatives.call(str, /s/g));
 
 // The syntax for partials is meant to suggest the hyphen placeholders
 // in abstract algebra:
