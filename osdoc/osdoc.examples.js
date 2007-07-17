@@ -61,9 +61,9 @@ OSDoc.Examples.prototype.toHTML = function(fast) {
         fast || lines.push('<span class="input">');
         lines.push(segment.slice(0, m));
         fast || lines.push('</span>');
-        lines.push(';\n <span class="output">&rarr; ');
+        lines.push(';\n <samp>&rarr; ');
         lines.push(output.strip());
-        lines.push('</span>');
+        lines.push('</samp>');
         fast && lines.push(segment.slice(m+2));
         fast || segment.slice(m+2).split('\n').each(function(line, ix) {
             ix && lines.push('\n');

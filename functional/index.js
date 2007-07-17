@@ -15,7 +15,7 @@ var gExamples, gDocs;
 var gEval;
 
 function initialize() {
-    gExamples = new OSDoc.Examples({onLoad: done.saturate('examples'), target: $('output')}).load('examples.js');
+    gExamples = new OSDoc.Examples({onLoad: done.saturate('examples'), target: $('examples')}).load('examples.js');
     gDocs = new OSDoc.APIDoc({onLoad: done.saturate('docs'), target: $('docs')}).load('functional.js');
     gEval = new Evaluator('#evaluator', {onUpdate: showEvaluator});
     initializeHeaderToggle();

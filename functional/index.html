@@ -14,7 +14,7 @@
       h1 {text-align:center}
       h2 .download {font-size: small}
       p, pre {line-height:1.25em; margin-top:0}
-      .output {color:blue}
+      samp {color:blue}
       a {color:#888}
       a:hover {color:blue}
       h1 a, h1 .checkbox {font-size:medium; color:gray}
@@ -26,7 +26,7 @@
   </head>
   <body>
     <h1>Functional Javascript<br/>
-    <span class="checkbox">(<input type="checkbox" id="header-toggle" value="on" checked="true"/> header)</span>
+    <span class="checkbox">(<input type="checkbox" id="header-toggle" value="on" checked="checked"/> header)</span>
     <a href="functional.js">(view source)</a>
     </h1>
     <div id="header">
@@ -49,25 +49,25 @@
         <p><dfn>Functional</dfn> supports <a href="http://en.wikipedia.org/wiki/Higher-order_programming">higher-order programming</a>:</p>
         <pre>
           <span class="input">map('x*x', [1,2,3,4])</span>
-            <span class="output">&rarr; [1, 4, 9, 16]</span>
+            <samp>&rarr; [1, 4, 9, 16]</samp>
           <span class="input">select(not('%2'), [1,2,3,4])</span>
-            <span class="output">&rarr; [2, 4]</span>
+            <samp>&rarr; [2, 4]</samp>
           <span class="input">reduce('x*2+y', 0, [1,0,1,0])</span>
-            <span class="output">&rarr; 10</span>
+            <samp>&rarr; 10</samp>
           <span class="input">map(guard('10+', '%2'), [1,2,3,4])</span>
-            <span class="output">&rarr; [11, 2, 13, 4]</span>
+            <samp>&rarr; [11, 2, 13, 4]</samp>
         </pre>
       </div>
       <div style="float:left">
         <p>&hellip;as well as <a href="http://en.wikipedia.org/wiki/Function-level_programming">function-level</a> (or <a href="http://haskell.org/haskellwiki/Pointfree#Problems_with_pointfree">pointless</a>) style:</p>
         <pre>
           <span class="input">until('>100', 'x*x')(2)</span>
-            <span class="output">&rarr; 256</span>
+            <samp>&rarr; 256</samp>
           <span class="input">var squareUntil = until.partial(_, 'x*x');</span>
           <span class="input">var square2Until = squareUntil.uncurry().flip().curry(2);</span>
           <span class="input">var firstSquare2Over = compose(square2Until, 'n -> i -> i > n');</span>
           <span class="input">firstSquare2Over(100)</span>
-            <span class="output">&rarr; 256</span>
+            <samp>&rarr; 256</samp>
         </pre>
       </div>
       <div style="clear:left"> </div>
@@ -107,14 +107,14 @@
     </div>
     <table>
       <tr>
-        <td id="examples" valign="top">
+        <td valign="top">
           <h2>Examples <span class="download">(<a href="examples.js">source</a>)</span></h2>
-          <div style="padding-right:5em" id="output" class="jsshow examples">Examples failed to load.</div>
+          <div style="padding-right:5em" id="examples" class="jsshow examples">Examples failed to load.</div>
           <button id="e1">1. Event.observe</button>
           <button id="e2">2. onclick</button>
           <button id="e3">3. specialized alert fn</button>
         </td>
-        <td id="documentation" valign="top">
+        <td valign="top">
           <h2>Documentation <span class="download">(<a href="functional.js">source</a>)</span></h2>
           <div id="docs" class="jsshow docs">Documentation failed to load.</div>
         </td>
