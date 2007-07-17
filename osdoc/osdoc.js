@@ -63,6 +63,28 @@ OSDoc.stripHeader = function(text) {
     return text.replace(/\s*\/\*(?:.|\n)*?\*\/[ \t]*/, '');
 }
 
+OSDoc.inlineFormat = function(html, variables) {
+    html = html.replace(/\[(https?:.*?)\]/, '<a href="$1">$1</a>');
+    html = html.replace(/\*(\w+?)\*/g, '<em>$1</em>');
+    html = html.replace(/\$(.+?)\$/g, OSDoc.toMathHTML.compose('_ s -> s'));
+    html = html.replace(/\`(.+?)\`/g, variables
+                        ? function(_, str) {
+                            if (variables[str])
+                                return '<var>'+str+'</var>';
+                            return '<code>'+str+'</code>';
+                        }
+                        : '<code>$1</code>');
+    return html;
+}
+
+OSDoc.toMathHTML = function(text) {
+    return '<span class="math">' + text.replace(/[a-z]/gi, function(w) {
+        return '<var>'+w+'</var>';
+    }).replace(/<\/var>(?:(\d+)|_\{(.*?)\})/g, function(_, sub, sub2) {
+        return '</var><sub>' + (sub || sub2) + '</sub>';
+    }).replace(/\.\.\./g, '&hellip;') + '</span>';
+}
+
 Function.prototype.reporting = function() {
     var fn = this;
     return function() {

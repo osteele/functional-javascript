@@ -13,7 +13,7 @@
 .osdoc.examples .comment {color: #333; font-style: italic; font-family: serif}
 .osdoc.examples .comment {white-space:normal}
 .osdoc.examples .comment pre {margin:0}
-.osdoc.examples .formatted {font-family:monospace; font-style: normal}
+.osdoc.examples code {font-family:monospace; font-style: normal}
 
 .osdoc.docs .record {margin-bottom: 1em; margin-top: 1em}
 .osdoc.docs .signature {color:gray; font-family:monospace; margin-bottom:.25em}

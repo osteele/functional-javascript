@@ -212,16 +212,7 @@ OSDoc.APIDoc.Definition.prototype.getDescriptionHTML = function(fast) {
         var lines = ['<p>'].concat(block);
         lines.push('</p>');
         var html = block.join(' ');
-        if (!fast) {
-            html = html.replace(/\[(https?:.*?)\]/, '<a href="$1">$1</a>');
-            html = html.replace(/\*(\w+?)\*/g, '<em>$1</em>');
-            html = html.replace(/\$(.+?)\$/g, OSDoc.toMathHTML.compose('_ s -> s'));
-            html = html.replace(/\`(.+?)\`/g, function(_, str) {
-                if (paramTable[str])
-                    return '<var>'+str+'</var>';
-                return '<code>'+str+'</code>';
-            });
-        }
+        if (!fast) html = OSDoc.inlineFormat(html, paramTable);
         return html;
     }.bind(this));
     spans.push('<div class="description">');
@@ -292,12 +283,4 @@ OSDoc.APIDoc.Parser.prototype.processLine = function(line) {
             self.records.push(record);
         }
     }
-}
-
-OSDoc.toMathHTML = function(text) {
-    return '<span class="math">' + text.replace(/[a-z]/gi, function(w) {
-        return '<var>'+w+'</var>';
-    }).replace(/<\/var>(?:(\d+)|_\{(.*?)\})/g, function(_, sub, sub2) {
-        return '</var><sub>' + (sub || sub2) + '</sub>';
-    }).replace(/\.\.\./g, '&hellip;') + '</span>';
 }

@@ -84,9 +84,9 @@ OSDoc.Examples.prototype.toHTML = function(fast) {
         });
     });
     lines.push('</pre>');
-    var html = lines.join('').replace(/((?:\/\/.*\n)+)/g, function(text) {
-        if (!fast) text = text.replace(/\+(\S+)\+/g, '<code>$1</code>');
-        if (!fast) text = text.replace(/\*(\S+)\*/, '<em>$1</em>');
+    var html = lines.join('').replace(/((?:\/\/+.*\n)+)/g, function(text) {
+        if (!fast)
+            text = OSDoc.inlineFormat(text);
         text = text.replace(/\/\/  (.*)/g, '<pre>$1</pre>');
         text = text.replace(/\/\//g, ' ');
         text = text.replace(/(\^+)\s*(.*)/, function(_, level, title) {

@@ -10,7 +10,7 @@
 
 // ^ String lambdas
 
-// +lambda+ creates a function from a string that contains a single
+// `lambda` creates a function from a string that contains a single
 // expression.  This function can then be applied to an argument list,
 // either immediately:
 trace('x+1'.lambda()(2));
@@ -22,13 +22,13 @@ trace(square(4));
 
 // ^^ Explicit parameters
 
-// If the string contains a ->, this separates the parameters
+// If the string contains a `->`, this separates the parameters
 // from the body.
 trace('x y -> x+2*y'.lambda()(2, 3));
 trace('y x -> x+2*y'.lambda()(2, 3));
 
-// Otherwise, if the string contains a '_', it's a unary function
-// and '_' is the parameter:
+// Otherwise, if the string contains a `_`, it's a unary function
+// and `_` is name of the parameter:
 trace('_ -> _+1'.lambda()(2));
 trace('_ -> _*_'.lambda()(3));
 
@@ -38,7 +38,7 @@ trace('_ -> _*_'.lambda()(3));
 // are implicit.
 
 // If the string starts with an operator or relation
-// besides -, or ends with an operator or relation, then its
+// besides `-`, or ends with an operator or relation, then its
 // implicit arguments are placed at the beginning and/or end:
 trace('*2'.lambda()(2));
 trace('/2'.lambda()(4));
@@ -63,14 +63,14 @@ trace('x -> y -> x+y'.lambda()(2));
 
 // ^ Higher-order functions
 
-// The +Functional+ namespace defines the higher-order functions (functionals):
-// +map+, +reduce+, +select+, and a bunch of others.
+// The `Functional` namespace defines the higher-order functions (functionals):
+// `map`, `reduce`, `select`, and a bunch of others.
 trace(Functional.map(function(x){return x+1}, [1,2,3]));
 // Lambda strings are useful as arguments to functionals.  Functionals
 // convert the string to a function once per call, not once per application.
 trace(Functional.map('_+1', [1,2,3]));
-// +Functional.install()+ imports the functionals into the global namespace (+window+),
-// so that they needn't be qualified with Functional.* each time.
+// `Functional.install()` imports the functionals into the global namespace (`window`),
+// so that they needn't be qualified with `Functional.`* each time.
 Functional.install();
 trace(map('+1', [1,2,3]));
 trace(map('_.length', 'here are some words'.split(' ')));
@@ -79,23 +79,23 @@ trace(reduce('2*x+y', 0, [1,0,1,0]));
 trace(some('>2', [1,2,3,4]));
 trace(every('>2', [1,2,3,4]));
 
-// +compose+ and +sequence+ compose sequences of functions
+// `compose` and `sequence` compose sequences of functions
 // backwards and forwards, respectively:
 trace(compose('+1', '*2')(1));
 trace(sequence('+1', '*2')(1));
 trace(compose('+1', '*2', '_.length')('a string'));
 trace(compose.apply(null, map('x -> y -> x*y+1', [2,3,4]))(1));
-// +foldr+ (right reduce) could have handled the last example:
+// `foldr` (right reduce) could have handled the last example:
 trace(foldr('x -> y -> x*y+1'.lambda().uncurry(), 1, [2,3,4]));
 trace(foldr('x*y+1', 1, [2,3,4]));
 
-// +pluck+ and +invoke+ turn methods into functions:
+// `pluck` and `invoke` turn methods into functions:
 trace(map(pluck('length'), ['two', 'words']));
 trace(map(invoke('toUpperCase'), ['two', 'words']));
-// +lambda+ can do this too:
+// `lambda` can do this too:
 trace(map('.length', ['two', 'words']));
 trace(map('.toUpperCase()', ['two', 'words']));
-// and +pluck+ and +lambda+ can both implement projections:
+// and `pluck` and `lambda` can both implement projections:
 var cities =  [['NYC', 'NY'], ['Boston', 'MA']];
 trace(map('_[0]',cities));
 trace(map(pluck(0), cities));
@@ -104,7 +104,7 @@ trace(map('_.x', [{x:10, y:20}, {x:15, y:25}, {x:0, y:-5}]));
 trace(map(pluck('x'), [{x:10, y:20}, {x:15, y:25}, {x:0, y:-5}]));
 trace(map(pluck('y'), [{x:10, y:20}, {x:15, y:25}, {x:0, y:-5}]));
 
-// Functional iteration with +until+:
+// Functional iteration with `until`:
 trace(until('>10', '*2')(1));
 trace(until('>100', 'x*x')(2));
 trace(until(not('<100'), 'x*x')(2));
@@ -117,12 +117,12 @@ trace(map(compose('_(1)', '_.lambda()'), ['x+1', 'x-1']));
 
 // ^ Function methods
 
-// Functional attaches a number of methods to +Function+, that are
+// Functional attaches a number of methods to `Function`, that are
 // useful for functional method chaining and functional-level programming.
 // Here are a few.
 
 // ^^ Guards
-// The first expression below (without +guard+) attempts the reciprocal of *all*
+// The first expression below (without `guard`) attempts the reciprocal of *all*
 // the list items.
 // The second expression guards the division so that it's not applied to null.
 trace(map('1/', [1,2,null,4]));
@@ -130,8 +130,8 @@ trace(map(guard('1/'), [1,2,null,4]));
 // Double only the even numbers:
 var xs = [1,2,3,4];
 trace(map(guard('2*', not('%2')), xs));
-// +filter+ creates a list with only the predicated elements,
-// while +guard+ can be used to replace them by null, but leave
+// `filter` creates a list with only the predicated elements,
+// while `guard` can be used to replace them by null, but leave
 // the indices of the remaining elements unchanged:
 trace(filter('%2', xs));
 trace(map(guard(Function.K(null), '%2'), xs));
@@ -146,22 +146,22 @@ trace(map('["even","odd"][_%2]', xs));
 
 // ^^ Curry
 
-// +curry+ creates a new function that applies the original arguments, and
+// `curry` creates a new function that applies the original arguments, and
 // then the new arguments:
 var right = list.curry(1, 2);
 trace(right(3,4));
 var left = list.rcurry(1, 2);
 trace(left(3, 4));
 
-// Use +rcurry+ ("right curry") to create +halve+ and +double+ functions from
-// +divide+:
+// Use `rcurry` ("right curry") to create `halve` and `double` functions from
+// `divide`:
 function divide(a, b) {return a/b}
 var halve = divide.rcurry(2);
 var double = divide.rcurry(1/2);
 trace(halve(10));
 trace(double(10));
 
-// +ncurry+ and +rncurry+ wait until they're fully saturated before
+// `ncurry` and `rncurry` wait until they're fully saturated before
 // applying the function.
 trace(list.ncurry(4,1,2)(3));
 trace(list.ncurry(4,1,2)(3)(4));
@@ -170,18 +170,18 @@ trace(list.rncurry(4,1,2)(3));
 trace(list.rncurry(4,1,2)(3,4));
 // [r]curry can't do this because it doesn't
 // in general know the polyadicity of the underlying function.
-// (Sometimes +fn.length+ works, but some functions don't declare
+// (Sometimes `fn.length` works, but some functions don't declare
 // all their arguments, so sometimes this lies.)
 trace(list.curry(1,2)(3));
 
 // ^^ Partial function application
 
-// +curry+ is a special case of partial function application.
-// +partial+ is the general case.  +partial+ can
+// `curry` is a special case of partial function application.
+// `partial` is the general case.  `partial` can
 // specialize parameters in the middle of the parameter list;
-// the +curry+ functions have to fill them in from the end.
+// the `curry` functions have to fill them in from the end.
 
-// +list+ is an unspecialized function that returns an array of its (four) arguments.
+// `list` is an unspecialized function that returns an array of its (four) arguments.
 // We'll create partially applied (specialized) versions of this function
 // below.
 function list(a,b,c,d) {return [a,b,c,d]};
@@ -192,7 +192,7 @@ var finterleave = list.partial(1,_,2,_);
 trace(finterleave(3, 4));
 
 // Specialize the outer two parameters, to produce a function whose
-// arguments supply the middle two arguments to +list+:
+// arguments supply the middle two arguments to `list`:
 var finners = list.partial(1,_,_,2);
 trace(finners(3, 4));
 
@@ -205,11 +205,11 @@ trace(finners(_,3)(4));
 trace(finners(3)(4));
 trace(list.partial(_,_,_,1)(2,_,3)(4));
 
-// Two specializations of String's +replace+ method.
+// Two specializations of String's `replace` method.
 // The function replaces vowels in its object with the value of its
 // argument:
 var replaceVowels = "".replace.partial(/[aeiou]/g, _);
-// This is a method, so use +call+ to invoke it on an object:
+// This is a method, so use `call` to invoke it on an object:
 trace(replaceVowels.call("change my vowels to underscores", '_'));
 // The second function replaces slices that match the pattern of its argument,
 // with 'th':
@@ -227,9 +227,9 @@ trace(replaceWithCoronalFricatives.call(str, /s/g));
 
 // ^^ Methods on Function are object-free functions too
 
-// The higher-order methods on +Function+ are also available as
+// The higher-order methods on `Function` are also available as
 // functions, that take a function as their first argument.  These
-// functions are in the +Functional+ namespace.  +Functional.install+
+// functions are in the `Functional` namespace.  `Functional.install`
 // also installs these functions in the global namespace.
 // 
 // Unlike the methods on Function, these functions can be applied to
@@ -243,11 +243,11 @@ trace(bind('-> this', 1)());
 // Prototype defines a larger set of collection functions than
 // Functional, and attaches them to Array so that they can
 // be chained.
-// Invoke +lambda+ on a string to create a function for Prototype:
+// Invoke `lambda` on a string to create a function for Prototype:
 trace([1, 2, 3].map('x*x'.lambda()));
 trace([1, 2, 3].map('x*x'.lambda()).map('x+1'.lambda()));
 
-// Define an +onclick+ function that abbreviates Event.observe(_, 'click', ...):
+// Define an `onclick` function that abbreviates `Event.observe(_, 'click', ...)`:
 var onclick = Event.observe.bind(Event).partial(_, 'click');
 // These next three lines are equivalent, just applied to different targets:
 Event.observe('e1', 'click', function(){alert('1')});
