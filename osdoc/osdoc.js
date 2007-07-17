@@ -9,6 +9,9 @@
 
 var OSDoc = window.OSDoc || {};
 
+// Loading and initialization
+// The loader logic is adapted from the Scriptaculous loader.
+
 OSDoc.checkRequirements = function() {
     if (!window.Prototype || parseFloat(Prototype.Version) < 1.5)
         throw "OSDoc requires the Prototype JavaScript framework version >= 1.5";
@@ -16,14 +19,13 @@ OSDoc.checkRequirements = function() {
         throw "OSDoc requires the Functional JavaScript library";
 }
 
-OSDoc.loaded = [];
+OSDoc.loadedModules = [];
 
-// The loader logic is adapted from the Scriptaculous loader.
 OSDoc.require = function(path) {
-    if (OSDoc.loaded.include(path))
+    if (OSDoc.loadedModules.include(path))
         return;
     document.write('<script type="text/javascript" src="' + path + '"></script>');
-    OSDoc.loaded.push(path);
+    OSDoc.loadedModules.push(path);
 }
 
 OSDoc.load = function() {
@@ -34,6 +36,30 @@ OSDoc.load = function() {
     var modules = Function.K([_,'examples,apidoc,doctest']).guard('!')(src.match(/\?.*load=([a-z,]*)/))[1].split(',');
     modules.include('doctest') && modules.unshift('apidoc');
     map('a -> b -> a+"osdoc."+b+".js"'.call(null, src.replace(/[^/]*$/,'')), modules).each(OSDoc.require);
+}
+
+OSDoc.toString = function(value) {
+    if (value instanceof Array) {
+        var spans = map(OSDoc.toString, value);
+        return '[' + spans.join(', ') + ']';
+    }
+    switch (typeof(value)) {
+    case 'function': return 'function()';
+    case 'string': return '"' + value + '"';
+    default: return value ? value.toString() : ''+value;
+    }
+}
+
+OSDoc.previewHeader = '<p>Processing...</p>';
+
+// Return a string for use in the preview.
+OSDoc.previewText = function(text) {
+    return OSDoc.previewHeader + '<pre>' + text.escapeHTML() + '</pre>';
+}
+
+// Remove the first comment, on the assumption that it's a file header.
+OSDoc.stripHeader = function(text) {
+    return text.replace(/\s*\/\*(?:.|\n)*?\*\/[ \t]*/, '');
 }
 
 Function.prototype.reporting = function() {
@@ -48,16 +74,8 @@ Function.prototype.reporting = function() {
     }
 }
 
-OSDoc.toString = function(value) {
-    if (value instanceof Array) {
-        var spans = map(OSDoc.toString, value);
-        return '[' + spans.join(', ') + ']';
-    }
-    switch (typeof(value)) {
-    case 'function': return 'function()';
-    case 'string': return '"' + value + '"';
-    default: return value ? value.toString() : ''+value;
-    }
+Function.prototype.delayed = function(ms) {
+    window.setTimeout(this.reporting(), ms);
 }
 
 OSDoc.load();

@@ -10,8 +10,12 @@
 var info = window.console && console.info || function(){};
 
 function initialize() {
-    //new OSDoc.APIDoc({onLoad: done.saturate('examples'), target: $('examples')}).load('osdoc.examples.js');
-    new OSDoc.APIDoc({onLoad: done.saturate('api'), target: $('docs')}).load('osdoc.apidoc.js');
+    if (!window.location.search.match(/[\?&]test\b/)) {
+        $$('#noscript', 'table', '#header hr').invoke('hide');
+        return;
+    }
+    new OSDoc.APIDoc({onSuccess: done.saturate('examples'), target: $('examples')}).load('osdoc.examples.js');
+    new OSDoc.APIDoc({onSuccess: done.saturate('api'), target: $('docs')}).load('osdoc.apidoc.js');
     initializeHeaderToggle();
     initializeTestLinks();
 }

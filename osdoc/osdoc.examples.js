@@ -9,10 +9,12 @@
 
 // Options:
 //   headingLevel: hn for topmost headings; default 3
-//   onLoad: called when load completes
 //   target: an HTML Element that is set to the docs on completion
+//   onSuccess: called when load completes
 OSDoc.Examples = function(options) {
-    this.options = {headingLevel: 3, onLoad: Function.I};
+    this.options = {headingLevel: 3,
+                    staged: true,
+                    onSuccess: Function.I};
     for (var name in options||{})
         this.options[name] = options[name];
 };
@@ -28,21 +30,28 @@ OSDoc.Examples.prototype.load = function(url) {
 
 // Parse +text+.  If +options.target+ is specified, update it.
 OSDoc.Examples.prototype.parse = function(text) {
-    this.text = text = text.replace(/\s*\/\*(?:.|\n)*?\*\/[ \t]*/, '');
-    this.options.target && (this.options.target.innerHTML = '<pre>' + text.escapeHTML() + '</pre>');
-    window.setTimeout(function() {
-        this.options.target && this.updateTarget(true);
-        window.setTimeout(function() {
-            this.runExamples();
-            this.options.target && this.updateTarget();
-            this.options.onLoad();
-        }.bind(this), 10);
-    }.bind(this), 10);
+    this.text = OSDoc.stripHeader(text);
+    this.updateTarget(this.options.staged && 0);
     return this;
 }
 
-OSDoc.Examples.prototype.updateTarget = function(fast) {
-    this.options.target.innerHTML = this.toHTML(fast);
+OSDoc.Examples.prototype.updateTarget = function(stage) {
+    if (!this.options.target) return;
+    var text = this.text;
+    switch (stage) {
+    case 0:
+        this.options.target.innerHTML = OSDoc.previewText(text);
+        break;
+    case 1:
+        this.options.target.innerHTML = this.toHTML(true);
+        break;
+    case 2:
+        this.runExamples();
+        this.options.onSuccess();
+        this.options.target.innerHTML = this.toHTML();
+        return this;
+    }
+    this.updateTarget.bind(this).saturate(stage+1).delayed(10);
     return this;
 }
 

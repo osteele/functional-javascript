@@ -15,9 +15,12 @@ var gExamples, gDocs;
 var gEval;
 
 function initialize() {
-    gExamples = new OSDoc.Examples({onLoad: done.saturate('examples'), target: $('examples')}).load('examples.js');
-    gDocs = new OSDoc.APIDoc({onLoad: done.saturate('docs'), target: $('docs')}).load('functional.js');
+    $('noscript').innerHTML = $('noscript').innerHTML.replace(/<span.*?<\/span>/,
+                                                              'If this message remains on the screen,');
+    gExamples = new OSDoc.Examples({onSuccess: done.saturate('examples'), target: $('examples')}).load('examples.js');
+    gDocs = new OSDoc.APIDoc({onSuccess: done.saturate('docs'), target: $('docs')}).load('functional.js');
     gEval = new Evaluator('#evaluator', {onUpdate: showEvaluator});
+    $('evaluator').show();
     initializeHeaderToggle();
     initializeTestLinks();
 }

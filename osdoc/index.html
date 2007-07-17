@@ -12,36 +12,23 @@
       h1 {text-align:center}
       h2 .download {font-size: small}
       p, pre {line-height:1.25em; margin-top:0}
-      .output {color:blue}
       a {color:#888}
       a:hover {color:blue}
       h1 a, h1 .checkbox {font-size:medium; color:gray}
       #footer {color:#888; margin-top:2em; padding-top:2px; border-top:1px solid; font-size:small}
-      #evaluator {border-top: 1px dashed gray}
-      .input {cursor:pointer}
-      .input:hover {color:red}
     </style>
   </head>
   <body>
     <h1>OSDoc<br/>
-    <span class="checkbox">(<input type="checkbox" id="header-toggle" value="on"/> header)</span>
+    <span class="checkbox">(<input type="checkbox" id="header-toggle" value="on" checked="checked"/> header)</span>
     <a href="functional.js">(view source)</a>
     </h1>
     <div id="header">
-      <p><dfn>Functional</dfn> is a library for functional programming
-      in JavaScript.  It defines the standard higher-order functions
-      such as <code>map</code>, <code>reduce</code> (aka
-      <code>foldl</code>), and <code>select</code> (aka
-      <code>filter</code>).  It also defines functions such as
-      <code>curry</code>, <code>rcurry</code>, and
-      <code>partial</code> for partial function application; and
-      <code>compose</code>, <code>guard</code>, and <code>until</code>
-      for <a
-      href="http://en.wikipedia.org/wiki/Function-level_programming">function-level</a>
-      programming.  And all these functions accept strings, such as
-      <code>'x -> x+1'</code>, <code>'x+1'</code>, or
-      <code>'+1'</code> as synonyms for the more verbose
-      <code>function(x) {return x+1}</code>.</p>
+      <p><dfn>OSDoc</dfn> is not yet ready for prime time.  I'll
+      announce it on <a href="http://osteele.com/blog">my blog</a>
+      if/when I finish it.</p>
+      <p>In the meantime, <a href="http://osteele.com/sources">take
+      a look around.</a></p>
       <hr/>
     </div>
     
@@ -55,11 +42,11 @@
     </div>
     <table>
       <tr>
-        <td id="doc1" valign="top">
+        <td valign="top">
           <h2>Examples <span class="download">(<a href="examples.js">source</a>)</span></h2>
-          <div style="padding-right:5em" id="output" class="jsshow examples">Examples failed to load.</div>
+          <div id="output" style="padding-right:5em" class="jsshow examples">Examples failed to load.</div>
         </td>
-        <td id="documentation" valign="top">
+        <td valign="top">
           <h2>Documentation <span class="download">(<a href="functional.js">source</a>)</span></h2>
           <div id="docs" class="jsshow docs">Documentation failed to load.</div>
         </td>
@@ -67,8 +54,6 @@
     </table>
     <div id="footer">
       Copyright 2007 by <a href="http://osteele.com">Oliver Steele</a>.  This work is licensed under the <a href="MIT-LICENSE">MIT license</a>.
-      <a href="#" id="write-tests">View</a>/<a href="#" id="run-tests">run</a> tests.
-      <a href="functional.js" target="_blank">View source</a>.
     </div>
   </body>
 </html>

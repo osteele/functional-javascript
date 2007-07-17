@@ -9,10 +9,12 @@
 
 // Options:
 //   headingLevel: hn for topmost headings; default 3
-//   onLoad: called when load completes
 //   target: an HTML Element that is set to the docs on completion
+//   onSuccess: called when load completes
 OSDoc.APIDoc = function(options) {
-    this.options = {headingLevel: 3, onLoad: Function.I};
+    this.options = {headingLevel: 3,
+                    staged: true,
+                    onSuccess: Function.I};
     for (var name in options||{})
         this.options[name] = options[name];
 };
@@ -28,17 +30,25 @@ OSDoc.APIDoc.prototype.load = function(url) {
 
 // Parse +text+.  If +options.target+ is specified, update it.
 OSDoc.APIDoc.prototype.parse = function(text) {
-    this.options.target && (this.options.target.innerHTML = '<pre>' + text.replace(/\s*\/\*(?:.|\n)*?\*\/[ \t]*/, '').escapeHTML() + '</pre>');
-    window.setTimeout(function() {
-        this.records = (new OSDoc.APIDoc.Parser).parse(text);
-        this.options.target && this.updateTarget();
-        this.options.onLoad();
-    }.bind(this), 10);
+    this.text = OSDoc.stripHeader(text);
+    this.updateTarget(this.options.staged && 0);
     return this;
 }
 
-OSDoc.APIDoc.prototype.updateTarget = function() {
-    this.options.target.innerHTML = this.toHTML();
+OSDoc.APIDoc.prototype.updateTarget = function(stage) {
+    if (!this.options.target) return;
+    var text = this.text;
+    switch (stage) {
+    case 0:
+        this.options.target.innerHTML = OSDoc.previewText(text);
+        break;
+    default:
+        this.records = (new OSDoc.APIDoc.Parser).parse(text);
+        this.options.onSuccess();
+        this.options.target.innerHTML = this.toHTML();
+        return this;
+    }
+    this.updateTarget.bind(this).saturate(stage+1).delayed(10);
     return this;
 }
 
