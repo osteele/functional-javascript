@@ -47,8 +47,8 @@ OSDoc.Examples.prototype.updateTarget = function(stage) {
         break;
     case 2:
         this.runExamples();
-        this.options.onSuccess();
         this.options.target.innerHTML = this.toHTML();
+        this.options.onSuccess();
         return this;
     }
     this.updateTarget.bind(this).saturate(stage+1).delayed(10);

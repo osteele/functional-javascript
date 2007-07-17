@@ -82,6 +82,8 @@ OSDoc.APIDoc.Definition = function(name, params) {
 
 OSDoc.APIDoc.Definition.prototype.setDescription = function(lines) {
     this.block = null;
+    while (lines.length && lines[lines.length-1].match(/^\s*$/))
+        lines.pop();
     map(this.addDescriptionLine, lines, this);
 }
 
@@ -234,6 +236,9 @@ OSDoc.APIDoc.Section = function(title, level, lines) {
 OSDoc.APIDoc.Parser = function(options) {};
 
 OSDoc.APIDoc.Parser.prototype.parse = function(text) {
+    text = text.replace(/\/\*\*([\s\S]*?)\*\//g, function(_, block) {
+        return block.replace(/\n(?:[^\n]*\* )?/g, '\n/// ');
+    });
     this.lines = [];
     this.records = [];
     this.keys = {};
@@ -245,7 +250,7 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
 OSDoc.APIDoc.Parser.prototype.processLine = function(line) {
     var self = this;
     var match;
-    if (match = line.match(/^\/\/ (.*)/)) {
+    if (match = line.match(/^\/\/\/ (.*)/)) {
         this.lines.push(match[1]);
     } else if (this.lines.length) {
         if (this.lines.grep(/@nodoc/).length) {
