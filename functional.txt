@@ -164,7 +164,6 @@ I bummed the +[].slice.call(arguments, 0)+ idiom from http://www.coryhudson.com/
 
 
 Agenda:
-- osdoc: click on examples
 - remove arg from map?
 Blog:
 - search for ***

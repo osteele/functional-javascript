@@ -17,9 +17,22 @@ var gEval;
 function initialize() {
     gExamples = new OSDoc.Examples({onLoad: done.saturate('examples'), target: $('output')}).load('examples.js');
     gDocs = new OSDoc.APIDoc({onLoad: done.saturate('docs'), target: $('docs')}).load('functional.js');
-    gEval = new Evaluator('#evaluator', {onUpdate: 'this.show.bind(this)'.call($('header'))});
+    gEval = new Evaluator('#evaluator', {onUpdate: showEvaluator});
     initializeHeaderToggle();
     initializeTestLinks();
+}
+
+function showEvaluator() {
+    $('header').show();
+    var doctop = document.documentElement.scrollTop || document.body.scrollTop;
+    var elt = $('evaluator');
+    var bottom = Position.cumulativeOffset(elt)[1] + Element.getHeight(elt);
+    info(doctop, bottom);
+    if (bottom < doctop) {
+        var x = document.documentElement.scrollTop || document.body.scrollTop;
+        var y = elt.y ? element.y : elt.offsetTop;
+        window.scrollTo(0, y);
+    }
 }
 
 function initializeHeaderToggle() {
