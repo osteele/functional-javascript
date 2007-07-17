@@ -19,3 +19,4 @@
     min-width: 25em;
     padding: 5px;
 }
+#evaluator.error .output-column .current {color:red}

@@ -14,6 +14,7 @@ function Evaluator(rootName, options) {
     this.enableTranscript = 'transcript' in options ? options.transcript : true;
     var elements = this.elements = {transcript:{}};
     setElements(elements, {
+        root: '',
         input: '.input-column .current',
         output: '.output-column .current',
         evalButton: '.eval-button'
@@ -71,22 +72,26 @@ Evaluator.prototype.observeElements = function() {
 }
 
 Evaluator.prototype.eval = function(text) {
-    var inputElement = this.elements.input;
-    var outputElement = this.elements.output;
-    var transcriptElements = this.elements.transcript;
+    var elements = this.elements;
+    var inputElement = elements.input;
+    var outputElement = elements.output;
+    var transcriptElements = elements.transcript;
     if (arguments.length < 1)
         var text = inputElement.value.strip().replace('\n', '');
     inputElement.value = text;
-    text = text.replace(/^\s*var\s+/, '');
-    text = text.replace(/^\s*function\s+([A-Z_$][A-Z_$\d]*)/i, '$1 = function');
+    Evaluator.scope = this.scope = this.scope || {};
+    text = text.replace(/^\s*var\s+/, 'Evaluator.scope.');
+    text = text.replace(/^\s*function\s+([A-Z_$][A-Z_$\d]*)/i, 'Evaluator.scope.$1 = function');
     var html;
+    var value, error;
     try {
-        var value;
-        value = eval(text);
-        html = Evaluator.toString(value).escapeHTML();
+        with (Evaluator.scope)
+            value = eval(text);
     } catch (e) {
-        html = 'Error: ' + e;
+        error = e;
     }
+    [elements.root].invoke(error ? 'addClassName' : 'removeClassName', 'error');
+    html = error ? 'Error: ' + error : Evaluator.toString(value).escapeHTML();
     outputElement.innerHTML = html;
     if (this.lastRecord) {
         function update(elt, text) {

@@ -18,16 +18,17 @@ OSDoc.APIDoc.prototype.runTests = function() {
             tests.push(test);
             var text = test.text.replace(/^\s*var\s+/, 'OSDoc.testScope.');
             text = text.replace(/^\s*function\s+([A-Z_$][A-Z_$\d]*)/i, 'OSDoc.testScope.$1 = function');
-            var result;
+            var result, error;
             try {
                 with (OSDoc.testScope)
                     result = eval(text);
             } catch (e) {
-                test.expect == 'error'
-                    || failures.push({defn: defn, test: test, error: e});
-                return;
+                error = e;
             }
-            if (test.expect != undefined && OSDoc.toString(result) != test.expect)
+            if (error)
+                test.expect == 'error'
+                || failures.push({defn: defn, test: test, error: error});
+            else if (test.expect != undefined && OSDoc.toString(result) != test.expect)
                 failures.push({defn: defn, test: test, result: result});
         });
     });

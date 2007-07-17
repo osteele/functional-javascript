@@ -20,7 +20,6 @@ function initialize() {
     gExamples = new OSDoc.Examples({onSuccess: done.saturate('examples'), target: $('examples')}).load('examples.js');
     gDocs = new OSDoc.APIDoc({onSuccess: done.saturate('docs'), target: $('docs')}).load('functional.js');
     gEval = new Evaluator('#evaluator', {onUpdate: showEvaluator});
-    $('evaluator').show();
     initializeHeaderToggle();
     initializeTestLinks();
 }
@@ -30,7 +29,6 @@ function showEvaluator() {
     var doctop = document.documentElement.scrollTop || document.body.scrollTop;
     var elt = $('evaluator');
     var bottom = Position.cumulativeOffset(elt)[1] + Element.getHeight(elt);
-    info(doctop, bottom);
     if (bottom < doctop) {
         var x = document.documentElement.scrollTop || document.body.scrollTop;
         var y = elt.y ? element.y : elt.offsetTop;
@@ -64,6 +62,7 @@ function done(flag) {
     callee[flag] = true;
     if (callee.docs && callee.examples) {
         $('noscript').hide();
+        $('evaluator').show();
         var inputs = $$('kbd');
         gEval.makeClickable(inputs);
         window.location.search.match(/[\?&]test\b/) &&
