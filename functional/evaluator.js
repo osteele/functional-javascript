@@ -94,11 +94,10 @@ Evaluator.prototype.eval = function(text) {
         }
         //update(transcriptElements.input, this.lastRecord.input.escapeHTML());
         var e = document.createElement('div');
-        e.className = 'input';
-        e.innerHTML = this.lastRecord.input;
+        e.innerHTML = '<kbd>' + this.lastRecord.input + '</kbd>';
         transcriptElements.input.appendChild(e);
         this.makeClickable([e]);
-        update(transcriptElements.output, this.lastRecord.output);
+        update(transcriptElements.output, '<samp>' + this.lastRecord.output + '</samp>');
         if (this.enableTranscript) {
             transcriptElements.controls.show();
             transcriptElements.clear.show();
