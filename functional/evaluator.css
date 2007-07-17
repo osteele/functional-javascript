@@ -4,19 +4,26 @@
 #evaluator .eval-button {padding-right: 12px; margin: 10px}
 #evaluator .input-column,
 #evaluator .output-column {
-    border: 1px dashed #ccc;
     padding: 5px;
 }
-#evaluator .input-column {border-right:none}
-#evaluator .output-column {border-left:none}
+#evaluator .input-column {border: 1px solid green}
+#evaluator .output-column {border: 1px solid blue}
 #evaluator .input-column .current,
 #evaluator .output-column .current {
-    border: 1px solid gray;
     font-size: x-large;
 }
 #evaluator .output-column .current {
-    border: 1px dotted;
     min-width: 25em;
     padding: 5px;
 }
+#evaluator .input-column .current {color:#080; border:none}
+#evaluator .output-column .current {color:blue}
 #evaluator.error .output-column .current {color:red}
+
+#evaluator .input-column .transcript {color:#8c8}
+#evaluator .output-column .transcript samp {color:#88c}
+
+#evaluator .input-column .current {padding:5px}
+#evaluator pre {margin:0;margin-bottom:3px;margin-left:2px}
+#evaluator .output-column pre {margin-left:5px}
+#evaluator .output-column .current {margin:0;padding:0;margin-left:5px}

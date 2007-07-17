@@ -23,6 +23,7 @@ function Evaluator(rootName, options) {
         controls: '.transcript-controls',
         toggle: '.transcript-controls .toggle',
         clear: '.transcript-controls .clear',
+        count: '.transcript-controls .count',
         input: '.input-column .transcript',
         output: '.output-column .transcript'
        });
@@ -59,6 +60,7 @@ Evaluator.prototype.observeElements = function() {
         // think it matters for interactive use
         transcript.input.innerHTML = '';
         transcript.output.innerHTML = '';
+        transcript.count.innerHTML = '';
         transcript.controls.hide();
         this.recenterButton();
     }.bind(this));
@@ -107,6 +109,8 @@ Evaluator.prototype.eval = function(text) {
             transcriptElements.controls.show();
             transcriptElements.clear.show();
         }
+        var count = 1 + (parseInt(transcriptElements.count.innerHTML)||0);
+        transcriptElements.count.innerHTML = ''+count;
         this.recenterButton();
     }
     this.lastRecord = {input: text, output: html};
@@ -128,6 +132,7 @@ Evaluator.toString = function(value) {
 // I'm not smart enough to figure out how to do this in CSS.
 // This won't keep up with some display change, but oh well.
 Evaluator.prototype.recenterButton = function() {
+    return;
     var button = this.elements.evalButton;
     var heights = map('Element.getHeight(_)', [this.elements.input, this.elements.output, button]);
     var max = Math.max(heights[0], heights[1]);
