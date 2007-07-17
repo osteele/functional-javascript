@@ -28,42 +28,56 @@ OSDoc.Examples.prototype.load = function(url) {
 
 // Parse +text+.  If +options.target+ is specified, update it.
 OSDoc.Examples.prototype.parse = function(text) {
-    this.text = text.replace(/\s*\/\*(?:.|\n)*?\*\/[ \t]*/, '');
-    this.runExamples();
-    this.options.target && this.updateTarget();
-    this.options.onLoad();
+    this.text = text = text.replace(/\s*\/\*(?:.|\n)*?\*\/[ \t]*/, '');
+    this.options.target && (this.options.target.innerHTML = '<pre>' + text.escapeHTML() + '</pre>');
+    window.setTimeout(function() {
+        this.options.target && this.updateTarget(true);
+        window.setTimeout(function() {
+            this.runExamples();
+            this.options.target && this.updateTarget();
+            this.options.onLoad();
+        }.bind(this), 10);
+    }.bind(this), 10);
     return this;
 }
 
-OSDoc.Examples.prototype.updateTarget = function() {
-    this.options.target.innerHTML = this.toHTML();
-    this.onSuccessFn && this.onSuccessFn();
+OSDoc.Examples.prototype.updateTarget = function(fast) {
+    this.options.target.innerHTML = this.toHTML(fast);
     return this;
 }
 
-OSDoc.Examples.prototype.toHTML = function() {
+OSDoc.Examples.prototype.toHTML = function(fast) {
     var self = this;
     var chunks = (unindent(this.text)
                   .escapeHTML()
                   .split('trace('));
-    var outputs = this.trace;
+    var outputs = this.trace || [];
     var lines = ['<pre>', chunks.shift()];
     chunks.each(function(segment, ix) {
         var output = ix < outputs.length
             ? outputs[ix].escapeHTML()
             : 'execution did not get this far';
         var m = segment.indexOf(');');
+        fast || lines.push('<span class="input">');
         lines.push(segment.slice(0, m));
+        fast || lines.push('</span>');
         lines.push(';\n <span class="output">&rarr; ');
         lines.push(output.strip());
         lines.push('</span>');
-        lines.push(segment.slice(m+2));
+        fast && lines.push(segment.slice(m+2));
+        fast || segment.slice(m+2).split('\n').each(function(line, ix) {
+            ix && lines.push('\n');
+            var hasContent = line.match(/\S/) && !line.match(/\/\//);
+            hasContent && lines.push('<span class="input">');
+            lines.push(line);
+            hasContent && lines.push('</span>');
+        });
     });
     lines.push('</pre>');
     var html = lines.join('').replace(/((?:\/\/.*\n)+)/g, function(text) {
-        text = text.replace(/\+(\S+)\+/g, '<span class="formatted">$1</span>');
+        if (!fast) text = text.replace(/\+(\S+)\+/g, '<code>$1</code>');
+        if (!fast) text = text.replace(/\*(\S+)\*/, '<em>$1</em>');
         text = text.replace(/\/\/  (.*)/g, '<pre>$1</pre>');
-        //text = text.replace(/\n\s*\/\//g, '');
         text = text.replace(/\/\//g, ' ');
         text = text.replace(/(\^+)\s*(.*)/, function(_, level, title) {
             var tagName = 'h' + (level.length - 1 + self.options.headingLevel);

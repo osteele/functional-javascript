@@ -27,10 +27,13 @@ OSDoc.APIDoc.prototype.load = function(url) {
 }
 
 // Parse +text+.  If +options.target+ is specified, update it.
-OSDoc.APIDoc.prototype.parse = function(string) {
-    this.records = (new OSDoc.APIDoc.Parser).parse(string);
-    this.options.target && this.updateTarget();
-    this.options.onLoad();
+OSDoc.APIDoc.prototype.parse = function(text) {
+    this.options.target && (this.options.target.innerHTML = '<pre>' + text.replace(/\s*\/\*(?:.|\n)*?\*\/[ \t]*/, '').escapeHTML() + '</pre>');
+    window.setTimeout(function() {
+        this.records = (new OSDoc.APIDoc.Parser).parse(text);
+        this.options.target && this.updateTarget();
+        this.options.onLoad();
+    }.bind(this), 10);
     return this;
 }
 
@@ -110,7 +113,7 @@ OSDoc.APIDoc.Definition.prototype.addDescriptionLine = function(line) {
     function defn(text) {
         endParagraph();
         var line = text.replace(/\.\.\./g, '&hellip;').replace(/==/, '=<sub>def</sub>');
-        blocks.push('<pre>  ' + line + '</pre>');
+        blocks.push('<pre class="equivalence">  ' + line + '</pre>');
     }
     function indented(line) {
         endParagraph();

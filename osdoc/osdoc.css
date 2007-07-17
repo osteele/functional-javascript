@@ -25,5 +25,6 @@
 .jsshow.docs .description {color:#444; line-height:1.2em}
 .jsshow.docs .description p {margin:0; margin-bottom:.5em}
 .jsshow.docs .description pre {font-family:monospace; line-height:1.2em; margin-top:-.5em}
+.jsshow.docs .description .equivalence {font-size: small}
 .jsshow.docs .output {color:blue}
-.jsshow.docs sub {font-size: small; font-family:serif; font-style:italic}
+.jsshow.docs sub {font-size: x-small; font-family:serif; font-style:italic}
