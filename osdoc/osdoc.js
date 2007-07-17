@@ -50,11 +50,12 @@ OSDoc.toString = function(value) {
     }
 }
 
-OSDoc.previewHeader = '<p>Processing...</p>';
+OSDoc.loadingHeader = '<p class="processing">Loading...</p>';
+OSDoc.processingHeader = '<p class="processing">Formatting...</p>';
 
 // Return a string for use in the preview.
 OSDoc.previewText = function(text) {
-    return OSDoc.previewHeader + '<pre>' + text.escapeHTML() + '</pre>';
+    return OSDoc.processingHeader + '<pre>' + text.escapeHTML() + '</pre>';
 }
 
 // Remove the first comment, on the assumption that it's a file header.

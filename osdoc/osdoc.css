@@ -7,36 +7,37 @@
    * Modified: 2007-07-16
 */
 
-.jsshow.examples {line-height:1.4em}
-.jsshow.examples h3 {font-family:serif; margin:0; padding:0;}
-.jsshow.examples h4 {font-family:serif; margin:0; padding:0;}
-.jsshow.examples .comment {color: #333; font-style: italic; font-family: serif}
-.jsshow.examples .comment {white-space:normal}
-.jsshow.examples .comment pre {margin:0}
-.jsshow.examples .formatted {font-family:monospace; font-style: normal}
+.osdoc.examples {line-height:1.4em}
+.osdoc.examples h3 {font-family:serif; margin:0; padding:0;}
+.osdoc.examples h4 {font-family:serif; margin:0; padding:0;}
+.osdoc.examples .comment {color: #333; font-style: italic; font-family: serif}
+.osdoc.examples .comment {white-space:normal}
+.osdoc.examples .comment pre {margin:0}
+.osdoc.examples .formatted {font-family:monospace; font-style: normal}
 
-.jsshow.docs .record {margin-bottom: 1em; margin-top: 1em}
-.jsshow.docs .signature {color:gray; font-family:monospace; margin-bottom:.25em}
-.jsshow.docs .type {color:gray; font-family:monospace; font-size:smaller; margin-bottom:.25em}
-.jsshow.docs .name {font-weight:bold; color:black}
-.jsshow.docs .target {color:gray}
-.jsshow.docs .type .label {font-family:serif}
-.jsshow.docs .description {color:#444; line-height:1.2em}
-.jsshow.docs .description p {margin-top:25em; margin-bottom:.25em}
-.jsshow.docs .description pre {font-family:monospace; line-height:1.2em}
-.jsshow.docs .description .equivalence {font-size:small; font-family:serif; margin-bottom:.25ex}
-.jsshow.docs sub {font-size: x-small; font-family:serif}
-.jsshow.docs sub.def {font-size: x-small; font-style:italic}
+.osdoc.docs .record {margin-bottom: 1em; margin-top: 1em}
+.osdoc.docs .signature {color:gray; font-family:monospace; margin-bottom:.25em}
+.osdoc.docs .type {color:gray; font-family:monospace; font-size:smaller; margin-bottom:.25em}
+.osdoc.docs .name {font-weight:bold; color:black}
+.osdoc.docs .target {color:gray}
+.osdoc.docs .type .label {font-family:serif}
+.osdoc.docs .description {color:#444; line-height:1.2em}
+.osdoc.docs .description p {margin-top:25em; margin-bottom:.25em}
+.osdoc.docs .description pre {font-family:monospace; line-height:1.2em}
+.osdoc.docs .description .equivalence {font-size:small; font-family:serif; margin-bottom:.25ex}
+.osdoc.docs sub {font-size: x-small; font-family:serif}
+.osdoc.docs sub.def {font-size: x-small; font-style:italic}
 
-.jsshow.docs .description .equivalence  {padding-left:11pt}
-.jsshow.docs .io {padding-left:10pt}
+.osdoc.docs .description .equivalence  {padding-left:11pt}
+.osdoc.docs .io {padding-left:10pt}
 
-.jsshow.examples samp,
-.jsshow.docs samp {color:blue}
+.osdoc.examples samp,
+.osdoc.docs samp {color:blue}
 
-.jsshow.docs .io kbd,
-.jsshow.docs .io samp {float:left;display:block}
-.jsshow.docs .io samp {padding-left:.25em}
-.jsshow.docs .io .clear {clear:left}
+.osdoc.docs .io kbd,
+.osdoc.docs .io samp {float:left;display:block}
+.osdoc.docs .io samp {padding-left:.25em}
+.osdoc.docs .io .clear {clear:left}
 
-.jsshow .math {white-space: pre}
+.osdoc .math {white-space: pre}
+.osdoc .processing {font-size: large; text-align: center; font-family: sans-serif}

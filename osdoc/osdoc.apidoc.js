@@ -21,6 +21,7 @@ OSDoc.APIDoc = function(options) {
 
 // Load +url+ and parse its contents.
 OSDoc.APIDoc.prototype.load = function(url) {
+    this.options.target && (this.options.target.innerHTML = OSDoc.loadingHeader);
     new Ajax.Request(
         url,
         {method: 'GET',
@@ -44,7 +45,7 @@ OSDoc.APIDoc.prototype.updateTarget = function(stage) {
         break;
     case 1:
         this.records = this.records || (new OSDoc.APIDoc.Parser).parse(text);
-        this.options.target.innerHTML = this.toHTML(true);
+        this.options.target.innerHTML = OSDoc.processingHeader + this.toHTML(true);
         break;
     default:
         this.records = this.records || (new OSDoc.APIDoc.Parser).parse(text);

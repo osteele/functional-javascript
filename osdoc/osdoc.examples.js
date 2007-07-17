@@ -21,6 +21,7 @@ OSDoc.Examples = function(options) {
 
 // Load +url+ and parse its contents.
 OSDoc.Examples.prototype.load = function(url) {
+    this.options.target && (this.options.target.innerHTML = OSDoc.loadingHeader);
     new Ajax.Request(
         url,
         {method: 'GET',
@@ -43,7 +44,7 @@ OSDoc.Examples.prototype.updateTarget = function(stage) {
         this.options.target.innerHTML = OSDoc.previewText(text);
         break;
     case 1:
-        this.options.target.innerHTML = OSDoc.previewHeader + this.toHTML(true);
+        this.options.target.innerHTML = OSDoc.processingHeader + this.toHTML(true);
         break;
     case 2:
         this.runExamples();
