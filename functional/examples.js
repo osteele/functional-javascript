@@ -96,7 +96,7 @@ trace(map(invoke('toUpperCase'), ['two', 'words']));
 trace(map('.length', ['two', 'words']));
 trace(map('.toUpperCase()', ['two', 'words']));
 // and +pluck+ and +lambda+ can both implement projections:
-var cities =  [['NYC', 'NY'], ['Boston', 'MA'], ['Sacremento', 'CA']];
+var cities =  [['NYC', 'NY'], ['Boston', 'MA']];
 trace(map('_[0]',cities));
 trace(map(pluck(0), cities));
 trace(map(pluck(1), cities));
@@ -128,20 +128,21 @@ trace(map(compose('_(1)', '_.lambda()'), ['x+1', 'x-1']));
 trace(map('1/', [1,2,null,4]));
 trace(map(guard('1/'), [1,2,null,4]));
 // Double only the even numbers:
-trace(map(guard('2*', not('%2')), [1,2,3,4]));
+var xs = [1,2,3,4];
+trace(map(guard('2*', not('%2')), xs));
 // +filter+ creates a list with only the predicated elements,
 // while +guard+ can be used to replace them by null, but leave
 // the indices of the remaining elements unchanged:
-trace(filter('%2', [1,2,3,4]));
-trace(map(guard(Function.K(null), '%2'), [1,2,3,4]));
+trace(filter('%2', xs));
+trace(map(guard(Function.K(null), '%2'), xs));
 // Replace odd numbers by 'odd'
-trace(map(guard(Function.K('odd'), '%2'), [1,2,3,4]));
+trace(map(guard(Function.K('odd'), '%2'), xs));
 // Or label "even" and "odd":
-trace(map(guard(Function.K('odd'), '%2', Function.K('even')), [1,2,3,4]));
+trace(map(guard(Function.K('odd'), '%2', Function.K('even')), xs));
 // although we could also use any one of these for the last one:
-trace(map(curry('o[ix]', ['even', 'odd']).compose('%2'), [1,2,3,4]));
-trace(map(curry('o[i%2]', ['even', 'odd']), [1,2,3,4]));
-trace(map('["even","odd"][_%2]', [1,2,3,4]));
+trace(map(curry('o[ix]', ['even', 'odd']).compose('%2'), xs));
+trace(map(curry('o[i%2]', ['even', 'odd']), xs));
+trace(map('["even","odd"][_%2]', xs));
 
 // ^^ Curry
 

@@ -15,20 +15,21 @@
 .jsshow.examples .comment pre {margin:0}
 .jsshow.examples .formatted {font-family:monospace; font-style: normal}
 
-.jsshow.docs .record {margin-bottom: 1em}
+.jsshow.docs .record {margin-bottom: 1em; margin-top: 1em}
 .jsshow.docs .signature {color:gray; font-family:monospace; margin-bottom:.25em}
 .jsshow.docs .type {color:gray; font-family:monospace; font-size:smaller; margin-bottom:.25em}
 .jsshow.docs .name {font-weight:bold; color:black}
 .jsshow.docs .target {color:gray}
 .jsshow.docs .type .label {font-family:serif}
 .jsshow.docs .description {color:#444; line-height:1.2em}
-.jsshow.docs .description p {margin:0; margin-bottom:.5em}
-.jsshow.docs .description pre {font-family:monospace; line-height:1.2em; margin-top:-.5em}
+.jsshow.docs .description p {margin-top:25em; margin-bottom:.25em}
+.jsshow.docs .description pre {font-family:monospace; line-height:1.2em}
 .jsshow.docs .description .equivalence {font-size:small; font-family:serif; margin-bottom:.25ex}
-.jsshow.docs sub {font-size: x-small; font-family:serif; font-style:italic}
+.jsshow.docs sub {font-size: x-small; font-family:serif}
+.jsshow.docs sub.def {font-size: x-small; font-style:italic}
 
-.jsshow.docs .description .equivalence,
-.jsshow.docs .io {padding-left:1em}
+.jsshow.docs .description .equivalence  {padding-left:11pt}
+.jsshow.docs .io {padding-left:10pt}
 
 .jsshow.examples samp,
 .jsshow.docs samp {color:blue}

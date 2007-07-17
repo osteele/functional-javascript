@@ -42,21 +42,25 @@ OSDoc.APIDoc.prototype.updateTarget = function(stage) {
     case 0:
         this.options.target.innerHTML = OSDoc.previewText(text);
         break;
+    case 1:
+        this.records = this.records || (new OSDoc.APIDoc.Parser).parse(text);
+        this.options.target.innerHTML = this.toHTML(true);
+        break;
     default:
-        this.records = (new OSDoc.APIDoc.Parser).parse(text);
-        this.options.onSuccess();
+        this.records = this.records || (new OSDoc.APIDoc.Parser).parse(text);
         this.options.target.innerHTML = this.toHTML();
+        this.options.onSuccess();
         return this;
     }
     this.updateTarget.bind(this).saturate(stage+1).delayed(10);
     return this;
 }
 
-OSDoc.APIDoc.prototype.toHTML = function(string) {
+OSDoc.APIDoc.prototype.toHTML = function(fast) {
     var spans = [];
     var self = this;
     this.records.each(function(rec) {
-        spans.push(rec.toHTML().replace(/(<\/?h)(\d)([\s>])/g, function(_, left, n, right) {
+        spans.push(rec.toHTML(fast).replace(/(<\/?h)(\d)([\s>])/g, function(_, left, n, right) {
             return [left, n.charCodeAt(0) - 49 + self.options.headingLevel, right].join('');
         }));
     });
@@ -122,7 +126,12 @@ OSDoc.APIDoc.Definition.prototype.addDescriptionLine = function(line) {
     }
     function defn(text) {
         endParagraph();
-        var line = text.replace(/\.\.\./g, '&hellip;').replace(/==/, '=<sub>def</sub>');
+        text = text.replace(/[a-z]/gi, function(w) {
+            return '<var>'+w+'</var>';
+        }).replace(/<\/var>(?:(\d+)|_\{(.*?)\})/g, function(_, sub, sub2) {
+            return '</var><sub>' + (sub || sub2) + '</sub>';
+        });
+        var line = text.replace(/\.\.\./g, '&hellip;').replace(/==/, '=<sub class="def">def</sub> ')
         blocks.push('<pre class="equivalence">' + line + '</pre>');
     }
     function indented(line) {
@@ -150,7 +159,7 @@ OSDoc.APIDoc.Definition.prototype.addDescriptionLine = function(line) {
     }
 }
 
-OSDoc.APIDoc.Definition.prototype.toHTML = function() {
+OSDoc.APIDoc.Definition.prototype.toHTML = function(fast) {
     var isFunction = this.params != null;
     var spans = [];
     
@@ -172,27 +181,38 @@ OSDoc.APIDoc.Definition.prototype.toHTML = function() {
         spans.push('</div>');
     }
     function type() {
-        this.signature && spans.push('<div class="type"><span class="label">Type:</span> '+this.signature.escapeHTML().replace(/-&gt;/g, '&rarr;').replace(/\.\.\./g, '&hellip;')+'</div>');
+        if (this.signature) {
+            var text = this.signature.escapeHTML();
+            if (!fast)
+                text = text.replace(/-&gt;/g, '&rarr;').replace(/\.\.\./g, '&hellip;').replace(/(?:(\d+)|_{(.*?)})/g, function(_, sub, sub2) {
+                    return '<sub>'+(sub||sub2)+'</sub>';
+                });
+            spans.push('<div class="type"><span class="label">Type:</span> '+text+'</div>');
+        }
     }
     function description() {
-        spans.push(this.getDescriptionHTML());
+        spans.push(this.getDescriptionHTML(fast));
     }
 }
 
-OSDoc.APIDoc.Definition.prototype.getDescriptionHTML = function() {
+OSDoc.APIDoc.Definition.prototype.getDescriptionHTML = function(fast) {
     var spans = [];
     var paras = this.blocks.select(pluck('length')).map(function(block) {
         // it may have already been formatted:
         if (typeof block == 'string') return block;
-        return html = ['<p>', block.join(' ').replace(
-                /\bhttp:\S*/, function(url) {
-                    var punct = '', match = url.match(/(.*)([\.,!])$/);
-                    if (match) {
-                        url = match[1];
-                        punct = match[2];
-                    }
-                    return ['<a href="', url, '">', url, '</a>', punct].join('');
-                }), '</p>'].join('');
+        var lines = ['<p>'].concat(block);
+        lines.push('</p>');
+        var html = block.join(' ');
+        if (!fast)
+            html = html.replace(/\bhttp:\S*/, function(url) {
+                var punct = '', match = url.match(/(.*)([\.,!])$/);
+                if (match) {
+                    url = match[1];
+                    punct = match[2];
+                }
+                return ['<a href="', url, '">', url, '</a>', punct].join('');
+            });
+        return html;
     });
     spans.push('<div class="description">');
     spans = spans.concat(paras);

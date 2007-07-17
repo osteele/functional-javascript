@@ -38,7 +38,7 @@ Functional.install = function(except) {
 // function to its input, and the penultimate argument to this,
 // and so on.
 // == compose(f1, f2, f3..., fn)(args) == f1(f2(f3(...(fn(args...)))))
-// :: (a2 -> a1) (a3 -> a2)... (a... -> an) -> a... -> a1
+// :: (a2 -> a1) (a3 -> a2)... (a... -> a_{n}) -> a... -> a1
 // >> compose('1+', '2*')(2) -> 5
 Functional.compose = function(/*fn...*/) {
     var fns = Functional.map(Function.toFunction, arguments);
@@ -51,7 +51,7 @@ Functional.compose = function(/*fn...*/) {
 
 // Same as +compose+, except applies the functions in argument-list order.
 // == sequence(f1, f2, f3..., fn)(args...) == fn(...(f3(f2(f1(args...)))))
-// :: (a... -> a1) (a1 -> a2) (a2 -> a3)... (a[n-1] -> an)  -> a... -> an
+// :: (a... -> a1) (a1 -> a2) (a2 -> a3)... (a_{n-1} -> a_{n})  -> a... -> a_{n}
 // >> sequence('1+', '2*')(2) -> 6
 Functional.sequence = function(/*fn...*/) {
     var fns = Functional.map(Function.toFunction, arguments);
@@ -217,10 +217,9 @@ Functional.until = function(pred, fn) {
     }
 }
 
-// You know that +zip+ can transpose a matrix,
-// don't you?
 // :: [a] [b]... -> [[a b]...]
-// == zip(a, b...) == [[a[0], b[0]], [a[1], b[1]], ...]
+// == zip(a, b...) == [[a0, b0], [a1, b1], ...]
+// Did you know that +zip+ can transpose a matrix?:
 // >> zip.apply(null, [[1,2],[3,4]]) -> [[1, 3], [2, 4]]
 Functional.zip = function(/*args...*/) {
     var n = Math.min.apply(null, map('.length', arguments));
@@ -277,7 +276,8 @@ Function.prototype.bind = function(object/*, args...*/) {
     }
 }
 
-// Returns a function that ignores its arguments.
+// Returns a function that applies the underlying function to +args+, and
+// ignores its own arguments.
 // :: (a... -> b) a... -> (... -> b)
 // == fn.saturate(args...)(args2...) == fn(args...)
 // >> Math.max.curry(1, 2)(3, 4) -> 4
@@ -296,19 +296,19 @@ Function.prototype.saturate = function(/*args*/) {
 // is not saturated, the result is a function that passes all its
 // arguments to the underlying function.  (That is, +aritize+ only
 // affects its immediate caller, and not subsequent calls.)
-// 
-// This is useful to remove optional arguments from a function that is passed
-// to a higher-order function that supplies *different* optional arguments.
-// For example, many implementations of +map+ and other collection
-// functions call the function argument with both the collection element
-// and its position.  This is convenient when expected, but an wreak
-// havoc when the function argument is a curried function that expects
-// a single argument from +map+ and the remaining arguments from when
-// the result of +map+ is applied.
 // >> '[a,b]'.lambda()(1,2) -> [1, 2]
 // >> '[a,b]'.lambda().aritize(1)(1,2) -> [1, undefined]
 // >> '+'.lambda()(1,2)(3) -> error
 // >> '+'.lambda().ncurry(2).aritize(1)(1,2)(3) -> 4
+// 
+// +aritize+ is useful to remove optional arguments from a function that is passed
+// to a higher-order function that supplies *different* optional arguments.
+// For example, many implementations of +map+ and other collection
+// functions call the function argument with both the collection element
+// and its position.  This is convenient when expected, but can wreak
+// havoc when the function argument is a curried function that expects
+// a single argument from +map+ and the remaining arguments from when
+// the result of +map+ is applied.
 Function.prototype.aritize = function(n) {
     var fn = this;
     return function() {
@@ -337,7 +337,7 @@ Function.prototype.curry = function(/*args...*/) {
     };
 }
 
-// Right curry.  Returns a function that, applied to an argumen list +args2+,
+// Right curry.  Returns a function that, applied to an argument list +args2+,
 // applies the underlying function to +args2+ + +args+.
 // == fn.curry(args...)(args2...) == fn(args2..., args...)
 // :: (a... b... -> c) b... -> (a... -> c)
@@ -448,7 +448,7 @@ Function.K = function(x) {return function() {return x}}
 // 
 // Curry this to get a version that takes its arguments in
 // separate calls:
-// >> Function.S.curry('+')('*')(2,3)
+// >> Function.S.curry('+')('_ a b -> a*b')(2,3,4) -> 14
 Function.S = function(f, g) {
     f = Function.toFunction(f);
     g = Function.toFunction(g);
@@ -511,7 +511,7 @@ Function.prototype.prefilterObject = function(filter) {
 // +prefilterAt+ returns a function that applies the underlying function
 // to a copy of the arguments, where the +index+th argument has been
 // replaced by +filter(argument[index])+.
-// == fn.prefilterAt(i, filter)(a1, a2, ..., an) == fn(a1, a2, ..., filter(ai), ..., an)
+// == fn.prefilterAt(i, filter)(a1, a2, ..., a_{n}) == fn(a1, a2, ..., filter(a_{i}), ..., a_{n})
 // >> '[a,b,c]'.lambda().prefilterAt(1, '2*')(2,3,4) -> [2, 6, 4]
 Function.prototype.prefilterAt = function(index, filter) {
     filter = Function.toFunction(filter);
@@ -526,8 +526,7 @@ Function.prototype.prefilterAt = function(index, filter) {
 // +prefilterSlice+ returns a function that applies the underlying function
 // to a copy of the arguments, where the arguments +start+ through
 // +end+ have been replaced by +filter(argument.slice(start,end))+.
-// == fn.prefilterSlice(i0, i1, filter)(a1, a2, ..., an)
-// ==   == fn(a1, a2, ..., filter(args[i0], ..., args[in-1]), ..., an)
+// == fn.prefilterSlice(i0, i1, filter)(a1, a2, ..., a_{n}) == fn(a1, a2, ..., filter(args_{i0}, ..., args_{i1}), ..., a_{n})
 // >> '[a,b,c]'.lambda().prefilterSlice('[a+b]', 1, 3)(1,2,3,4) -> [1, 5, 4]
 // >> '[a,b]'.lambda().prefilterSlice('[a+b]', 1)(1,2,3) -> [1, 5]
 // >> '[a]'.lambda().prefilterSlice(compose('[_]', Math.max))(1,2,3) -> [3]
@@ -609,26 +608,6 @@ Function.prototype.guard = function(guard, otherwise) {
 
 // ^^ Utilities
 
-// Returns a function that has the same effect as this function, but returns
-// itself.  This is useless for pure-functional functions, but can be used
-// to make chainable methods in procedural/OO code.
-// == f.returning.apply(this, args...) == this, but with side effect of f()
-// Without +returning+:
-// >> var value = 1;
-// >> var object = {effector: function() {value += 1}};
-// >> object.effector() == object -> false
-// With +returning+:
-// >> object.effector.bind(object).returning() == object -> true
-// >> returning(object.effector(object)) == object -> true
-// >> value -> 4
-Function.prototype.returning = function(/*args...*/) {
-    var fn = this;
-    return function() {
-        fn.apply(this, arguments);
-        return this;
-    }
-}
-
 // Returns a function identical to this function except that
 // it prints its arguments on entry and its return value on exit.
 // This is useful for debugging function-level programs.
@@ -636,7 +615,7 @@ Function.prototype.traced = function(name) {
     var self = this;
     name = name || self;
     return function() {
-        window.console && console.info('[', name, 'apply', this, ',', arguments, ')');
+        window.console && console.info('[', name, 'apply(', this!=window && this, ',', arguments, ')');
         var result = self.apply(this, arguments);
         window.console && console.info(']', name, ' -> ', result);
         return result;
@@ -727,7 +706,7 @@ String.prototype.lambda = function() {
     } else if (expr.match(/\b_\b/)) {
         params = '_';
     } else {
-        var m1 = expr.match(/^\s*[+*\/%&|\^\.=<>]/);
+        var m1 = expr.match(/^\s*(?:[+*\/%&|\^\.=<>]|!=)/);
         var m2 = expr.match(/[+\-*\/%&|\^\.=<>!]\s*$/);
         if (m1 || m2) {
             if (m1) {
