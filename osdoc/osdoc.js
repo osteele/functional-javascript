@@ -4,7 +4,7 @@
  * License: MIT License
  * Source: http://osteele.com/javascripts/osdoc
  * Created: 2007-07-11
- * Modified: 2007-07-14
+ * Modified: 2007-07-16
  */
 
 var OSDoc = window.OSDoc || {};
@@ -23,7 +23,6 @@ OSDoc.require = function(path) {
     if (OSDoc.loaded.include(path))
         return;
     document.write('<script type="text/javascript" src="' + path + '"></script>');
-    console.info(path);
     OSDoc.loaded.push(path);
 }
 

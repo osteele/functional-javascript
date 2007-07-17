@@ -4,7 +4,7 @@
  * License: MIT License
  * Source: http://osteele.com/javascripts/osdoc
  * Created: 2007-07-13
- * Modified: 2007-07-14
+ * Modified: 2007-07-16
  *
  * Inspired by Tim Peter's wonderful doctest for Python.
  */

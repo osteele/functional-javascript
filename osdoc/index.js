@@ -4,7 +4,7 @@
  * License: MIT License
  * Homepage: http://osteele.com/javascripts/functional
  * Created: 2007-07-11
- * Modified: 2007-07-15
+ * Modified: 2007-07-16
  */
 
 var info = window.console && console.info || function(){};
