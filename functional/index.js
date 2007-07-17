@@ -22,6 +22,35 @@ function initialize() {
     gEval = new Evaluator('#evaluator', {onUpdate: showEvaluator});
     initializeHeaderToggle();
     initializeTestLinks();
+    shoe();
+}
+
+function shoe() {
+        //OSGradient.applyGradient({'gradient-start-color':0xccffcc,'gradient-end-color':0xffffff, 'border-radius': 5}, );
+        //OSGradient.applyGradient({'gradient-start-color':,'gradient-end-color':0xffffff, 'border-radius': 5}, $$('table')[0]);
+    $('evaluator').style.display != 'none' && foot('evaluator', 0xeeffee);
+    foot('intro', 0xeeeeff);
+}
+
+function foot(name, color) {
+    var elt = $$('#'+name+' .gradient')[0];
+    if (!elt) {
+        elt = document.createElement('div');
+        elt.className = 'gradient';
+        elt.style.width = elt.style.height = '100%';
+        elt.style.position = 'absolute';
+        elt.style.padding = '-5px';
+        var parent = $(name);
+        parent.style.position = 'relative';
+        parent.insertBefore(elt, parent.firstChild);
+    }
+    elt.innerHTML = '';
+    //elt.style.height = Element.getHeight($(name));
+    //info(name, Element.getHeight(name));
+    OSGradient.applyGradient({'gradient-start-color': color,
+                              'gradient-end-color': 0xffffff,
+                              'border-radius': 5},
+                             elt);
 }
 
 function showEvaluator() {
@@ -67,7 +96,17 @@ function done(flag) {
         gEval.makeClickable(inputs);
         window.location.search.match(/[\?&]test\b/) &&
             gDocs.runTests();
+        var resizer;
+        window.onresize = function() {
+            resizer = resizer || window.setTimeout(function() {
+                resizer = null;
+                shoe();
+            }, 60);
+        }
+        window.onresize();
     }
 }
+
+
 
 Event.observe(window, 'load', initialize);
