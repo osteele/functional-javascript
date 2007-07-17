@@ -71,7 +71,7 @@ function done(flag) {
         window.location.search.match(/[\?&]test\b/) &&
             gDocs.runTests();
         queueGradientReset();
-        window.onresize = queueGradientReset;
+        Event.observe(window, 'resize', queueGradientReset);
     }
 }
 
