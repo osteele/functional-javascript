@@ -18,8 +18,8 @@
 var Functional = window.Functional || {};
 
 /**
- * Copies all the public functions in +Functional+, except this function
- * and the functions named in the optional hash +except+, into the global
+ * Copies all the public functions in `Functional`, except this function
+ * and the functions named in the optional hash `except`, into the global
  * namespace.
  * >> Functional.install()
  */
@@ -54,7 +54,7 @@ Functional.compose = function(/*fn...*/) {
 }
 
 /**
- * Same as +compose+, except applies the functions in argument-list order.
+ * Same as `compose`, except applies the functions in argument-list order.
  * == sequence(f1, f2, f3..., fn)(args...) == fn(...(f3(f2(f1(args...)))))
  * :: (a... -> a1) (a1 -> a2) (a2 -> a3)... (a_{n-1} -> a_{n})  -> a... -> a_{n}
  * >> sequence('1+', '2*')(2) -> 6
@@ -69,7 +69,7 @@ Functional.sequence = function(/*fn...*/) {
 }
 
 /**
- * Applies +fn+ to each element of +sequence+.
+ * Applies `fn` to each element of `sequence`.
  * == map(f, [x1, x2...]) = [f(x, 0), f(x2, 1), ...]
  * :: (a ix -> boolean) [a] -> [a]
  * >> map('1+', [1,2,3]) -> [2, 3, 4]
@@ -87,7 +87,7 @@ Functional.map = function(fn, sequence, object) {
 }
 
 /**
- * Applies +fn+ to +init+ and the first element of +sequence+,
+ * Applies `fn` to `init` and the first element of `sequence`,
  * and then to the result and the second element, and so on.
  * == reduce(fn, init, [x1, x2, x3]) == fn(fn(fn(init, x1), x2), x3)
  * :: (a b -> a) a [b] -> a
@@ -103,8 +103,8 @@ Functional.reduce = function(fn, init, sequence, object) {
 }
 
 /**
- * Returns a list of those elements +x+ of +sequence+ such that
- * +fn(x)+ returns true.
+ * Returns a list of those elements $x$ of `sequence` such that
+ * $fn(x)$ returns true.
  * :: (a -> boolean) [a] -> [a]
  * >> select('%2', [1,2,3,4]) -> [1, 3]
  */
@@ -119,14 +119,14 @@ Functional.select = function(fn, sequence, object) {
     return result;
 }
 
-/// A synonym for +select+.
+/// A synonym for `select`.
 Functional.filter = Functional.select;
 
-/// A synonym for +reduce+.
+/// A synonym for `reduce`.
 Functional.foldl = Functional.reduce;
 
 /**
- * Same as +foldl+, but applies the function from right to left.
+ * Same as `foldl`, but applies the function from right to left.
  * == foldr(fn, init, [x1, x2, x3]) == fn(x1, fn(x2, fn(x3, init)))
  * :: (a b -> b) b [a] -> b
  * >> foldr('x y -> 2*x+y', 100, [1,0,1,0]) -> 104
@@ -142,8 +142,8 @@ Functional.foldr = function(fn, init, sequence, object) {
 
 /// ^^ Predicates
 
-/** Returns true when +fn(x)+ returns true for some element +x+ of
- * +sequence+.
+/** Returns true when `$fn(x)$ returns true for some element $x$ of
+ * `sequence`.
  * == some(fn, [x1, x2, x3]) == fn(x1) || fn(x2) || fn(x3)
  * :: (a -> boolean) [a] -> [a]
  * >> some('>2', [1,2,3]) -> true
@@ -162,8 +162,8 @@ Functional.some = function(fn, sequence, object) {
 }
 
 /**
- * Returns true when +fn(x)+ is true for every element +x+ of
- * +sequence+.
+ * Returns true when $fn(x)$ is true for every element $x$ of
+ * `sequence`.
  * == every(fn, [x1, x2, x3]) == fn(x1) && fn(x2) && fn(x3)
  * :: (a -> boolean) [a] -> [a]
  * >> every('<2', [1,2,3]) -> false
@@ -182,7 +182,7 @@ Functional.every = function(fn, sequence, object) {
 }
 
 /**
- * Returns a function that returns true when +fn()+ returns false.
+ * Returns a function that returns `true` when $fn()$ returns false.
  * == fn.not()(args...) == !fn(args...)
  * :: (a -> boolean) -> (a -> boolean)
  * >> not(Function.K(true))() -> false
@@ -199,7 +199,7 @@ Functional.not = function(fn) {
 
 /**
  * Returns a function that takes an object as an argument, and applies
- * +object+'s +methodName+ method to +arguments+.
+ * `object`'s `methodName` method to `arguments`.
  * == fn(name)(object, args...) == object[name](args...)
  * :: name args... -> object args2... -> object[name](args... args2...)
  * >> invoke('toString')(123) -> "123"
@@ -213,7 +213,7 @@ Functional.invoke = function(methodName/*, arguments*/) {
 
 /**
  * Returns a function that takes an object, and returns the value of its
- * +name+ property.  +pluck(name)+ is the same as '_.name'.lambda().
+ * `name` property.  `pluck(name)` is equivalent to `'_.name'.lambda()`.
  * == fn.pluck(name)(object) == object[name]
  * :: name -> object -> object[name]
  * >> pluck('length')("abc") -> 3
@@ -225,9 +225,10 @@ Functional.pluck = function(name) {
 }
 
 /**
- * Returns a function +fn+ that, while +pred(value)+ is true, applies +fn+ to
- * +value+ to produce a new value, which is used as an input for the next round.
- * +fn+ returns the first +value+ for which +pred(value)+ is false.
+ * Returns a function that, while $pred(value)$ is true, applies `fn` to
+ * $value$ to produce a new value, which is used as an input for the next round.
+ * The returned function returns the first $value$ for which $pred(value)$
+ * is false.
  * :: (a -> boolean) (a -> a) -> a
  * >> until('>10', '2*')(1) -> 16
  */
@@ -244,7 +245,7 @@ Functional.until = function(pred, fn) {
 /**
  * :: [a] [b]... -> [[a b]...]
  * == zip(a, b...) == [[a0, b0], [a1, b1], ...]
- * Did you know that +zip+ can transpose a matrix?:
+ * Did you know that `zip` can transpose a matrix?:
  * >> zip.apply(null, [[1,2],[3,4]]) -> [[1, 3], [2, 4]]
  */
 Functional.zip = function(/*args...*/) {
@@ -270,8 +271,8 @@ Functional._startRecordingMethodChanges = function(object) {
     }};
 }
 
-// For each method that this file defined on Function.prototype,
-// define a function on Functional that delegates to it.
+// For each method that this file defined on `Function.prototype`,
+// define a function on `Functional` that delegates to it.
 Functional._attachMethodDelegates = function(methods) {
     for (var name in methods)
         Functional[name] = Functional[name] || (function(name) {
@@ -282,7 +283,7 @@ Functional._attachMethodDelegates = function(methods) {
         })(name);
 }
 
-// Record the current contents of Function.prototype, so that we
+// Record the current contents of `Function.prototype`, so that we
 // can see what we've added later.
 Functional.__initalFunctionState = Functional._startRecordingMethodChanges(Function.prototype);
 
@@ -291,7 +292,7 @@ Functional.__initalFunctionState = Functional._startRecordingMethodChanges(Funct
 /// ^^ Partial function application
 
 /**
- * Returns a bound method on +object+; optionally currying +args+.
+ * Returns a bound method on `object`; optionally currying `args`.
  * == fn.bind(obj, args...)(args2...) == fn.apply(obj, [args..., args2...])
  */
 Function.prototype.bind = function(object/*, args...*/) {
@@ -303,7 +304,7 @@ Function.prototype.bind = function(object/*, args...*/) {
 }
 
 /**
- * Returns a function that applies the underlying function to +args+, and
+ * Returns a function that applies the underlying function to `args`, and
  * ignores its own arguments.
  * :: (a... -> b) a... -> (... -> b)
  * == fn.saturate(args...)(args2...) == fn(args...)
@@ -320,24 +321,24 @@ Function.prototype.saturate = function(/*args*/) {
 }
 
 /**
- * Invoking the function returned by this function only passes +n+
+ * Invoking the function returned by this function only passes `n`
  * arguments to the underlying function.  If the underlying function
  * is not saturated, the result is a function that passes all its
- * arguments to the underlying function.  (That is, +aritize+ only
+ * arguments to the underlying function.  (That is, `aritize` only
  * affects its immediate caller, and not subsequent calls.)
  * >> '[a,b]'.lambda()(1,2) -> [1, 2]
  * >> '[a,b]'.lambda().aritize(1)(1,2) -> [1, undefined]
  * >> '+'.lambda()(1,2)(3) -> error
  * >> '+'.lambda().ncurry(2).aritize(1)(1,2)(3) -> 4
  * 
- * +aritize+ is useful to remove optional arguments from a function that is passed
+ * `aritize` is useful to remove optional arguments from a function that is passed
  * to a higher-order function that supplies *different* optional arguments.
- * For example, many implementations of +map+ and other collection
+ * For example, many implementations of `map` and other collection
  * functions call the function argument with both the collection element
  * and its position.  This is convenient when expected, but can wreak
  * havoc when the function argument is a curried function that expects
- * a single argument from +map+ and the remaining arguments from when
- * the result of +map+ is applied.
+ * a single argument from `map` and the remaining arguments from when
+ * the result of `map` is applied.
  */
 Function.prototype.aritize = function(n) {
     var fn = this;
@@ -347,15 +348,15 @@ Function.prototype.aritize = function(n) {
 }
 
 /**
- * Returns a function that, applied to an argument list +arg2+,
- * applies the underlying function to +args+ ++ +arg2+.
+ * Returns a function that, applied to an argument list $arg2$,
+ * applies the underlying function to $args ++ arg2$.
  * :: (a... b... -> c) a... -> (b... -> c)
  * == fn.curry(args...)(args2...) == fn(args..., args2...)
  * 
  * Note that, unlike in languages with true partial application such as Haskell,
- * +curry+ and +uncurry+ are not inverses.  This is a repercussion of the
+ * `curry` and `uncurry` are not inverses.  This is a repercussion of the
  * fact that in JavaScript, unlike Haskell, a fully saturated function is
- * not equivalent to the value that it returns.  The definition of +curry+
+ * not equivalent to the value that it returns.  The definition of `curry`
  * here matches semantics that most people have used when implementing curry
  * for procedural languages.
  * 
@@ -371,8 +372,8 @@ Function.prototype.curry = function(/*args...*/) {
 }
 
 /*
- * Right curry.  Returns a function that, applied to an argument list +args2+,
- * applies the underlying function to +args2+ + +args+.
+ * Right curry.  Returns a function that, applied to an argument list $args2$,
+ * applies the underlying function to $args2 + args$.
  * == fn.curry(args...)(args2...) == fn(args2..., args...)
  * :: (a... b... -> c) b... -> (a... -> c)
  */
@@ -385,8 +386,8 @@ Function.prototype.rcurry = function(/*args...*/) {
 }
 
 /**
- * Same as +curry+, except only applies the function when all
- * +n+ arguments are saturated.
+ * Same as `curry`, except only applies the function when all
+ * `n` arguments are saturated.
  */
 Function.prototype.ncurry = function(n/*, args...*/) {
     var fn = this;
@@ -402,8 +403,8 @@ Function.prototype.ncurry = function(n/*, args...*/) {
 }
 
 /**
- * Same as +rcurry+, except only applies the function when all
- * +n+ arguments are saturated.
+ * Same as `rcurry`, except only applies the function when all
+ * `n` arguments are saturated.
  */
 Function.prototype.rncurry = function(n/*, args...*/) {
     var fn = this;
@@ -419,27 +420,27 @@ Function.prototype.rncurry = function(n/*, args...*/) {
 }
 
 /**
- * +_+ (underscore) is bound to a unique value for use in +partial()+, below.
- * This is a global variable, but it's also a property of +Function+ in case
+ * `_` (underscore) is bound to a unique value for use in `partial`, below.
+ * This is a global variable, but it's also a property of `Function` in case
  * you overwrite or bind over the global one.
  */
 _ = Function._ = {};
 
 /**
- * Returns a function +f+ such that +f(args2)+ is equivalent to
- * the underlying function applied to a combination of +args+ and +args2+.
+ * Returns a function $f$ such that $f(args2)$ is equivalent to
+ * the underlying function applied to a combination of $args$ and $args2$.
  * 
- * +args+ is a partially-specified argument: it's a list with "holes",
- * specified by the special value +_+.  It is combined with +args2+ as
+ * `args` is a partially-specified argument: it's a list with "holes",
+ * specified by the special value `_`.  It is combined with $args2$ as
  * follows:
  * 
- * From left to right, each value in +args2+ fills in the leftmost
- * remaining hole in +args+.  Any remaining values
- * in +args2+ are appended to the result of the filling-in process
+ * From left to right, each value in $args2$ fills in the leftmost
+ * remaining hole in `args`.  Any remaining values
+ * in $args2$ are appended to the result of the filling-in process
  * to produce the combined argument list.
  * 
- * If the combined argument list contains any occurrences of +_+, the result
- * of the application of +f+ is another partial function.  Otherwise, the
+ * If the combined argument list contains any occurrences of `_`, the result
+ * of the application of $f$ is another partial function.  Otherwise, the
  * result is the same as the result of applying the underlying function to
  * the combined argument list.
  */
@@ -467,7 +468,7 @@ Function.prototype.partial = function(/*args*/) {
 /// ^^^ Combinator Functions
 
 /**
- * The identity function: x -> x.
+ * The identity function: $x -> x$.
  * == I(x) == x
  * == I == 'x'.lambda()
  * :: a -> a
@@ -476,7 +477,7 @@ Function.prototype.partial = function(/*args*/) {
 Function.I = function(x) {return x};
 
 /**
- * Returns a "constant function" that returns +x+.
+ * Returns a "constant function" that returns `x`.
  * == K(x)(y) == x
  * == K(1) == '->1'.lambda()
  * :: a -> b -> a
@@ -532,7 +533,7 @@ Function.prototype.flip = function() {
  * :: (a -> b -> c) -> (a, b) -> c
  * >> ('a -> b -> a/b'.lambda()).uncurry()(1,2) -> 0.5
  * 
- * Note that +uncurry+ is *not* the inverse of +curry+.
+ * Note that `uncurry` is *not* the inverse of `curry`.
  */
 Function.prototype.uncurry = function() {
     var fn = this;
@@ -550,9 +551,9 @@ Function.prototype.uncurry = function() {
  */
 
 /**
- * +prefilterObject+ returns a function that applies the underlying function
+ * `prefilterObject` returns a function that applies the underlying function
  * to the same arguments, but to an object that is the result of appyling
- * +filter+ to the invocation object.
+ * `filter` to the invocation object.
  * == fn.prefilterObject(filter).apply(object, args...) == fn.apply(filter(object), args...)
  * == fn.bind(object) == compose(fn.prefilterObject, Function.K(object))
  * >> 'this'.lambda().prefilterObject('n+1').apply(1) -> 2
@@ -566,9 +567,9 @@ Function.prototype.prefilterObject = function(filter) {
 }
 
 /**
- * +prefilterAt+ returns a function that applies the underlying function
- * to a copy of the arguments, where the +index+th argument has been
- * replaced by +filter(argument[index])+.
+ * `prefilterAt` returns a function that applies the underlying function
+ * to a copy of the arguments, where the `index`th argument has been
+ * replaced by the value of `filter(argument[index])`.
  * == fn.prefilterAt(i, filter)(a1, a2, ..., a_{n}) == fn(a1, a2, ..., filter(a_{i}), ..., a_{n})
  * >> '[a,b,c]'.lambda().prefilterAt(1, '2*')(2,3,4) -> [2, 6, 4]
  */
@@ -583,9 +584,10 @@ Function.prototype.prefilterAt = function(index, filter) {
 }
 
 /**
- * +prefilterSlice+ returns a function that applies the underlying function
- * to a copy of the arguments, where the arguments +start+ through
- * +end+ have been replaced by +filter(argument.slice(start,end))+.
+ * `prefilterSlice` returns a function that applies the underlying function
+ * to a copy of the arguments, where the arguments `start` through
+ * `end` have been replaced by the value of `filter(argument.slice(start,end))`,
+ * which must return a list.
  * == fn.prefilterSlice(i0, i1, filter)(a1, a2, ..., a_{n}) == fn(a1, a2, ..., filter(args_{i0}, ..., args_{i1}), ..., a_{n})
  * >> '[a,b,c]'.lambda().prefilterSlice('[a+b]', 1, 3)(1,2,3,4) -> [1, 5, 4]
  * >> '[a,b]'.lambda().prefilterSlice('[a+b]', 1)(1,2,3) -> [1, 5]
@@ -606,12 +608,12 @@ Function.prototype.prefilterSlice = function(filter, start, end) {
 /// ^^ Method Composition
 
 /**
- * +compose+ returns a function that applies the underlying function
- * to the result of the application of +fn+.
+ * `compose` returns a function that applies the underlying function
+ * to the result of the application of `fn`.
  * == f.compose(g)(args...) == f(g(args...))
  * >> '1+'.lambda().compose('2*')(3) -> 7
  * 
- * Note that, unlike +Functional.compose+, the +compose+ method on
+ * Note that, unlike `Functional.compose`, the `compose` method on
  * function only takes a single argument.
  * == Functional.compose(f, g) == f.compose(g)
  * == Functional.compose(f, g, h) == f.compose(g).compose(h)
@@ -625,13 +627,13 @@ Function.prototype.compose = function(fn) {
 }
 
 /**
- * +sequence+ returns a function that applies the underlying function
- * to the result of the application of +fn+.
+ * `sequence` returns a function that applies the underlying function
+ * to the result of the application of `fn`.
  * == f.sequence(g)(args...) == g(f(args...))
  * == f.sequence(g) == g.compose(f)
  * >> '1+'.lambda().sequence('2*')(3) -> 8
  * 
- * Note that, unlike +Functional.compose+, the +sequence+ method on
+ * Note that, unlike `Functional.compose`, the `sequence` method on
  * function only takes a single argument.
  * == Functional.sequence(f, g) == f.sequence(g)
  * == Functional.sequence(f, g, h) == f.sequence(g).sequence(h)
@@ -646,10 +648,10 @@ Function.prototype.sequence = function(fn) {
 
 /**
  * Returns a function that is equivalent to the underlying function when
- * +guard+ returns true, and otherwise is equivalent to the application
- * of +otherwise+ to the same arguments.
+ * `guard` returns true, and otherwise is equivalent to the application
+ * of `otherwise` to the same arguments.
  * 
- * +guard+ and +otherwise+ default to +Function.I+.  +guard+ with
+ * `guard` and `otherwise` default to `Function.I`.  `guard` with
  * no arguments therefore returns a function that applies the
  * underlying function to its value only if the value is true,
  * and returns the value otherwise.
@@ -696,8 +698,8 @@ Function.prototype.traced = function(name) {
  * ^^ Function methods as functions
  * 
  * In addition to the functions defined above, every method defined
- * on +Function+ is also available as a function in +Functional+, that
- * coerces its first argument to a +Function+ and applies
+ * on `Function` is also available as a function in `Functional`, that
+ * coerces its first argument to a `Function` and applies
  * the remaining arguments to this.
  * 
  * A few examples make this clearer:
@@ -716,14 +718,14 @@ delete Functional.__initalFunctionState;
 
 /**
  * Turns a string that contains a JavaScript expression into a
- * +Function+ that returns the value of that expression.
+ * `Function` that returns the value of that expression.
  * 
- * If the string contains a '->', this separates the parameters from the body:
+ * If the string contains a `->`, this separates the parameters from the body:
  * >> 'x -> x + 1'.lambda()(1) -> 2
  * >> 'x y -> x + 2*y'.lambda()(1, 2) -> 5
  * >> 'x, y -> x + 2*y'.lambda()(1, 2) -> 5
  * 
- * Otherwise, if the string contains a '_', this is the parameter:
+ * Otherwise, if the string contains a `_`, this is the parameter:
  * >> '_ + 1'.lambda()(1) -> 2
  * 
  * Otherwise if the string begins or ends with an operator or relation,
@@ -732,9 +734,9 @@ delete Functional.__initalFunctionState;
  * >> '/2'.lambda()(4) -> 2
  * >> '2/'.lambda()(4) -> 0.5
  * >> '/'.lambda()(2,4) -> 0.5
- * Sections can end, but not begin with, '-'.  (This is to avoid interpreting
- * e.g. '-2*x' as a section).  On the other hand, a string that either begins
- * or ends with '/' is a section, so an expression that begins or ends with a
+ * Sections can end, but not begin with, `-`.  (This is to avoid interpreting
+ * e.g. `-2*x` as a section).  On the other hand, a string that either begins
+ * or ends with `/` is a section, so an expression that begins or ends with a
  * regular expression literal needs an explicit parameter.
  * 
  * Otherwise, each variable name is an implicit parameter:
@@ -743,7 +745,7 @@ delete Functional.__initalFunctionState;
  * >> 'y + 2*x'.lambda()(1, 2) -> 5
  * 
  * Implicit parameter detection ignores strings literals, variable names that
- * start with capitals, and identifiers that precede ':' or follow '.':
+ * start with capitals, and identifiers that precede `:` or follow `.`:
  * >> map('"im"+root', ["probable", "possible"]) -> ["improbable", "impossible"]
  * >> 'Math.cos(angle)'.lambda()(Math.PI) -> -1
  * >> 'point.x'.lambda()({x:1, y:2}) -> 1
@@ -753,16 +755,16 @@ delete Functional.__initalFunctionState;
  * variable names.  It doesn't know to ignore JavaScript keywords and bound variables.
  * (The only way you can get these last two if with a function literal inside the
  * string.  This is outside the use case for string lambdas.)
- * Use _ (to define a unary function) or ->, if the string contains anything
+ * Use `_` (to define a unary function) or `->`, if the string contains anything
  * that looks like a free variable but shouldn't be used as a parameter, or
  * to specify parameters that are ordered differently from their first
  * occurrence in the string.
  * 
- * Chain '->'s to create a function in uncurried form:
+ * Chain `->`s to create a function in uncurried form:
  * >> 'x -> y -> x + 2*y'.lambda()(1)(2) -> 5
  * >> 'x -> y -> z -> x + 2*y+3*z'.lambda()(1)(2)(3) -> 14
  * 
- * +this+ and +arguments+ are special:
+ * `this` and `arguments` are special:
  * >> 'this'.call(1) -> 1
  * >> '[].slice.call(arguments, 0)'.call(null,1,2) -> [1, 2]
  */
@@ -802,7 +804,7 @@ String.prototype.lambda = function() {
 /**
  * ^^ Duck-Typing
  * 
- * Strings support +call+ and +apply+.  This duck-types them as
+ * Strings support `call` and `apply`.  This duck-types them as
  * functions, to some callers.
  */
 
@@ -827,9 +829,9 @@ String.prototype.call = function() {
 /// ^^ Coercion 
 
 /**
- * Returns a Function that perfoms the action described by this
- * string.  If the string contains a 'return', applies
- * 'new Function' to it.  Otherwise, calls +lambda+.
+ * Returns a `Function` that perfoms the action described by this
+ * string.  If the string contains a `return`, applies
+ * `new Function` to it.  Otherwise, calls `lambda`.
  * >> '+1'.toFunction()(2) -> 3
  * >> 'return 1'.toFunction()(1) -> 1
  */
@@ -841,7 +843,7 @@ String.prototype.toFunction = function() {
 }
 
 /**
- * Returns this function.  +Function.toFunction+ calls this.
+ * Returns this function.  `Function.toFunction` calls this.
  * >> '+1'.lambda().toFunction()(2) -> 3
  */
 Function.prototype.toFunction = function() {
@@ -849,22 +851,22 @@ Function.prototype.toFunction = function() {
 }
 
 /**
- * Coerces +fn+ into a function if it is not already one,
- * by calling its +toFunction+ method.
+ * Coerces `fn` into a function if it is not already one,
+ * by calling its `toFunction` method.
  * >> Function.toFunction(function() {return 1})() -> 1
  * >> Function.toFunction('+1')(2) -> 3
  * 
- * +Function.toFunction+ requires an argument that can be
+ * `Function.toFunction` requires an argument that can be
  * coerced to a function.  A nullary version can be
- * synthesized via +guard+:
+ * synthesized via `guard`:
  * >> Function.toFunction.guard()('1+') -> function()
  * >> Function.toFunction.guard()(null) -> null
  * 
- * +Function.toFunction+ doesn't coerce arbitrary values to functions.
+ * `Function.toFunction` doesn't coerce arbitrary values to functions.
  * It might seem convenient to treat
  * Function.toFunction(value) as though it were the
- * constant function that returned +value+, but it's rarely
- * useful and it hides errors.  Use +Function.K(value)+ instead,
+ * constant function that returned `value`, but it's rarely
+ * useful and it hides errors.  Use `Function.K(value)` instead,
  * or a lambda string when the value is a compile-time literal:
  * >> Function.K('a string')() -> "a string"
  * >> Function.toFunction('"a string"')() -> "a string"

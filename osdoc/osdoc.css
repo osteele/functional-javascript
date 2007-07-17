@@ -38,3 +38,5 @@
 .jsshow.docs .io samp {float:left;display:block}
 .jsshow.docs .io samp {padding-left:.25em}
 .jsshow.docs .io .clear {clear:left}
+
+.jsshow .math {white-space: pre}

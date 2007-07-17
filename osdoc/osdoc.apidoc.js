@@ -69,13 +69,21 @@ OSDoc.APIDoc.prototype.toHTML = function(fast) {
 
 OSDoc.APIDoc.Definition = function(name, params) {
     this.target = this.params = null;
+    this.paramTable = {};
     var match;
     if (match = name.match(/(.*\.)(\w+)/)) {
         name = match[2];
         this.target = match[1];
     }
     this.name = name;
-    this.params = params && params.replace(/\/\*(.*?)\*\//g, '$1').replace(/\.\.\./g, '&hellip;');
+    if (params) {
+        params = params.replace(/\/\*(.*?)\*\//g, '$1');
+        this.params = params.replace(/\.\.\./g, '&hellip;');
+        var table = this.paramTable;
+        this.params.scan(/\w+/, function(name) {
+            table[name] = true;
+        });
+    }
     this.tests = [];
     this.blocks = [];
 }
@@ -128,13 +136,8 @@ OSDoc.APIDoc.Definition.prototype.addDescriptionLine = function(line) {
     }
     function defn(text) {
         endParagraph();
-        text = text.replace(/[a-z]/gi, function(w) {
-            return '<var>'+w+'</var>';
-        }).replace(/<\/var>(?:(\d+)|_\{(.*?)\})/g, function(_, sub, sub2) {
-            return '</var><sub>' + (sub || sub2) + '</sub>';
-        });
-        var line = text.replace(/\.\.\./g, '&hellip;').replace(/==/, '=<sub class="def">def</sub> ')
-        blocks.push('<pre class="equivalence">' + line + '</pre>');
+        var html = OSDoc.toMathHTML(text).replace(/==/, '=<sub class="def">def</sub> ')
+        blocks.push('<pre class="equivalence">' + html + '</pre>');
     }
     function indented(line) {
         endParagraph();
@@ -142,7 +145,7 @@ OSDoc.APIDoc.Definition.prototype.addDescriptionLine = function(line) {
     }
     function para(line) {
         block || blocks.push(this.block = block = []);
-        line = line.escapeHTML().replace(/\+(\S+)\+/g, '<var>$1</var>').replace(/\*(\w+)\*/g, '<em>$1</em>');
+        line = line.escapeHTML()
         block.push(line);
     }
     // adders
@@ -185,10 +188,12 @@ OSDoc.APIDoc.Definition.prototype.toHTML = function(fast) {
     function type() {
         if (this.signature) {
             var text = this.signature.escapeHTML();
-            if (!fast)
-                text = text.replace(/-&gt;/g, '&rarr;').replace(/\.\.\./g, '&hellip;').replace(/(?:(\d+)|_{(.*?)})/g, function(_, sub, sub2) {
+            if (!fast) {
+                text = text.replace(/-&gt;/g, '&rarr;').replace(/\.\.\./g, '&hellip;');
+                text = text.replace(/(?:(\d+)|_{(.*?)})/g, function(_, sub, sub2) {
                     return '<sub>'+(sub||sub2)+'</sub>';
                 });
+            }
             spans.push('<div class="type"><span class="label">Type:</span> '+text+'</div>');
         }
     }
@@ -199,23 +204,25 @@ OSDoc.APIDoc.Definition.prototype.toHTML = function(fast) {
 
 OSDoc.APIDoc.Definition.prototype.getDescriptionHTML = function(fast) {
     var spans = [];
+    var paramTable = this.paramTable;
     var paras = this.blocks.select(pluck('length')).map(function(block) {
         // it may have already been formatted:
         if (typeof block == 'string') return block;
         var lines = ['<p>'].concat(block);
         lines.push('</p>');
         var html = block.join(' ');
-        if (!fast)
-            html = html.replace(/\bhttp:\S*/, function(url) {
-                var punct = '', match = url.match(/(.*)([\.,!])$/);
-                if (match) {
-                    url = match[1];
-                    punct = match[2];
-                }
-                return ['<a href="', url, '">', url, '</a>', punct].join('');
+        if (!fast) {
+            html = html.replace(/\[(https?:.*?)\]/, '<a href="$1">$1</a>');
+            html = html.replace(/\*(\w+?)\*/g, '<em>$1</em>');
+            html = html.replace(/\$(.+?)\$/g, OSDoc.toMathHTML.compose('_ s -> s'));
+            html = html.replace(/\`(.+?)\`/g, function(_, str) {
+                if (paramTable[str])
+                    return '<var>'+str+'</var>';
+                return '<code>'+str+'</code>';
             });
+        }
         return html;
-    });
+    }.bind(this));
     spans.push('<div class="description">');
     spans = spans.concat(paras);
     spans.push('</div>');
@@ -225,6 +232,7 @@ OSDoc.APIDoc.Definition.prototype.getDescriptionHTML = function(fast) {
 OSDoc.APIDoc.Section = function(title, level, lines) {
     this.tests = [];
     this.blocks = [];
+    this.paramTable = {};
     this.addDescriptionLine = OSDoc.APIDoc.Definition.prototype.addDescriptionLine;
     OSDoc.APIDoc.Definition.prototype.setDescription.call(this, lines);
     var tagName = 'h' + level;
@@ -283,4 +291,12 @@ OSDoc.APIDoc.Parser.prototype.processLine = function(line) {
             self.records.push(record);
         }
     }
+}
+
+OSDoc.toMathHTML = function(text) {
+    return '<span class="math">' + text.replace(/[a-z]/gi, function(w) {
+        return '<var>'+w+'</var>';
+    }).replace(/<\/var>(?:(\d+)|_\{(.*?)\})/g, function(_, sub, sub2) {
+        return '</var><sub>' + (sub || sub2) + '</sub>';
+    }).replace(/\.\.\./g, '&hellip;') + '</span>';
 }
