@@ -14,7 +14,7 @@
 OSDoc.Examples = function(options) {
     this.options = {headingLevel: 3,
                     staged: true,
-                    onSuccess: Function.I};
+                    onSuccess: Functional.I};
     for (var name in options||{})
         this.options[name] = options[name];
 };

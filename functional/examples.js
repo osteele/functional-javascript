@@ -134,11 +134,11 @@ trace(map(guard('2*', not('%2')), xs));
 // while `guard` can be used to replace them by null, but leave
 // the indices of the remaining elements unchanged:
 trace(filter('%2', xs));
-trace(map(guard(Function.K(null), '%2'), xs));
+trace(map(guard(Functional.K(null), '%2'), xs));
 // Replace odd numbers by 'odd'
-trace(map(guard(Function.K('odd'), '%2'), xs));
+trace(map(guard(Functional.K('odd'), '%2'), xs));
 // Or label "even" and "odd":
-trace(map(guard(Function.K('odd'), '%2', Function.K('even')), xs));
+trace(map(guard(Functional.K('odd'), '%2', Functional.K('even')), xs));
 // although we could also use any one of these for the last one:
 trace(map(curry('o[ix]', ['even', 'odd']).compose('%2'), xs));
 trace(map(curry('o[i%2]', ['even', 'odd']), xs));
@@ -249,7 +249,7 @@ trace([1, 2, 3].map('x*x'.lambda()).map('x+1'.lambda()));
 
 // Define an `onclick` function that abbreviates `Event.observe(_, 'click', ...)`:
 var onclick = Event.observe.bind(Event).partial(_, 'click');
-// These next three lines are equivalent, just applied to different targets:
+// These next three statements are parallel in their effect:
 Event.observe('e1', 'click', function(){alert('1')});
 onclick('e2', function(){alert('2')});
 onclick('e3', alert.bind(null).saturate('3'));

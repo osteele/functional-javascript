@@ -1,9 +1,9 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <title>Functional Javascript</title>
     <script type="text/javascript" src="/javascripts/prototype.js"></script>
-    <script type="text/javascript" src="/javascripts/gradients.js"></script>
+    <script type="text/javascript" src="../gradients.js"></script>
     <script type="text/javascript" src="functional.js"></script>
     <script type="text/javascript" src="../osdoc/osdoc.js"></script>
     <script type="text/javascript" src="evaluator.js"></script>
@@ -35,6 +35,9 @@
       #evaluator .output-column {background:white}
       #evaluator samp {color: black}
       table {background:#f9f9f9}
+      #ie-warning {font-size:large;background:#f66;position:relative;padding:5px 10px 1px 10px;max-width:550px}
+      #ie-warning .close {text-align:right;display:block;font-size:x-large;margin-bottom:.5em}
+      #ie-warning a {color:blue}
     </style>
   </head>
   <body>
@@ -44,6 +47,16 @@
       | <a href="http://osteele.com/blog/">announcement</a>
       | <a href="http://code.google.com/p/functional-javascript/">project page</a>
       | <a href="functional.js">view/download source</a>
+    </div>
+    <div id="ie-warning" style="display:none">
+      <a class="close" href="#">close</a>
+      <p>Sorry, this page doesn't look too hot in Internet Explorer!
+      The <em>Functional</em> library works in IE6, at least, but this
+      documentation page is poorly formatted for that browser.  Use <a
+      href="http://www.mozilla.org/products/firefox/">Mozilla
+      Firefox</a> or <a
+      href="http://www.apple.com/safari/download/">Safari 2.0</a> for
+      better viewing.</p>
     </div>
     <div id="header">
       <div id="intro">
@@ -56,9 +69,9 @@
       <code>partial</code> for partial function application; and
       <code>compose</code>, <code>guard</code>, and <code>until</code>
       for <a
-      href="http://en.wikipedia.org/wiki/Function-level_programming">function-level</a>
-      programming.  And all these functions accept strings, such as
-      <code>'x -> x+1'</code>, <code>'x+1'</code>, or
+      href="http://en.wikipedia.org/wiki/Function-level_programming">function-level
+      programming</a>.  And all these functions accept strings, such
+      as <code>'x -> x+1'</code>, <code>'x+1'</code>, or
       <code>'+1'</code> as synonyms for the more verbose
       <code>function(x) {return x+1}</code>.</p>
       

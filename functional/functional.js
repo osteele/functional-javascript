@@ -38,8 +38,8 @@ Functional.install = function(except) {
 
 /**
  * Returns a function that applies the last argument of this
- * function to its input, and the penultimate argument to this,
- * and so on.
+ * function to its input, and the penultimate argument to the
+ * result of the application, and so on.
  * == compose(f1, f2, f3..., fn)(args) == f1(f2(f3(...(fn(args...)))))
  * :: (a2 -> a1) (a3 -> a2)... (a... -> a_{n}) -> a... -> a1
  * >> compose('1+', '2*')(2) -> 5
@@ -89,7 +89,7 @@ Functional.map = function(fn, sequence, object) {
 /**
  * Applies `fn` to `init` and the first element of `sequence`,
  * and then to the result and the second element, and so on.
- * == reduce(fn, init, [x1, x2, x3]) == fn(fn(fn(init, x1), x2), x3)
+ * == reduce(f, init, [x0, x1, x2]) == f(f(f(init, x0), x1), x2)
  * :: (a b -> a) a [b] -> a
  * >> reduce('x y -> 2*x+y', 0, [1,0,1,0]) -> 10
  */
@@ -127,7 +127,7 @@ Functional.foldl = Functional.reduce;
 
 /**
  * Same as `foldl`, but applies the function from right to left.
- * == foldr(fn, init, [x1, x2, x3]) == fn(x1, fn(x2, fn(x3, init)))
+ * == foldr(f, init, [x0, x1, x2]) == fn(x0, f(x1, f(x2, init)))
  * :: (a b -> b) b [a] -> b
  * >> foldr('x y -> 2*x+y', 100, [1,0,1,0]) -> 104
  */
@@ -185,8 +185,8 @@ Functional.every = function(fn, sequence, object) {
  * Returns a function that returns `true` when $fn()$ returns false.
  * == fn.not()(args...) == !fn(args...)
  * :: (a -> boolean) -> (a -> boolean)
- * >> not(Function.K(true))() -> false
- * >> not(Function.K(false))() -> true
+ * >> not(Functional.K(true))() -> false
+ * >> not(Functional.K(false))() -> true
  */
 Functional.not = function(fn) {
     fn = Function.toFunction(fn);
@@ -472,17 +472,25 @@ Function.prototype.partial = function(/*args*/) {
  * == I(x) == x
  * == I == 'x'.lambda()
  * :: a -> a
- * >> Function.I(1) -> 1
+ * >> Functional.I(1) -> 1
  */
-Function.I = function(x) {return x};
+Functional.I = function(x) {return x};
 
 /**
  * Returns a "constant function" that returns `x`.
  * == K(x)(y) == x
  * == K(1) == '->1'.lambda()
  * :: a -> b -> a
+ * >> Functional.K(1)(2) -> 1
  */
-Function.K = function(x) {return function() {return x}}
+Functional.K = function(x) {return function() {return x}};
+
+/// A synonym for `Functional.I`
+Functional.id = Functional.I;
+
+/// A synonym for `Functional.K`
+Functional.constfn = Functional.K;
+
 
 /**
  * Returns a function that applies the first function to the
@@ -555,7 +563,7 @@ Function.prototype.uncurry = function() {
  * to the same arguments, but to an object that is the result of appyling
  * `filter` to the invocation object.
  * == fn.prefilterObject(filter).apply(object, args...) == fn.apply(filter(object), args...)
- * == fn.bind(object) == compose(fn.prefilterObject, Function.K(object))
+ * == fn.bind(object) == compose(fn.prefilterObject, Functional.K(object))
  * >> 'this'.lambda().prefilterObject('n+1').apply(1) -> 2
  */
 Function.prototype.prefilterObject = function(filter) {
@@ -651,7 +659,7 @@ Function.prototype.sequence = function(fn) {
  * `guard` returns true, and otherwise is equivalent to the application
  * of `otherwise` to the same arguments.
  * 
- * `guard` and `otherwise` default to `Function.I`.  `guard` with
+ * `guard` and `otherwise` default to `Functional.I`.  `guard` with
  * no arguments therefore returns a function that applies the
  * underlying function to its value only if the value is true,
  * and returns the value otherwise.
@@ -659,17 +667,17 @@ Function.prototype.sequence = function(fn) {
  * == f.guard(g ,h)(args...) == h(args...), when g(args...) is false
  * >> '[_]'.lambda().guard()(1) -> [1]
  * >> '[_]'.lambda().guard()(null) -> null
- * >> '[_]'.lambda().guard(null, Function.K('n/a'))(null) -> "n/a"
- * >> 'x+1'.lambda().guard('<10', Function.K(null))(1) -> 2
- * >> 'x+1'.lambda().guard('<10', Function.K(null))(10) -> null
- * >> '/'.lambda().guard('p q -> q', Function.K('n/a'))(1, 2) -> 0.5
- * >> '/'.lambda().guard('p q -> q', Function.K('n/a'))(1, 0) -> "n/a"
+ * >> '[_]'.lambda().guard(null, Functional.K('n/a'))(null) -> "n/a"
+ * >> 'x+1'.lambda().guard('<10', Functional.K(null))(1) -> 2
+ * >> 'x+1'.lambda().guard('<10', Functional.K(null))(10) -> null
+ * >> '/'.lambda().guard('p q -> q', Functional.K('n/a'))(1, 2) -> 0.5
+ * >> '/'.lambda().guard('p q -> q', Functional.K('n/a'))(1, 0) -> "n/a"
  * >> '/'.lambda().guard('p q -> q', '-> "n/a"')(1, 0) -> "n/a"
  */
 Function.prototype.guard = function(guard, otherwise) {
     var fn = this;
-    guard = Function.toFunction(guard || Function.I);
-    otherwise = Function.toFunction(otherwise || Function.I);
+    guard = Function.toFunction(guard || Functional.I);
+    otherwise = Function.toFunction(otherwise || Functional.I);
     return function() {
         return (guard.apply(this, arguments) ? fn : otherwise).apply(this, arguments);
     }
@@ -771,24 +779,24 @@ delete Functional.__initalFunctionState;
 String.prototype.lambda = function() {
     var params = [];
     var expr = this;
-    var sections = expr.split(/\s*->\s*/);
+    var sections = expr.ECMAsplit(/\s*->\s*/m);
     if (sections.length > 1) {
         while (sections.length) {
             expr = sections.pop();
-            params = sections.pop().split(/\s*,\s*|\s+/);
+            params = sections.pop().split(/\s*,\s*|\s+/m);
             sections.length && sections.push('(function('+params+'){return ('+expr+')})');
         }
     } else if (expr.match(/\b_\b/)) {
         params = '_';
     } else {
-        var m1 = expr.match(/^\s*(?:[+*\/%&|\^\.=<>]|!=)/);
-        var m2 = expr.match(/[+\-*\/%&|\^\.=<>!]\s*$/);
-        if (m1 || m2) {
-            if (m1) {
+        var leftSection = expr.match(/^\s*(?:[+*\/%&|\^\.=<>]|!=)/m);
+        var rightSection = expr.match(/[+\-*\/%&|\^\.=<>!]\s*$/m);
+        if (leftSection || rightSection) {
+            if (leftSection) {
                 params.push('$1');
                 expr = '$1' + expr;
             }
-            if (m2) {
+            if (rightSection) {
                 params.push('$2');
                 expr = expr + '$2';
             }
@@ -800,6 +808,25 @@ String.prototype.lambda = function() {
     }
     return new Function(params, 'return (' + expr + ')');
 }
+
+// IE6 split is not ECMAScript-compliant.  This breaks '->1'.lambda().
+// The test is from the ECMAScript reference.
+String.prototype.ECMAsplit =
+    ('ab'.split(/a*/).length > 1
+     ? String.prototype.split
+     : function(separator, limit) {
+         if (typeof limit != 'undefined')
+             throw "ECMAsplit: limit is unimplemented";
+         var result = this.split.apply(this, arguments),
+             re = RegExp(separator),
+             savedIndex = re.lastIndex,
+             match = re.exec(this);
+         if (match && match.index == 0)
+             result.unshift('');
+         re.lastIndex = savedIndex;
+         return result;
+     });
+
 
 /**
  * ^^ Duck-Typing
@@ -866,9 +893,9 @@ Function.prototype.toFunction = function() {
  * It might seem convenient to treat
  * Function.toFunction(value) as though it were the
  * constant function that returned `value`, but it's rarely
- * useful and it hides errors.  Use `Function.K(value)` instead,
+ * useful and it hides errors.  Use `Functional.K(value)` instead,
  * or a lambda string when the value is a compile-time literal:
- * >> Function.K('a string')() -> "a string"
+ * >> Functional.K('a string')() -> "a string"
  * >> Function.toFunction('"a string"')() -> "a string"
  */
 Function.toFunction = function(value) {

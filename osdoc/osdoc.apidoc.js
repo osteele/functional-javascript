@@ -14,7 +14,7 @@
 OSDoc.APIDoc = function(options) {
     this.options = {headingLevel: 3,
                     staged: true,
-                    onSuccess: Function.I};
+                    onSuccess: Functional.I};
     for (var name in options||{})
         this.options[name] = options[name];
 };
@@ -230,7 +230,7 @@ OSDoc.APIDoc.Section = function(title, level, lines) {
     var tagName = 'h' + level;
     var html = ['<', tagName, '>', title, '</', tagName, '>'].join('');
     html += OSDoc.APIDoc.Definition.prototype.getDescriptionHTML.call(this);
-    this.toHTML = Function.K(html);
+    this.toHTML = Functional.K(html);
 }
 
 OSDoc.APIDoc.Parser = function(options) {};

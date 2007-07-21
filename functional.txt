@@ -257,18 +257,20 @@ describes a problem into a program which describes a solution
 injection, projection, modification, and composition.  Injection lets you create a function when you don't have one.  In JavaScript, the +function+ keywords and the builtin functions.  Projection gets out of the function level; function application (to a value) does this.  Within the system, a function can be modified, and funcions can be composed.
 Function-level programming rests on three pedestals: composition, control, specialization.  First, it must be possible to combine existing functions into new functions.  The higher-order functions (and methods) +compose+, +sequence+, and +filterAt+ do this; "adjectives" such as +uncurry+ and +flip+ modify functions so that they can be properly composed.  Second, there need to be control structures.  +map+ and +reduce+ are examples of control structures; more exotic examples are +guard+ and +until+.  Finally, it must be possible to create specialized functions out of general ones.  Partial function application, of which +curry+ is a special case, does this.
 
-// Returns a function that has the same effect as this function, but returns
-// itself.  This is useless for pure-functional functions, but can be used
-// to make chainable methods in procedural/OO code.
-// == f.returning.apply(this, args...) == this, but with side effect of f()
-// Without +returning+:
-// >> var value = 1;
-// >> var object = {effector: function() {value += 1}};
-// >> object.effector() == object -> false
-// With +returning+:
-// >> object.effector.bind(object).returning() == object -> true
-// >> returning(object.effector.bind(object)) == object -> true
-// >> value -> 4
+/**
+ * Returns a function that has the same effect as this function, but returns
+ * itself.  This is useless for pure-functional functions, but can be used
+ * to make chainable methods in procedural/OO code.
+ * == f.returning.apply(this, args...) == this, but with side effect of f()
+ * Without +returning+:
+ * >> var value = 1;
+ * >> var object = {effector: function() {value += 1}};
+ * >> object.effector() == object -> false
+ * With +returning+:
+ * >> object.effector.bind(object).returning() == object -> true
+ * >> returning(object.effector.bind(object)) == object -> true
+ * >> value -> 4
+*/
 Function.prototype.returning = function(/*args...*/) {
     var fn = this;
     return function() {
@@ -276,3 +278,9 @@ Function.prototype.returning = function(/*args...*/) {
         return this;
     }
 }
+
+
+fix formatting problems: paragraphs, -&gt;
+add and, or?
+switch to jquery?
+make jdoc work w/out prototype?
