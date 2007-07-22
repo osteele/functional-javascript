@@ -6,6 +6,8 @@
  * Created: 2007-07-13
  * Modified: 2007-07-16
  *
+ * Pre-release version; not ready for prime time.
+ *
  * Inspired by Tim Peter's wonderful doctest for Python.
  */
 

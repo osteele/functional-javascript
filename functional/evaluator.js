@@ -4,7 +4,7 @@
  * License: MIT License
  * Homepage: http://osteele.com/javascripts/functional
  * Created: 2007-07-15
- * Modified: 2007-07-16
+ * Modified: 2007-07-21
  */
 
 Functional.install();

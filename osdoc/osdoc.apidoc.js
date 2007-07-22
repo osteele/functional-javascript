@@ -4,7 +4,9 @@
  * License: MIT License
  * Source: http://osteele.com/javascripts/osdoc
  * Created: 2007-07-11
- * Modified: 2007-07-16
+ * Modified: 2007-07-21
+ *
+ * Pre-release version; not ready for prime time.
  */
 
 // Options:

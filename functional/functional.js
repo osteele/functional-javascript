@@ -5,16 +5,16 @@
  * Homepage: http://osteele.com/javascripts/functional
  * Source: http://osteele.com/javascripts/functional/functional.js
  * Created: 2007-07-11
- * Version: 1.0; modified 2007-07-15
+ * Version: 1.0; modified 2007-07-21
  *
  * This file defines some higher-order functions for partial function
  * application, as well as some other utilities for functional programming.
- * It also defines methods that allow a string such as 'x+1' or
- * 'x -> x+1' to be used as though it were a function.
+ * It also defines methods that allow a string such as `x+1` or
+ * `x -> x+1` to be used as though it were a function.
  */
 
 
-/// This defines the namespace for higher-order functions.
+/// `Functional` defines the namespace for higher-order functions.
 var Functional = window.Functional || {};
 
 /**
@@ -932,13 +932,13 @@ Function.prototype.toFunction = function() {
  * by calling its `toFunction` method.
  * >> Function.toFunction(function() {return 1})() -> 1
  * >> Function.toFunction('+1')(2) -> 3
- * 
+ *
  * `Function.toFunction` requires an argument that can be
  * coerced to a function.  A nullary version can be
  * constructed via `guard`:
  * >> Function.toFunction.guard()('1+') -> function()
  * >> Function.toFunction.guard()(null) -> null
- * 
+ *
  * `Function.toFunction` doesn't coerce arbitrary values to functions.
  * It might seem convenient to treat
  * `Function.toFunction(value)` as though it were the
