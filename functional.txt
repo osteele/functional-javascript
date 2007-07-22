@@ -281,6 +281,5 @@ Function.prototype.returning = function(/*args...*/) {
 
 
 fix formatting problems: paragraphs, -&gt;
-add and, or?
 switch to jquery?
 make jdoc work w/out prototype?

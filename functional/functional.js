@@ -24,8 +24,8 @@ var Functional = window.Functional || {};
  * >> Functional.install()
  */
 Functional.install = function(except) {
-    var source = Functional;
-    var target = window;
+    var source = Functional,
+        target = window;
     for (var name in source)
         name == 'install'
         || name.charAt(0) == '_'
@@ -79,8 +79,8 @@ Functional.sequence = function(/*fn...*/) {
  */
 Functional.map = function(fn, sequence, object) {
     fn = Function.toFunction(fn);
-    var len = sequence.length;
-    var result = new Array(len);
+    var len = sequence.length,
+        result = new Array(len);
     for (var i = 0; i < len; i++)
         result[i] = fn.apply(object, [sequence[i], i]);
     return result;
@@ -95,8 +95,8 @@ Functional.map = function(fn, sequence, object) {
  */
 Functional.reduce = function(fn, init, sequence, object) {
     fn = Function.toFunction(fn);
-    var len = sequence.length;
-    var result = init;
+    var len = sequence.length,
+        result = init;
     for (var i = 0; i < len; i++)
         result = fn.apply(object, [result, sequence[i]]);
     return result;
@@ -110,8 +110,8 @@ Functional.reduce = function(fn, init, sequence, object) {
  */
 Functional.select = function(fn, sequence, object) {
     fn = Function.toFunction(fn);
-    var len = sequence.length;
-    var result = [];
+    var len = sequence.length,
+        result = [];
     for (var i = 0; i < len; i++) {
         var x = sequence[i];
         fn.apply(object, [x, i]) && result.push(x);
@@ -133,8 +133,8 @@ Functional.foldl = Functional.reduce;
  */
 Functional.foldr = function(fn, init, sequence, object) {
     fn = Function.toFunction(fn);
-    var len = sequence.length;
-    var result = init;
+    var len = sequence.length,
+        result = init;
     for (var i = len; --i >= 0; )
         result = fn.apply(object, [sequence[i], result]);
     return result;
@@ -142,22 +142,63 @@ Functional.foldr = function(fn, init, sequence, object) {
 
 /// ^^ Predicates
 
-/** Returns true when `$fn(x)$ returns true for some element $x$ of
+/**
+ * Returns a function that returns `true` when all the arguments, applied
+ * to the returned function's arguments, returns true.
+ * == and(f1, f2...)(args...) == f1(args...) && f2(args...)...
+ * :: [a -> boolean] a -> a
+ * >> and('>1', '>2')(2) -> false
+ * >> and('>1', '>2')(3) -> true
+ * >> and('>1', 'error()')(1) -> false
+ */
+function and() {
+    var args = map(Function.toFunction, arguments),
+        arglen = args.length;
+    return function() {
+        var value = true;
+        for (var i = 0; i < arglen; i++)
+            if (!(value = args[i].apply(this, arguments)))
+                break;
+        return value;
+    }
+}
+
+/**
+ * Returns a function that returns `true` when any argument, applied
+ * to the returned function's arguments, returns true.
+ * == or(f1, f2...)(args...) == f1(args...) || f2(args...)...
+ * :: [a -> boolean] a -> a
+ * >> or('>1', '>2')(1) -> false
+ * >> or('>1', '>2')(2) -> true
+ * >> or('>1', 'error()')(2) -> true
+ */
+function or() {
+    var args = map(Function.toFunction, arguments),
+        arglen = args.length;
+    return function() {
+        var value = false;
+        for (var i = 0; i < arglen; i++)
+            if ((value = args[i].apply(this, arguments)))
+                break;
+        return value;
+    }
+}
+
+/**
+ * Returns true when `$fn(x)$ returns true for some element $x$ of
  * `sequence`.
  * == some(fn, [x1, x2, x3]) == fn(x1) || fn(x2) || fn(x3)
- * :: (a -> boolean) [a] -> [a]
+ * :: (a -> boolean) [a] -> boolean
  * >> some('>2', [1,2,3]) -> true
  * >> some('>10', [1,2,3]) -> false
  */
 Functional.some = function(fn, sequence, object) {
     fn = Function.toFunction(fn);
-    var len = sequence.length;
-    var result = [];
-    var value = false;
-    for (var i = 0; i < len; i++) {
-        value = fn.call(object, sequence[i]);
-        if (value) return value;
-    }
+    var len = sequence.length,
+        value = false;
+    for (var i = 0; i < len; i++)
+        if ((value = fn.call(object, sequence[i])))
+            break;
     return value;
 }
 
@@ -165,19 +206,17 @@ Functional.some = function(fn, sequence, object) {
  * Returns true when $fn(x)$ is true for every element $x$ of
  * `sequence`.
  * == every(fn, [x1, x2, x3]) == fn(x1) && fn(x2) && fn(x3)
- * :: (a -> boolean) [a] -> [a]
+ * :: (a -> boolean) [a] -> boolean
  * >> every('<2', [1,2,3]) -> false
  * >> every('<10', [1,2,3]) -> true
  */
 Functional.every = function(fn, sequence, object) {
     fn = Function.toFunction(fn);
-    var len = sequence.length;
-    var result = [];
-    var value = true;
-    for (var i = 0; i < len; i++) {
-        value = fn.call(object, sequence[i]);
-        if (!value) return value;
-    }
+    var len = sequence.length,
+        value = true;
+    for (var i = 0; i < len; i++)
+        if (!(value = fn.call(object, sequence[i])))
+            break;
     return value;
 }
 
@@ -194,6 +233,7 @@ Functional.not = function(fn) {
         return !fn.apply(null, arguments);
     }
 }
+
 
 /// ^^ Utilities
 
