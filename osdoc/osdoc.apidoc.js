@@ -77,7 +77,7 @@ OSDoc.APIDoc.Definition = function(name, params) {
         this.target = match[1];
     }
     this.name = name;
-    if (params) {
+    if (typeof params == 'string') {
         params = params.replace(/\/\*(.*?)\*\//g, '$1');
         this.params = params.replace(/\.\.\./g, '&hellip;');
         var table = this.paramTable;
@@ -146,7 +146,6 @@ OSDoc.APIDoc.Definition.prototype.addDescriptionLine = function(line) {
     }
     function para(line) {
         block || blocks.push(this.block = block = []);
-        line = line.escapeHTML()
         block.push(line);
     }
     // adders
@@ -209,9 +208,9 @@ OSDoc.APIDoc.Definition.prototype.getDescriptionHTML = function(fast) {
     var paras = this.blocks.select(pluck('length')).map(function(block) {
         // it may have already been formatted:
         if (typeof block == 'string') return block;
-        var lines = ['<p>'].concat(block);
-        lines.push('</p>');
-        var html = block.join(' ');
+        var lines = ['<div>'].concat(block);
+        lines.push('</div>');
+        var html = lines.join(' ');
         if (!fast) html = OSDoc.inlineFormat(html, paramTable);
         return html;
     }.bind(this));
@@ -237,7 +236,8 @@ OSDoc.APIDoc.Parser = function(options) {};
 
 OSDoc.APIDoc.Parser.prototype.parse = function(text) {
     text = text.replace(/\/\*\*([\s\S]*?)\*\//g, function(_, block) {
-        return block.replace(/\n(?:[^\n]*\* )?/g, '\n/// ');
+        return block.replace(/\n(?: \* )?/g, '\n/// ');
+        //return block.replace(/\n(?:[^\n]*\* )?/g, '\n/// ');
     });
     this.lines = [];
     this.records = [];
@@ -256,7 +256,7 @@ OSDoc.APIDoc.Parser.prototype.processLine = function(line) {
         if (this.lines.grep(/@nodoc/).length) {
             ;
         } else if (match = line.match(/^((?:\w+\.)*\w+)\s*=\s*function\s*\((.*?)\)/)) {
-            recordDefinition(match[1], match[2]);
+            recordDefinition(match[1], match[2] || '');
         } else if (match = line.match(/^((?:\w+\.)*\w+)\s*=\s*(.*?);/)) {
             var master = this.keys[match[2]];
             recordDefinition(match[1], master && master.params);

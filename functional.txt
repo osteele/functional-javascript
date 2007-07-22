@@ -44,7 +44,7 @@ Some more examples, using just +map+, +filter+, and +reduce+:
 
 h4. Function-level programming
 
-Value-level programming manipulates values, transforming a sequence of inputs into an output.  "Function-level programming:"http://en.wikipedia.org/wiki/Function-level_programming manipulates functions, applying operations to functions to synthesize a new function.  It's this new function that transforms inputs into outputs.
+Value-level programming manipulates values, transforming a sequence of inputs into an output.  "Function-level programming:"http://en.wikipedia.org/wiki/Function-level_programming manipulates functions, applying operations to functions to construct a new function.  It's this new function that transforms inputs into outputs.
 
 Here are some examples of function-level programming with Functional.  There's more in the "docs":http://osteele.com/javascript/sources/functional.
   // apply '/' only to values that test true
@@ -140,7 +140,7 @@ use a variety of techniques to optimize function calls.  JavaScript is not one o
 
 Functional attempts to reduce the cost of higher-order-programming where doing so doesn't add to the code complexity or readability too much.  Each higher-order function and method is a small number of lines, and each function-returning method attempts to do as much work as possible outside the function that it returns, to optimize the case where the returned function is called more than once (as an argument to a higher-order function such as +map+, for example).
 
-Still, using Functional is expensive.  Invoking a synthetic function results in at least twice as many invocations as invoking the underlying function.  This isn't any different from using +bind+ in the Prototype library, say, but, the more of your program you write in a functional style --- and therefore the more method calls you introduce --- the slower it will be.  As with any library, be aware that you may have to hand-compile performance-critical sections of your code into an approximation of you would have written without the library anyway; if you think you already know what needs to be optimized (or that your whole program does), or you aren't comfortable with measuring performance periodically in order to intelligently trade execution time against implementation time, you may want to eschew libraries, especially higher-order ones.
+Still, using Functional is expensive.  Invoking a constructed function results in at least twice as many invocations as invoking the underlying function.  This isn't any different from using +bind+ in the Prototype library, say, but, the more of your program you write in a functional style --- and therefore the more method calls you introduce --- the slower it will be.  As with any library, be aware that you may have to hand-compile performance-critical sections of your code into an approximation of you would have written without the library anyway; if you think you already know what needs to be optimized (or that your whole program does), or you aren't comfortable with measuring performance periodically in order to intelligently trade execution time against implementation time, you may want to eschew libraries, especially higher-order ones.
 
 h4. Compatibility
 
@@ -283,3 +283,6 @@ Function.prototype.returning = function(/*args...*/) {
 fix formatting problems: paragraphs, -&gt;
 switch to jquery?
 make jdoc work w/out prototype?
+
+
+ * Note that `uncurry` is *not* the inverse of `curry`.

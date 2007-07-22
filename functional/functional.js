@@ -73,6 +73,9 @@ Functional.sequence = function(/*fn...*/) {
  * == map(f, [x1, x2...]) = [f(x, 0), f(x2, 1), ...]
  * :: (a ix -> boolean) [a] -> [a]
  * >> map('1+', [1,2,3]) -> [2, 3, 4]
+ * 
+ * If `object` is supplied, it is the object of the call.
+ * 
  * The fusion rule:
  * >> map('+1', map('*2', [1,2,3])) -> [3, 5, 7]
  * >> map(compose('+1', '*2'), [1,2,3]) -> [3, 5, 7]
@@ -151,7 +154,7 @@ Functional.foldr = function(fn, init, sequence, object) {
  * >> and('>1', '>2')(3) -> true
  * >> and('>1', 'error()')(1) -> false
  */
-function and() {
+Functional.and = function(/*functions...*/) {
     var args = map(Function.toFunction, arguments),
         arglen = args.length;
     return function() {
@@ -172,7 +175,7 @@ function and() {
  * >> or('>1', '>2')(2) -> true
  * >> or('>1', 'error()')(2) -> true
  */
-function or() {
+Functional.or = function(/*functions...*/) {
     var args = map(Function.toFunction, arguments),
         arglen = args.length;
     return function() {
@@ -185,9 +188,9 @@ function or() {
 }
 
 /**
- * Returns true when `$fn(x)$ returns true for some element $x$ of
+ * Returns true when $fn(x)$ returns true for some element $x$ of
  * `sequence`.
- * == some(fn, [x1, x2, x3]) == fn(x1) || fn(x2) || fn(x3)
+ * == some(f, [x1, x2, x3, ...]) == f(x1) || f(x2) || f(x3)...
  * :: (a -> boolean) [a] -> boolean
  * >> some('>2', [1,2,3]) -> true
  * >> some('>10', [1,2,3]) -> false
@@ -203,9 +206,9 @@ Functional.some = function(fn, sequence, object) {
 }
 
 /**
- * Returns true when $fn(x)$ is true for every element $x$ of
+ * Returns true when $fn(x)$ returns true for every element $x$ of
  * `sequence`.
- * == every(fn, [x1, x2, x3]) == fn(x1) && fn(x2) && fn(x3)
+ * == every(f, [x1, x2, x3, ...]) == f(x1) && f(x2) && f(x3)...
  * :: (a -> boolean) [a] -> boolean
  * >> every('<2', [1,2,3]) -> false
  * >> every('<10', [1,2,3]) -> true
@@ -222,7 +225,7 @@ Functional.every = function(fn, sequence, object) {
 
 /**
  * Returns a function that returns `true` when $fn()$ returns false.
- * == fn.not()(args...) == !fn(args...)
+ * == f.not()(args...) == !f(args...)
  * :: (a -> boolean) -> (a -> boolean)
  * >> not(Functional.K(true))() -> false
  * >> not(Functional.K(false))() -> true
@@ -240,7 +243,7 @@ Functional.not = function(fn) {
 /**
  * Returns a function that takes an object as an argument, and applies
  * `object`'s `methodName` method to `arguments`.
- * == fn(name)(object, args...) == object[name](args...)
+ * == invoke(name)(object, args...) == object[name](args...)
  * :: name args... -> object args2... -> object[name](args... args2...)
  * >> invoke('toString')(123) -> "123"
  */
@@ -254,7 +257,7 @@ Functional.invoke = function(methodName/*, arguments*/) {
 /**
  * Returns a function that takes an object, and returns the value of its
  * `name` property.  `pluck(name)` is equivalent to `'_.name'.lambda()`.
- * == fn.pluck(name)(object) == object[name]
+ * == pluck(name)(object) == object[name]
  * :: name -> object -> object[name]
  * >> pluck('length')("abc") -> 3
  */
@@ -285,7 +288,7 @@ Functional.until = function(pred, fn) {
 /**
  * :: [a] [b]... -> [[a b]...]
  * == zip(a, b...) == [[a0, b0], [a1, b1], ...]
- * Did you know that `zip` can transpose a matrix?:
+ * Did you know that `zip` can transpose a matrix?
  * >> zip.apply(null, [[1,2],[3,4]]) -> [[1, 3], [2, 4]]
  */
 Functional.zip = function(/*args...*/) {
@@ -332,8 +335,8 @@ Functional.__initalFunctionState = Functional._startRecordingMethodChanges(Funct
 /// ^^ Partial function application
 
 /**
- * Returns a bound method on `object`; optionally currying `args`.
- * == fn.bind(obj, args...)(args2...) == fn.apply(obj, [args..., args2...])
+ * Returns a bound method on `object`, optionally currying `args`.
+ * == f.bind(obj, args...)(args2...) == f.apply(obj, [args..., args2...])
  */
 Function.prototype.bind = function(object/*, args...*/) {
     var fn = this;
@@ -347,7 +350,7 @@ Function.prototype.bind = function(object/*, args...*/) {
  * Returns a function that applies the underlying function to `args`, and
  * ignores its own arguments.
  * :: (a... -> b) a... -> (... -> b)
- * == fn.saturate(args...)(args2...) == fn(args...)
+ * == f.saturate(args...)(args2...) == f(args...)
  * >> Math.max.curry(1, 2)(3, 4) -> 4
  * >> Math.max.saturate(1, 2)(3, 4) -> 2
  * >> Math.max.curry(1, 2).saturate()(3, 4) -> 2
@@ -371,10 +374,13 @@ Function.prototype.saturate = function(/*args*/) {
  * >> '+'.lambda()(1,2)(3) -> error
  * >> '+'.lambda().ncurry(2).aritize(1)(1,2)(3) -> 4
  * 
- * `aritize` is useful to remove optional arguments from a function that is passed
- * to a higher-order function that supplies *different* optional arguments.
+ * `aritize` is useful to remove optional arguments from a function that
+ * is passed to a higher-order function that supplies *different* optional
+ * arguments.
+ * 
  * For example, many implementations of `map` and other collection
- * functions call the function argument with both the collection element
+ * functions, including those in this library, call the function argument
+ *  with both the collection element
  * and its position.  This is convenient when expected, but can wreak
  * havoc when the function argument is a curried function that expects
  * a single argument from `map` and the remaining arguments from when
@@ -391,7 +397,7 @@ Function.prototype.aritize = function(n) {
  * Returns a function that, applied to an argument list $arg2$,
  * applies the underlying function to $args ++ arg2$.
  * :: (a... b... -> c) a... -> (b... -> c)
- * == fn.curry(args...)(args2...) == fn(args..., args2...)
+ * == f.curry(args1...)(args2...) == f(args1..., args2...)
  * 
  * Note that, unlike in languages with true partial application such as Haskell,
  * `curry` and `uncurry` are not inverses.  This is a repercussion of the
@@ -414,7 +420,7 @@ Function.prototype.curry = function(/*args...*/) {
 /*
  * Right curry.  Returns a function that, applied to an argument list $args2$,
  * applies the underlying function to $args2 + args$.
- * == fn.curry(args...)(args2...) == fn(args2..., args...)
+ * == f.curry(args1...)(args2...) == f(args2..., args1...)
  * :: (a... b... -> c) b... -> (a... -> c)
  */
 Function.prototype.rcurry = function(/*args...*/) {
@@ -517,9 +523,8 @@ Function.prototype.partial = function(/*args*/) {
 Functional.I = function(x) {return x};
 
 /**
- * Returns a "constant function" that returns `x`.
+ * Returns a constant function that returns `x`.
  * == K(x)(y) == x
- * == K(1) == '->1'.lambda()
  * :: a -> b -> a
  * >> Functional.K(1)(2) -> 1
  */
@@ -537,7 +542,7 @@ Functional.constfn = Functional.K;
  * result of the second, but passes all its arguments too.
  * == S(f, g)(args...) == f(g(args...), args...)
  * 
- * This is useful to compose functions when each needs access
+ * This is useful for composing functions when each needs access
  * to the arguments to the composed function.  For example,
  * the following function multiples its last two arguments,
  * and adds the first to that.
@@ -560,9 +565,13 @@ Function.S = function(f, g) {
 /**
  * Returns a function that swaps its first two arguments before
  * passing them to the underlying function.
- * == fn.flip()(a, b, c...) == fn(b, a, c...)
+ * == f.flip()(a, b, c...) == f(b, a, c...)
  * :: (a b c...) -> (b a c...)
  * >> ('a/b'.lambda()).flip()(1,2) -> 2
+ * 
+ * For more general derangements, you can also use `prefilterSlice`
+ * with a string lambda:
+ * >> '100*a+10*b+c'.lambda().prefilterSlice('a b c -> [b, c, a]')(1,2,3) -> 231
  */
 Function.prototype.flip = function() {
     var fn = this;
@@ -577,9 +586,9 @@ Function.prototype.flip = function() {
  * Returns a function that applies the underlying function to its
  * first argument, and the result of that application to the remaining
  * arguments.
- * == fn.uncurry(a, b...) == fn(a)(b...)
+ * == f.uncurry(a, b...) == f(a)(b...)
  * :: (a -> b -> c) -> (a, b) -> c
- * >> ('a -> b -> a/b'.lambda()).uncurry()(1,2) -> 0.5
+ * >> 'a -> b -> a/b'.lambda().uncurry()(1,2) -> 0.5
  * 
  * Note that `uncurry` is *not* the inverse of `curry`.
  */
@@ -898,7 +907,8 @@ String.prototype.call = function() {
 /**
  * Returns a `Function` that perfoms the action described by this
  * string.  If the string contains a `return`, applies
- * `new Function` to it.  Otherwise, calls `lambda`.
+ * `new Function` to it.  Otherwise, this function returns
+ *  the result of `this.lambda()`.
  * >> '+1'.toFunction()(2) -> 3
  * >> 'return 1'.toFunction()(1) -> 1
  */
@@ -925,13 +935,13 @@ Function.prototype.toFunction = function() {
  * 
  * `Function.toFunction` requires an argument that can be
  * coerced to a function.  A nullary version can be
- * synthesized via `guard`:
+ * constructed via `guard`:
  * >> Function.toFunction.guard()('1+') -> function()
  * >> Function.toFunction.guard()(null) -> null
  * 
  * `Function.toFunction` doesn't coerce arbitrary values to functions.
  * It might seem convenient to treat
- * Function.toFunction(value) as though it were the
+ * `Function.toFunction(value)` as though it were the
  * constant function that returned `value`, but it's rarely
  * useful and it hides errors.  Use `Functional.K(value)` instead,
  * or a lambda string when the value is a compile-time literal:

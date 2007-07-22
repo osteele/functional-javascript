@@ -170,8 +170,9 @@ trace(list.rncurry(4,1,2)(3));
 trace(list.rncurry(4,1,2)(3,4));
 // [r]curry can't do this because it doesn't
 // in general know the polyadicity of the underlying function.
-// (Sometimes `fn.length` works, but some functions don't declare
-// all their arguments, so sometimes this lies.)
+// (Sometimes `fn.length` works, but some functions, especially
+// constructed functions, don't declare all their arguments, so
+// `fn.length` this lies.)
 trace(list.curry(1,2)(3));
 
 // ^^ Partial function application
