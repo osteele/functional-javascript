@@ -9,10 +9,14 @@
  * Pre-release version; not ready for prime time.
  */
 
-// Options:
-//   headingLevel: hn for topmost headings; default 3
-//   target: an HTML Element that is set to the docs on completion
-//   onSuccess: called when load completes
+/**
+ * Options:
+ *   all: include undocumented elements
+ *   headingLevel: hn for topmost headings; default 3
+ *   staged: render incrementally if true
+ *   target: an HTML Element that is set to the docs on completion
+ *   onSuccess: called when load completes
+ */
 OSDoc.APIDoc = function(options) {
     this.options = {headingLevel: 3,
                     staged: true,
@@ -21,7 +25,7 @@ OSDoc.APIDoc = function(options) {
         this.options[name] = options[name];
 };
 
-// Load +url+ and parse its contents.
+/// Load +url+ and parse its contents.
 OSDoc.APIDoc.prototype.load = function(url) {
     this.options.target && (this.options.target.innerHTML = OSDoc.loadingHeader);
     new Ajax.Request(
@@ -31,7 +35,7 @@ OSDoc.APIDoc.prototype.load = function(url) {
     return this;
 }
 
-// Parse +text+.  If +options.target+ is specified, update it.
+/// Parse +text+.  If +options.target+ is specified, update it.
 OSDoc.APIDoc.prototype.parse = function(text) {
     this.text = OSDoc.stripHeader(text);
     this.updateTarget(this.options.staged && 0);
@@ -46,7 +50,7 @@ OSDoc.APIDoc.prototype.updateTarget = function(stage) {
         this.options.target.innerHTML = OSDoc.previewText(text);
         break;
     case 1:
-        this.records = this.records || (new OSDoc.APIDoc.Parser).parse(text);
+        this.records = this.records || new OSDoc.APIDoc.Parser(this.options).parse(text);
         this.options.target.innerHTML = OSDoc.processingHeader + this.toHTML(true);
         break;
     default:
@@ -234,7 +238,9 @@ OSDoc.APIDoc.Section = function(title, level, lines) {
     this.toHTML = Functional.K(html);
 }
 
-OSDoc.APIDoc.Parser = function(options) {};
+OSDoc.APIDoc.Parser = function(options) {
+    this.options = options;
+}
 
 OSDoc.APIDoc.Parser.prototype.parse = function(text) {
     text = text.replace(/\/\*\*([\s\S]*?)\*\//g, function(_, block) {
@@ -254,7 +260,7 @@ OSDoc.APIDoc.Parser.prototype.processLine = function(line) {
     var match;
     if (match = line.match(/^\/\/\/ (.*)/)) {
         this.lines.push(match[1]);
-    } else if (this.lines.length) {
+    } else if (this.lines.length || this.options.all) {
         if (this.lines.grep(/@nodoc/).length) {
             ;
         } else if (match = line.match(/^((?:\w+\.)*\w+)\s*=\s*function\s*\((.*?)\)/)) {
