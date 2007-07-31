@@ -11,7 +11,7 @@ if (!isset($title)) {
 </div>
 <?php } ?>
 
-<div style="font-size:small">These have been tested in Firefox 1.5, Safari 2.0, and IE 6.</div>
+<div style="font-size:small">Unless otherwise noted, these have been tested in Firefox 1.5, Safari 2.0, and IE 6.</div>
 
 <h3>Graphics</h3>
 <dl>
@@ -36,6 +36,24 @@ if (!isset($title)) {
 
 <h3>Utilities</h3>
 <dl>
+  <dt><a href="/sources/javascript/functional">Functional</a></dt>
+  <dd><dfn>Functional</dfn> is a library for functional programming in
+  JavaScript.  It defines the standard higher-order functions such as
+  <code>map</code>, <code>filter</code>, and <code>reduce</code>.  It
+  defines functions such as <code>curry</code>, <code>rcurry</code>,
+  and <code>partial</code> for partial function application; and
+  <code>compose</code>, <code>guard</code>, and <code>until</code> for
+  <a
+  href="http://en.wikipedia.org/wiki/Function-level_programming">function-level
+  programming</a>.  It also defines <dfn>string lambdas</dfn>, which
+  allow strings such as <code>'x -> x+1'</code>, <code>'x+1'</code>,
+  or <code>'+1'</code> as synonyms for the more verbose
+  <code>function(x) {return x+1}</code>.
+  <a href="/sources/javascript/functional/functional.js">Source</a>,
+  <a href="http://osteele.com/archives/2007/07/functional-javascript">blog</a>.
+  <a href="/sources/javascript/functional/">Demo &amp; docs</a>.
+  </dd>
+  
   <dt><a href="/sources/javascript/docs/divstyle">DivStyle</a></dt>
   <dd><tt>DivStyle</tt> lets you write CSS inside <code>&lt;div&gt;</code> tags.  Why?  So that you can use properties that CSS doesn't define.  The <a href="/sources/javascript/docs/gradients">gradient library</a>, for example, uses this to define <tt>gradient-start-color</tt>, <tt>gradient-end-color</tt>, and <tt>border-radius</tt> properties.  <a href="/sources/javascript/divstyle.js">Source</a>, <a href="/sources/javascript/docs/divstyle">docs</a>.</dd>
 </dl>

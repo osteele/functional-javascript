@@ -1,0 +1,34 @@
+refactor as state machine:
+
+base:
+///(.*) -> {apidocline}
+/** -> block-apidoc
+/* -> block-comment
+^function name -> {function}
+^var name -> {var}
+^Name...prototype = function -> {method}
+^Name...prototype = -> {member}
+^Name... = function -> {classMethod}
+^Name... = -> {classMember}
+
+block apidoc:
+(.*?)*/ -> {apidocline} base
+.* -> {apidocline}
+
+block comment:
+*/ -> base
+
+refactor within apidoc as comment
+
+base:
+
+
+New features:
+- document object slots
+- recognize nested class definition
+- hide private functions
+- roll up class definitions
+- recognize subclasses
+- show inline docs
+- add ToC
+- remove prototype dependency?

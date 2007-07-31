@@ -295,7 +295,7 @@ OSGradient.prototype.attachGradient = function(parent, gradient) {
 /*
  * Utilities
  */
-try {OSUtils} catch(e) {OSUtils = {}}
+OSUtils = window.OSUtils || {};
 if (!OSUtils.color) {OSUtils.color = {}}
 if (!OSUtils.Array) {OSUtils.Array = {}}
 

@@ -14,8 +14,9 @@ var gEval;
 var gExamples, gDocs;
 
 function initialize() {
-    $('noscript').innerHTML = $('noscript').innerHTML.replace(/<span.*?<\/span>/,
-                                                              'If this message remains on the screen,');
+    $('noscript').innerHTML = $('noscript').innerHTML.replace(
+            /<span.*?<\/span>/,
+        'If this message remains on the screen,');
     gExamples = new OSDoc.Examples({onSuccess: noteCompletion.saturate('examples'), target: $('examples')}).load('examples.js');
     gDocs = new OSDoc.APIDoc({onSuccess: noteCompletion.saturate('docs'), target: $('docs')}).load('functional.js');
     gEval = new Evaluator('#evaluator', {onUpdate: showEvaluator});
@@ -70,8 +71,10 @@ function noteCompletion(flag) {
         $('evaluator').show();
         var inputs = $$('kbd');
         gEval.makeClickable(inputs);
-        window.location.search.match(/[\?&]test\b/) &&
-            gDocs.runTests();
+        if (window.location.search.match(/[\?&]test\b/)) {
+            var results = gDocs.runTests();
+            alert(results.toHTML());
+        }
         scheduleGradientReset();
     }
 }

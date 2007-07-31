@@ -4,23 +4,24 @@
  * License: MIT License
  * Homepage: http://osteele.com/javascripts/functional
  * Source: http://osteele.com/javascripts/functional/functional.js
+ * Changes: http://osteele.com/javascripts/functional/CHANGES
  * Created: 2007-07-11
- * Version: 1.0; modified 2007-07-21
+ * Modified: 2007-07-22
+ * Version: 1.0.1
  *
- * This file defines some higher-order functions for partial function
- * application, as well as some other utilities for functional programming.
- * It also defines methods that allow a string such as `x+1` or
- * `x -> x+1` to be used as though it were a function.
+ * This file defines some higher-order methods and functions for functional and
+ * function-level programming.  It also defines "string lambdas", that allow strings
+ * such as `x+1` and `x -> x+1` to be used in some contexts as functions.
  */
 
 
-/// `Functional` defines the namespace for higher-order functions.
+/// `Functional` is the namespace for higher-order functions.
 var Functional = window.Functional || {};
 
 /**
- * Copies all the public functions in `Functional`, except this function
- * and the functions named in the optional hash `except`, into the global
- * namespace.
+ * This function copies all the public functions in `Functional` except itself
+ * into the global namespace.  If the optional argument $except$ is present,
+ * functions named by its property names are not copied.
  * >> Functional.install()
  */
 Functional.install = function(except) {
@@ -45,9 +46,10 @@ Functional.install = function(except) {
  * >> compose('1+', '2*')(2) -> 5
  */
 Functional.compose = function(/*fn...*/) {
-    var fns = Functional.map(Function.toFunction, arguments);
+    var fns = Functional.map(Function.toFunction, arguments),
+        arglen = fns.length;
     return function() {
-        for (var i = fns.length; --i >= 0; )
+        for (var i = arglen; --i >= 0; )
             arguments = [fns[i].apply(this, arguments)];
         return arguments[0];
     }
@@ -60,9 +62,10 @@ Functional.compose = function(/*fn...*/) {
  * >> sequence('1+', '2*')(2) -> 6
  */
 Functional.sequence = function(/*fn...*/) {
-    var fns = Functional.map(Function.toFunction, arguments);
+    var fns = Functional.map(Function.toFunction, arguments),
+        arglen = fns.length;
     return function() {
-        for (var i = 0; i < fns.length; i++)
+        for (var i = 0; i < arglen; i++)
             arguments = [fns[i].apply(this, arguments)];
         return arguments[0];
     }
@@ -155,7 +158,7 @@ Functional.foldr = function(fn, init, sequence, object) {
  * >> and('>1', 'error()')(1) -> false
  */
 Functional.and = function(/*functions...*/) {
-    var args = map(Function.toFunction, arguments),
+    var args = Functional.map(Function.toFunction, arguments),
         arglen = args.length;
     return function() {
         var value = true;
@@ -176,7 +179,7 @@ Functional.and = function(/*functions...*/) {
  * >> or('>1', 'error()')(2) -> true
  */
 Functional.or = function(/*functions...*/) {
-    var args = map(Function.toFunction, arguments),
+    var args = Functional.map(Function.toFunction, arguments),
         arglen = args.length;
     return function() {
         var value = false;
@@ -189,7 +192,7 @@ Functional.or = function(/*functions...*/) {
 
 /**
  * Returns true when $fn(x)$ returns true for some element $x$ of
- * `sequence`.
+ * `sequence`.  The returned function short-circuits.
  * == some(f, [x1, x2, x3, ...]) == f(x1) || f(x2) || f(x3)...
  * :: (a -> boolean) [a] -> boolean
  * >> some('>2', [1,2,3]) -> true
@@ -207,7 +210,7 @@ Functional.some = function(fn, sequence, object) {
 
 /**
  * Returns true when $fn(x)$ returns true for every element $x$ of
- * `sequence`.
+ * `sequence`.  The returned function short-circuits.
  * == every(f, [x1, x2, x3, ...]) == f(x1) && f(x2) && f(x3)...
  * :: (a -> boolean) [a] -> boolean
  * >> every('<2', [1,2,3]) -> false
@@ -237,8 +240,45 @@ Functional.not = function(fn) {
     }
 }
 
+/**
+ * Returns a function that returns true when this function's arguments
+ * applied to that functions are always the same.  The returned function
+ * short-circuits.
+ * == equal(f1, f2...)(args...) == f1(args...) == f2(args...)...
+ * :: [a... -> b] -> a... -> b
+ * >> equal()() -> true
+ * >> equal(K(1))() -> true
+ * >> equal(K(1), K(1))() -> true
+ * >> equal(K(1), K(2))() -> false
+ * >> equal(K(1), K(2), 'error()')() -> false
+ */
+Functional.equal = function(/*fn...*/) {
+    var arglen = arguments.length,
+        args = Functional.map(Function.toFunction, arguments);
+    if (!arglen) return Functional.K(true);
+    // if arglen == 1 it's also constant true, but
+    // call it for effect.
+    return function() {
+        var value = args[0].apply(this, arguments);
+        for (var i = 1; i < arglen; i++)
+            if (value != args[i].apply(this, args))
+                return false;
+        return true;
+    }
+}
+
 
 /// ^^ Utilities
+
+/**
+  * Returns its argument coerced to a function.
+  * >> lambda(1+)(2) -> 3
+  * >> lambda(function(n){return n+1})(2) -> 3
+  */
+Functional.lambda = function(object) {
+    return object.toFunction();
+}
+
 
 /**
  * Returns a function that takes an object as an argument, and applies
@@ -292,11 +332,11 @@ Functional.until = function(pred, fn) {
  * >> zip.apply(null, [[1,2],[3,4]]) -> [[1, 3], [2, 4]]
  */
 Functional.zip = function(/*args...*/) {
-    var n = Math.min.apply(null, map('.length', arguments));
+    var n = Math.min.apply(null, Functional.map('.length', arguments));
     var results = new Array(n);
     for (var i = 0; i < n; i++) {
         var key = String(i);
-        results[key] = map(pluck(key), arguments);
+        results[key] = Functional.map(pluck(key), arguments);
     };
     return results;
 }
@@ -808,10 +848,10 @@ delete Functional.__initalFunctionState;
  * >> 'point.x'.lambda()({x:1, y:2}) -> 1
  * >> '({x:1, y:2})[key]'.lambda()('x') -> 1
  * 
- * Implicit parameter detection looks inside regular expression literals for
- * variable names.  It doesn't know to ignore JavaScript keywords and bound variables.
- * (The only way you can get these last two if with a function literal inside the
- * string.  This is outside the use case for string lambdas.)
+ * Implicit parameter detection mistakenly looks inside regular expression literals
+ * for variable names.  It also doesn't know to ignore JavaScript keywords and bound
+ * variables.  (The only way you can get these last two is with a function literal
+ * inside the string.  This is outside the intended use case for string lambdas.)
  * Use `_` (to define a unary function) or `->`, if the string contains anything
  * that looks like a free variable but shouldn't be used as a parameter, or
  * to specify parameters that are ordered differently from their first
@@ -838,6 +878,7 @@ String.prototype.lambda = function() {
     } else if (expr.match(/\b_\b/)) {
         params = '_';
     } else {
+        // test whether an operator appears on the left (or right), respectively
         var leftSection = expr.match(/^\s*(?:[+*\/%&|\^\.=<>]|!=)/m);
         var rightSection = expr.match(/[+\-*\/%&|\^\.=<>!]\s*$/m);
         if (leftSection || rightSection) {
@@ -850,31 +891,16 @@ String.prototype.lambda = function() {
                 expr = expr + '$2';
             }
         } else {
-            var vars = this.replace(/(?:\b[A-Z]|\.[a-zA-Z_$])[a-zA-Z_$\d]*|[a-zA-Z_$][a-zA-Z_$\d]*:|this|arguments|'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g, '').match(/([a-z_$][a-z_$\d]*)/gi) || []; // '
+            // `replace` removes symbols that are capitalized, follow '.', precede
+            // ':', are 'this' or 'arguments'; and also the insides of strings
+            // (by a crude test).  `match` extracts the remaining symbols.
+            var vars = this.replace(/(?:\b[A-Z]|\.[a-zA-Z_$])[a-zA-Z_$\d]*|[a-zA-Z_$][a-zA-Z_$\d]*\s*:|this|arguments|'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g, '').match(/([a-z_$][a-z_$\d]*)/gi) || []; // '
             for (var i = 0, v; v = vars[i++]; )
                 params.indexOf(v) >= 0 || params.push(v);
         }
     }
     return new Function(params, 'return (' + expr + ')');
 }
-
-// IE6 split is not ECMAScript-compliant.  This breaks '->1'.lambda().
-// The test is from the ECMAScript reference.
-String.prototype.ECMAsplit =
-    ('ab'.split(/a*/).length > 1
-     ? String.prototype.split
-     : function(separator, limit) {
-         if (typeof limit != 'undefined')
-             throw "ECMAsplit: limit is unimplemented";
-         var result = this.split.apply(this, arguments),
-             re = RegExp(separator),
-             savedIndex = re.lastIndex,
-             match = re.exec(this);
-         if (match && match.index == 0)
-             result.unshift('');
-         re.lastIndex = savedIndex;
-         return result;
-     });
 
 
 /**
@@ -951,3 +977,26 @@ Function.prototype.toFunction = function() {
 Function.toFunction = function(value) {
     return value.toFunction();
 }
+
+// Utilities
+
+// IE6 split is not ECMAScript-compliant.  This breaks '->1'.lambda().
+// ECMAsplit is an ECMAScript-compliant `split`, although only for
+// one argument.
+String.prototype.ECMAsplit =
+    // The test is from the ECMAScript reference.
+    ('ab'.split(/a*/).length > 1
+     ? String.prototype.split
+     : function(separator, limit) {
+         if (typeof limit != 'undefined')
+             throw "ECMAsplit: limit is unimplemented";
+         var result = this.split.apply(this, arguments),
+             re = RegExp(separator),
+             savedIndex = re.lastIndex,
+             match = re.exec(this);
+         if (match && match.index == 0)
+             result.unshift('');
+         // in case `separator` was already a RegExp:
+         re.lastIndex = savedIndex;
+         return result;
+     });
