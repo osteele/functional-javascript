@@ -1,0 +1,8 @@
+ * Version: 1.0.1 (2007-07-22)
+Added `equal`.
+Added qualifiers to internal use of `map`.
+
+ * Version: 1.0 2007-07-21
+Public release.
+
+ * Created: 2007-07-11
