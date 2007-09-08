@@ -1,8 +1,5 @@
 Milestones:
-- function f() {}
-- C.a = function
 - C.prototype.a = function
-- render math
 - render ::, ==, etc.
 - sections
 - Functional
