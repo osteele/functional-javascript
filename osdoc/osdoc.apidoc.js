@@ -46,7 +46,7 @@ OSDoc.APIDoc.prototype.parse = function(text) {
 OSDoc.APIDoc.prototype.updateTarget = function(stage) {
     if (!this.options.target) return;
     var model = new OSDoc.APIDoc.Parser().parse(this.text),
-        html = new HTMLFormatter().render(model);
+        html = new HTMLFormatter({headingLevel:this.options.headingLevel}).render(model);
     //info(html||'no output');
     this.options.target.innerHTML = html;
 
@@ -117,7 +117,10 @@ RopeWriter.prototype = {
  * HTML Formatter
  */
 
-function HTMLFormatter() {}
+function HTMLFormatter(options) {
+    this.options = options||{};
+    this.commentFormatter = new CommentFormatter(options);
+}
 
 HTMLFormatter.prototype = {
     render: function(model) {
@@ -133,6 +136,8 @@ HTMLFormatter.prototype = {
             this.functionDefinition(defn);
         else if (defn instanceof VariableDefinition)
             this.variableDefinition(defn);
+        else if (defn instanceof SectionBlock)
+            this.section(defn);
         else
             throw "unknown definition";
     },
@@ -143,12 +148,13 @@ HTMLFormatter.prototype = {
 
     functionDefinition: function(defn) {
         var writer = this.writer;
-        writer.append('<div class="record">');
+        writer.append('<div class="record"><div class="signature">');
         if (defn.container.name)
             writer.append(this.qualifiedName(defn), ' = function(');
         else
             writer.append('function ', this.qualifiedName(defn), '(');
         writer.append('<span class="params">', defn.parameters.join(', '), '</span>)\n');
+        writer.append('</div>');
         this.doc(defn);
         writer.append('</div>');
         this.members(defn);
@@ -156,11 +162,16 @@ HTMLFormatter.prototype = {
 
     variableDefinition: function(defn) {
         var writer = this.writer;
-        writer.append('<div class="record">');
+        writer.append('<div class="record"><div class="signature">');
         writer.append('var ', this.qualifiedName(defn), ';');
+        writer.append('</div>');
         this.doc(defn);
         writer.append('</div>');
         this.members(defn);
+    },
+
+    section: function(defn) {
+        this.commentFormatter.render(defn.docs, this.writer);
     },
 
     qualifiedName: function(defn) {
@@ -173,7 +184,7 @@ HTMLFormatter.prototype = {
 
     doc: function(defn) {
         var writer = this.writer;
-        new CommentFormatter().render(defn.docs, writer);
+        this.commentFormatter.render(defn.docs, writer);
     }
 }
 
@@ -215,6 +226,10 @@ function VariableDefinition(name, options) {
     this.definitions = [];
 }
 
+function SectionBlock(docs) {
+    this.docs = docs;
+}
+
 function Model(name) {
     this.name = name;
     this.path = name ? [name] : [];
@@ -252,7 +267,7 @@ Model.prototype = {
  * Comments
  */
 
-var CommentBlockTypes = makeEnum('equivalence formatted output paragraph signature');
+var CommentBlockTypes = makeEnum('equivalence formatted output paragraph signature heading');
 
 function CommentParser() {
     this.reset();
@@ -260,6 +275,7 @@ function CommentParser() {
 
 CommentParser.rules = (function() {
     var rules = [
+            /^\s*(\^+)\s*(.*)/, heading,
             /^\s*::\s*(.*)/, CommentBlockTypes.signature,
             /^>>\s*(.*)/, CommentBlockTypes.output,
             /^==\s*(.*)/, CommentBlockTypes.equivalence,
@@ -274,6 +290,9 @@ CommentParser.rules = (function() {
     function endBlock() {
         this.endBlock();
     }
+    function heading(level, title) {
+        this.create(CommentBlockTypes.heading, {level:level.length}).append(title);
+    }
 })();
 
 CommentParser.prototype = {
@@ -284,7 +303,6 @@ CommentParser.prototype = {
                 action = rules[i++],
                 match = item(line);
             if (match) {
-                //info(action, match.slice(1));
                 if (typeof action == 'function')
                     action.apply(this, match.slice(1));
                 else {
@@ -295,6 +313,14 @@ CommentParser.prototype = {
         }
         if (!match)
             throw "no match";
+    },
+
+    create: function(type, options) {
+        var lines = [];
+        var block = this.block = {type:type, lines:lines, append:lines.push.bind(lines)};
+        block = $H(block).merge(options||{});
+        this.blocks.push(block);
+        return block;
     },
 
     createOrAdd: function(type) {
@@ -317,7 +343,9 @@ CommentParser.prototype = {
     }
 }
 
-function CommentFormatter() {}
+function CommentFormatter(options) {
+    this.options = options||{};
+}
 
 Function.prototype.hoisted = function() {
     var fn = this;
@@ -339,6 +367,11 @@ CommentFormatter.byType = {
     formatted: function(line, writer) {
         writer.append('<pre>&nbsp;&nbsp;', line.escapeHTML(), '</pre>');
     }.hoisted(),
+
+    heading: function(title, writer, block) {
+        var tagName = 'h' + ((this.options.headingLevel||1)-1 + block.level);
+        writer.append('<', tagName, '>', title, '</', tagName, '>');
+    },
 
     output: function(text, writer) {
         var match = text.match(/\s*(.*)\s*->\s*(.*?)\s*$/),
@@ -376,17 +409,19 @@ CommentFormatter.prototype = {
             function(block) {
                 this.renderBlock(block, writer);
             }.bind(this));
+//         writer.append('<div class="description">');
         blocks.reject(function(b){return b.type==CommentBlockTypes.signature}).each(
             function(block) {
                 this.renderBlock(block, writer);
             }.bind(this));
+//         writer.append('</div>');
     },
 
     renderBlock: function(block, writer) {
         var fn = CommentFormatter.byType[block.type];
         if (!fn)
             throw "no formatter for " + block.type;
-        fn.call(this, block.lines, writer);
+        fn.call(this, block.lines, writer, block);
     }
 }
 
@@ -402,22 +437,22 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
         },
         states: {
             initial: [
-                    /\/\/\/ ?(.*)/, apidocLine,
-                    /\/\*\*/, 'apidocBlock',
+                    /\/\/\/ ?(.*)/, docLine,
+                    /\/\*\*[ \t]*/, 'apidocBlock',
                     /\/\*/, 'blockComment',
                     /function (#{id})\s*\((.*?)\).*/, defun,
                     /var\s+(#{id})\s*=.*/, defvar,
                         /(#{id}(?:\.#{id})*)\.(#{id})\s*=\s*function\s*\((.*?)\).*/, classMethod,
-                        /\/\/.*/, null,
-                        // non-blank line wipes api
-                        /\s*$/, null,
-                        /.*/, getDocs
+                        // /\/\/.*/, null,
+                        // /\s*$/, section,
+                        /\n/, section,
+                        /.*/, section
             ],
             apidocBlock: [
-                    / ?\* ?(.*?)\*\/\s*/, [apidocLine, 'initial'],
-                    /(.*?)\*\/\s*/, [apidocLine, 'initial'],
-                    / ?\* ?(.*)/, apidocLine,
-                    /(.*)/, apidocLine
+                    / ?\* ?(.*?)\*\/\s*/, [docLine, 'initial'],
+                    /(.*?)\*\/\s*/, [docLine, 'initial'],
+                    / ?\* ?(.*)/, docLine,
+                    /(.*)/, docLine
             ],
             blockComment: [
                     /\*\//, 'initial',
@@ -428,7 +463,6 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
     var globals = new Model,
         docParser = new CommentParser;
     parser.parse(text);
-    info(globals);
     return globals;
 
     function getDocs() {
@@ -436,8 +470,13 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
         docParser.reset();
         return docs;
     }
-    function apidocLine(s) {
+    function docLine(s) {
         docParser.parseLine(s);
+    }
+    function section() {
+        var docs = getDocs();
+        if (docs.length)
+            globals.add(new SectionBlock(docs));
     }
     function defun(name, params) {
         globals.add(new FunctionDefinition(name, params, {docs: getDocs()}));
@@ -454,6 +493,7 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
         container.add(new VariableDefinition(name, {docs: getDocs()}));
     }
 }
+
 
 /*
  * StateMachineParser
@@ -553,7 +593,7 @@ function makeStateTable(ruleList, tokens) {
                     continue;
                 }
                 debugParser && info('match', rule);
-                //rule.action && info(rule.action, m);
+                rule.action && info(rule.action, m);
                 rule.action && rule.action.apply(m[0], m.slice(1));
                 return {pos: base+re.lastIndex, state: rule.target};
             }

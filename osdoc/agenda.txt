@@ -1,7 +1,7 @@
 Basic functionality:
-- ellipses
 - sections
 - Functional
+- ellipses
 - @nodoc
 - staged rendering
 - doctest
@@ -17,6 +17,7 @@ Code cleanup:
 - use standard class mechanism
 - use builders
 - hoist statemachine initialiation
+- parsing positions
 
 Completion:
 - test on other libraries
