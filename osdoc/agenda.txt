@@ -1,6 +1,15 @@
-- refactor as state machine
-- make a model
-- add formatters
+Milestones:
+- function f() {}
+- C.a = function
+- C.prototype.a = function
+- render math
+- render ::, ==, etc.
+- sections
+- Functional
+- integrate w/ jsdoc
+- other libraries
+- remove dead code
+- update namespace (is protodoc free?)
 
 ObjectDefinition {properties, functions, methods}
 FunctionDefinition {source, docstring, parameters, doc}
@@ -36,15 +45,6 @@ block comment:
 
 refactor within apidoc as comment
 
-base:
-
-make a model of the world: list of globals, where each global has members
-SortedHash is a hash that can be iterated over in order as well as accessed
-randomly.  It's a hash with add(), keys(), get(), forEach().
-
-Tests:
-- functional
-- self
 - prototype, scriptaculous, protoscript, yui, jquery, client and server-side libraries, ...
 
 New features:
@@ -53,14 +53,19 @@ New features:
 - recognize nested class definition
 - hide private functions
 
-Release:
+Release checklist:
+- w/out prototype
+- test in other browsers
 - remove dependendency on prototype
 - rename to protodoc?
-- command-line version
 
 Future:
+- command-line version
 - roll up class definitions
 - recognize subclasses
 - show inline docs
 - add ToC
-- remove prototype dependency
+- pluggable comment formatters too?
+- ToC
+- command-line
+- other parsers

@@ -37,6 +37,7 @@ OSDoc.APIDoc.prototype.load = function(url) {
 
 /// Parse +text+.  If +options.target+ is specified, update it.
 OSDoc.APIDoc.prototype.parse = function(text) {
+    gf = this.parse.bind(this, text);
     this.text = OSDoc.stripHeader(text);
     this.updateTarget(this.options.staged && 0);
     return this;
@@ -44,6 +45,12 @@ OSDoc.APIDoc.prototype.parse = function(text) {
 
 OSDoc.APIDoc.prototype.updateTarget = function(stage) {
     if (!this.options.target) return;
+    var model = new OSDoc.APIDoc.Parser().parse(this.text);
+    info(new StandardFormatter().render(model));
+
+    //this.options.target.innerHTML = new StandardFormatter().render(model);
+    return;
+
     var text = this.text;
     switch (stage) {
     case 0:
@@ -256,6 +263,7 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
 }
 
 OSDoc.APIDoc.Parser.prototype.processLine = function(line) {
+    throw 'wh!'
     var self = this;
     var match;
     if (match = line.match(/^\/\/\/ (.*)/)) {
@@ -293,6 +301,49 @@ OSDoc.APIDoc.Parser.prototype.processLine = function(line) {
     }
 }
 
+function Gaps() {
+    this.blocks = [];
+}
+
+Gaps.prototype = {
+    append: function() {
+        var blocks = this.blocks;
+        for (var i = 0; i < arguments.length; i++) {
+            var block = arguments[i];
+            if (block instanceof Array)
+                this.append.apply(this, block);
+            else
+                blocks.push(block);
+        }
+    },
+
+    toString: function() {
+        if (this.blocks.length == 1)
+            return this.blocks[0];
+        var value = this.blocks.join('');
+        this.blocks = [value];
+        return value;
+    }
+}
+
+function StandardFormatter() {}
+
+StandardFormatter.prototype = {
+    render: function(model) {
+        var gaps = this.gaps = new Gaps;
+        info('ab', model.definitions);
+        model.definitions.each(this.definition.bind(this));
+        return gaps.toString();
+    },
+
+    definition: function(defn) {
+        var a = this.gaps;
+        this.gaps.append(OSDoc.inlineFormat(defn.docs.join('\n')), '\n');
+        this.gaps.append(defn.name);
+        a.append('(', defn.parameters, ')\n');
+    }
+}
+
 function OrderedDict() {
     this.hash = {};
     this.keys = [];
@@ -309,7 +360,7 @@ OrderedDict.prototype = {
 function FunctionDefinition(name, params, options) {
     options = options || {};
     this.name = name;
-    this.params = params.split(/,/).select(pluck('length'));
+    this.parameters = params.split(/,/).select(pluck('length'));
     this.docs = options.docs;
 }
 
@@ -320,19 +371,20 @@ FunctionDefinition.prototype = {
 }
 
 function Model() {
-    this.definitions = new OrderedDict;
+    this.definitions = [];
+    //new OrderedDict;
 }
 
 Model.prototype = {
     define: function(defn) {
         defn.container = this;
+        this.definitions.push(defn);
         info('define', defn);
     }
 }
 
 // re-implementation.  this replaces what's above
 OSDoc.APIDoc.Parser.prototype.parse = function(text) {
-    this.records = [];
     var id = '[a-zA-Z_$][a-zA-Z_$0=9]*';
     var machine = new StateMachineParser({
         tokens: {
@@ -341,7 +393,7 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
         states: {
             initial: [
                     /\/\/\/(.*)/, apidocLine,
-                    /\/\*\*/, 'block-apidoc',
+                    /\/\*\*/, 'apidocBlock',
                     /\/\*/, 'block-comment',
                     /function (#{id})\s*\((.*?)\).*/, defun,
                     /var\s+(#{id})\s*=/, defvar
@@ -351,8 +403,10 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
 //             'Name...=', property
             ],
             apidocBlock: [
-                    /(.*?)/, [apidocLine, 'initial'],
-                    /.*/, apidocLine
+                    / ?\* ?(.*?)\*\//, [apidocLine, 'initial'],
+                    / ?\* ?(.*)/, apidocLine,
+                    /(.*?)\*\//, [apidocLine, 'initial'],
+                    /(.*)/, apidocLine
             ],
             blockComment: [
                     /\*\//, 'initial'
@@ -361,7 +415,7 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
     var model = new Model;
     var blocks = [], lines;
     machine.parse(text);
-    return this.records;
+    return model;
     function apidocLine(s) {
         lines = lines || [];
         lines.push(s.strip());
@@ -369,7 +423,6 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
     }
     function defun(name, args) {
         info('-> defun', name, args);
-        info(model);
         if (lines) {
             blocks.push(lines.join('\n'));
             lines = null;
@@ -401,15 +454,14 @@ StateMachineParser.prototype.parse = function(string) {
     var state = 'initial',
         pos = 0;
     while (pos < string.length) {
-        gp = pos;
         if (string.charAt(pos) == '\n') {
             pos++;
             continue;
         }
+        //info('state', state, 'pos', string.slice(pos, pos+40));
         var r = this.tables[state](string, pos);
         state = r.state || state;
         pos = r.pos;
-        //info('set', pos, 'out of', string.length);
     }
 }
 
@@ -434,21 +486,19 @@ function makeStateTable(ruleList, tokens) {
     }
     // String -> {state, position}
     return function(string, pos) {
-        //info('parsing', '"'+string+'"', 'at', pos);
         //info('parsing', '"', string.slice(pos), '"');
         for (var i = 0, re, m; rule = rules[i]; i++) {
             var re = rule.re;
             gr = rule;
-            //info('trying', rule.source, 'at', pos, 'on', string.slice(pos));
+            info('trying', rule.source, 'at', pos, 'on', string.slice(pos));
             re.lastIndex = pos;
             if ((m = re(string)) && m[0].length) {
                 if (!(re.lastIndex-m[0].length == pos )) {
-                    info('!=', re.lastIndex, m[0].length, pos);
+                    //info('!=', re.lastIndex, m[0].length, pos);
                     continue;
                 }
-                //info('success with', rule.source);
+                info('match', rule);
                 rule.action && rule.action.apply(m[0], m.slice(1));
-                //info(pos, re.lastIndex, m[0].length);
                 return {pos: re.lastIndex, state: rule.target};
             }
             //info('failed', re.toSource(), string.slice(0, 80).toSource(), m);

@@ -62,7 +62,7 @@ OSDoc.previewText = function(text) {
 
 // Remove the first comment, on the assumption that it's a file header.
 OSDoc.stripHeader = function(text) {
-    return text.replace(/\s*\/\*(?:.|\n)*?\*\/[ \t]*/, '');
+    return text.replace(/^\s*\/\*[^*](?:.|\n)*?\*\/[ \t]*/, '');
 }
 
 OSDoc.inlineFormat = function(html, variables) {
