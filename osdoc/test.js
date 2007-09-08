@@ -1,9 +1,7 @@
-/// this is function +f+.
-function f(a,b) {}
-
-/** This is function `g`.
- * It has a link: http://osteele.com. */
-function g() {}
-
-/// This is function `h`.
-function h() {}
+/**
+ * This function copies all the public functions in `Functional` except itself
+ * into the global namespace.  If the optional argument $except$ is present,
+ * functions named by its property names are not copied.
+ * >> Functional.install()
+ */
+var Functional = window.Functional || {};

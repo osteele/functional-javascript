@@ -81,224 +81,8 @@ OSDoc.APIDoc.prototype.toHTML = function(fast) {
     return spans.join('\n');
 }
 
-OSDoc.APIDoc.Definition = function(name, params) {
-    this.target = this.params = null;
-    this.paramTable = {};
-    var match;
-    if (match = name.match(/(.*\.)(\w+)/)) {
-        name = match[2];
-        this.target = match[1];
-    }
-    this.name = name;
-    if (typeof params == 'string') {
-        params = params.replace(/\/\*(.*?)\*\//g, '$1');
-        this.params = params.replace(/\.\.\./g, '&hellip;');
-        var table = this.paramTable;
-        this.params.scan(/\w+/, function(name) {
-            table[name] = true;
-        });
-    }
-    this.tests = [];
-    this.blocks = [];
-}
-
-OSDoc.APIDoc.Definition.prototype.setDescription = function(lines) {
-    this.block = null;
-    while (lines.length && lines[lines.length-1].match(/^\s*$/))
-        lines.pop();
-    map(this.addDescriptionLine, lines, this);
-}
-
-OSDoc.APIDoc.Definition.prototype.addDescriptionLine = function(line) {
-    var blocks = this.blocks;
-    var block = this.block;
-    var self = this;
-    var rules =
-        [[/\s*::\s*(.*)/, type],
-         [/^>>\s*(.*)/, output],
-         [/^==\s*(.*)/, defn],
-         [/^\s+(.*)/, indented],
-         [/^\s*$/, endParagraph],
-         [/(.*)/, para]];
-    for (var i = 0; i < rules.length; i++) {
-        var item = rules[i];
-        var match;
-        if (match = line.match(item[0])) {
-            item[1].apply(this, [].slice.call(match, 1));
-            break;
-        }
-    }
-
-    // line type handlers (some also add)
-    function type(text) {
-        this.signature = text;
-    }
-    function output(text) {
-        endParagraph();
-        var match = text.match(/\s*(.*)\s*->\s*(.*?)\s*$/);
-        var input = match ? match[1].replace(/\s+$/,'') : text;
-        var output = match && match[2];
-        var test = (match
-                    ? {text: input, expect: output}
-                    : {text: input});
-        self.tests.push(test);
-        var line = (match
-                    ? ['<kbd>', input.escapeHTML(), '</kbd>',
-                       ' <samp>&rarr; ', output.escapeHTML(), '</samp>'].join('')
-                    : '<kbd>' + text.escapeHTML() + '</kbd>');
-        addLine('<div class="io">'+line+'<div class="clear"> </div></div>');
-    }
-    function defn(text) {
-        endParagraph();
-        var html = OSDoc.toMathHTML(text).replace(/==/, '=<sub class="def">def</sub> ')
-        blocks.push('<pre class="equivalence">' + html + '</pre>');
-    }
-    function indented(line) {
-        endParagraph();
-        pre(line.escapeHTML());
-    }
-    function para(line) {
-        block || blocks.push(this.block = block = []);
-        block.push(line);
-    }
-    // adders
-    function endParagraph() {
-        self.block = null;
-    }
-    function pre(line) {
-        addLine('<pre>&nbsp;&nbsp;' + line + '</pre>');
-    }
-    function addLine(line) {
-        var prev = blocks[blocks.length - 1];
-        var match;
-        if (typeof prev == 'string' && (match = prev.match(/<pre>(.*)<\/pre>/)))
-            return blocks[blocks.length-1] = '<pre>' + match[1] + '\n&nbsp;&nbsp;' + line + '</pre>';
-        blocks.push(line);
-    }
-}
-
-OSDoc.APIDoc.Definition.prototype.toHTML = function(fast) {
-    var isFunction = this.params != null;
-    var spans = [];
-
-    spans.push('<div class="record">');
-    signature.call(this);
-    type.call(this);
-    description.call(this);
-    spans.push('</div>');
-    return spans.join('');
-
-    function signature() {
-        spans.push('<div class="signature">');
-        isFunction || spans.push('var ');
-        this.target && spans.push('<span class="target">' + this.target + '</span>');
-        spans.push('<span class="name">' + this.name + '</span>');
-        isFunction
-            ? spans.push('(<var>' + this.params + '</var>)')
-            : spans.push(';');
-        spans.push('</div>');
-    }
-    function type() {
-        if (this.signature) {
-            var text = this.signature.escapeHTML();
-            if (!fast) {
-                text = text.replace(/-&gt;/g, '&rarr;').replace(/\.\.\./g, '&hellip;');
-                text = text.replace(/(?:(\d+)|_{(.*?)})/g, function(_, sub, sub2) {
-                    return '<sub>'+(sub||sub2)+'</sub>';
-                });
-            }
-            spans.push('<div class="type"><span class="label">Type:</span> '+text+'</div>');
-        }
-    }
-    function description() {
-        spans.push(this.getDescriptionHTML(fast));
-    }
-}
-
-OSDoc.APIDoc.Definition.prototype.getDescriptionHTML = function(fast) {
-    var spans = [];
-    var paramTable = this.paramTable;
-    var paras = this.blocks.select(pluck('length')).map(function(block) {
-        // it may have already been formatted:
-        if (typeof block == 'string') return block;
-        var lines = ['<div>'].concat(block);
-        lines.push('</div>');
-        var html = lines.join(' ');
-        if (!fast) html = OSDoc.inlineFormat(html, paramTable);
-        return html;
-    }.bind(this));
-    spans.push('<div class="description">');
-    spans = spans.concat(paras);
-    spans.push('</div>');
-    return spans.join('');
- }
-
-OSDoc.APIDoc.Section = function(title, level, lines) {
-    this.tests = [];
-    this.blocks = [];
-    this.paramTable = {};
-    this.addDescriptionLine = OSDoc.APIDoc.Definition.prototype.addDescriptionLine;
-    OSDoc.APIDoc.Definition.prototype.setDescription.call(this, lines);
-    var tagName = 'h' + level;
-    var html = ['<', tagName, '>', title, '</', tagName, '>'].join('');
-    html += OSDoc.APIDoc.Definition.prototype.getDescriptionHTML.call(this);
-    this.toHTML = Functional.K(html);
-}
-
 OSDoc.APIDoc.Parser = function(options) {
     this.options = options;
-}
-
-OSDoc.APIDoc.Parser.prototype.parse = function(text) {
-    text = text.replace(/\/\*\*([\s\S]*?)\*\//g, function(_, block) {
-        return block.replace(/\n(?: \* )?/g, '\n/// ');
-        //return block.replace(/\n(?:[^\n]*\* )?/g, '\n/// ');
-    });
-    this.lines = [];
-    this.records = [];
-    this.keys = {};
-    this.current = null;
-    text.split('\n').each(this.processLine.bind(this));
-    return this.records;
-}
-
-OSDoc.APIDoc.Parser.prototype.processLine = function(line) {
-    throw 'wh!'
-    var self = this;
-    var match;
-    if (match = line.match(/^\/\/\/ (.*)/)) {
-        this.lines.push(match[1]);
-    } else if (this.lines.length || this.options.all) {
-        if (this.lines.grep(/@nodoc/).length) {
-            ;
-        } else if (match = line.match(/^((?:\w+\.)*\w+)\s*=\s*function\s*\((.*?)\)/)) {
-            recordDefinition(match[1], match[2] || '');
-        } else if (match = line.match(/^((?:\w+\.)*\w+)\s*=\s*(.*?);/)) {
-            var master = this.keys[match[2]];
-            recordDefinition(match[1], master && master.params);
-        } else if ((match = line.match(/^function\s+(\w+)\s*\((.*?)\)/))) {
-            recordDefinition(match[1], match[2]);
-        } else if ((match = line.match(/^var\s+(\w+)\s+=/))) {
-            recordDefinition(match[1]);
-        } else {
-            processNondefinitionComment(this.lines);
-        }
-        this.lines = [];
-    }
-    function recordDefinition(name, params) {
-        var record = self.keys[name] = new OSDoc.APIDoc.Definition(name, params);
-        record.setDescription(self.lines);
-        self.records.push(record);
-    }
-    function processNondefinitionComment(lines) {
-        var match;
-        if (lines.length && (match = lines[0].match(/(\^+)\s*(.*)/))) {
-            var title = match[2];
-            var level = match[1].length;
-            var record = new OSDoc.APIDoc.Section(title, level, lines.slice(1));
-            self.records.push(record);
-        }
-    }
 }
 
 function RopeWriter() {
@@ -381,21 +165,6 @@ HTMLFormatter.prototype = {
     }
 }
 
-function OrderedDict() {
-    this.hash = {};
-    this.keys = [];
-}
-
-OrderedDict.prototype = {
-    add: function(key, value) {
-        if (!(key in this.hash))
-            this.keys.push(key);
-        this.hash[key] = value;
-    }
-}
-
-Function.K = function(x) {return function() {return x}};
-
 /*
  * Domain Model
  */
@@ -465,20 +234,11 @@ Model.prototype = {
     }
 }
 
-function makeEnum(words) {
-    var types = {};
-    words = words.split(/\s+/);
-    words.each(function(word) {
-        types[word] = word;
-    });
-    return types;
-}
-
 /*
- * Doc Blocks
+ * Comments
  */
 
-var DocBlockTypes = makeEnum('equivalence formatted output paragraph signature');
+var CommentBlockTypes = makeEnum('equivalence formatted output paragraph signature');
 
 function CommentParser() {
     this.reset();
@@ -486,16 +246,16 @@ function CommentParser() {
 
 CommentParser.rules = (function() {
     var rules = [
-            /\s*::\s*(.*)/, DocBlockTypes.signature,
-            /^>>\s*(.*)/, DocBlockTypes.output,
-            /^==\s*(.*)/, DocBlockTypes.equivalence,
-            /^\s+(.*)/, DocBlockTypes.formatted,
-            /^\s*$/, this.endBlock,
+            /^\s*::\s*(.*)/, CommentBlockTypes.signature,
+            /^>>\s*(.*)/, CommentBlockTypes.output,
+            /^==\s*(.*)/, CommentBlockTypes.equivalence,
+            /^\s+(.*)/, CommentBlockTypes.formatted,
+            /^\s*$/, endBlock,
             /(.*)/, paragraphLine
     ];
     return rules;
     function paragraphLine(line) {
-        this.createOrAdd(DocBlockTypes.paragraph).append(line);
+        this.createOrAdd(CommentBlockTypes.paragraph).append(line);
     }
     function endBlock() {
         this.endBlock();
@@ -503,8 +263,6 @@ CommentParser.rules = (function() {
 })();
 
 CommentParser.prototype = {
-    toString: function() {return 'dbp'},
-
     parseLine: function(line) {
         var rules = CommentParser.rules;
         for (var i = 0; i < rules.length; ) {

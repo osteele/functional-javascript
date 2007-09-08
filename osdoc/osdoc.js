@@ -87,6 +87,11 @@ OSDoc.toMathHTML = function(text) {
     }).replace(/\.\.\./g, '&hellip;') + '</span>';
 }
 
+
+/*
+ * Utilities
+ */
+
 Function.prototype.reporting = function() {
     var fn = this;
     return function() {
@@ -103,8 +108,6 @@ Function.prototype.delayed = function(ms) {
     window.setTimeout(this.reporting(), ms);
 }
 
-OSDoc.load();
-
 // Array.prototype.forEach = Array.prototype.forEach || function(fn, thisObject) {
 //     var len = this.length;
 //     for (var i = 0 ; i < len; i++)
@@ -113,3 +116,18 @@ OSDoc.load();
 // }
 
 // Array.prototype.each = Array.prototype.each || Array.prototype.forEach;
+
+function makeEnum(words) {
+    var types = {};
+    words = words.split(/\s+/);
+    words.each(function(word) {
+        types[word] = word;
+    });
+    return types;
+}
+
+/*
+ * Finally
+ */
+
+OSDoc.load();
