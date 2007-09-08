@@ -46,9 +46,9 @@ OSDoc.APIDoc.prototype.parse = function(text) {
 OSDoc.APIDoc.prototype.updateTarget = function(stage) {
     if (!this.options.target) return;
     var model = new OSDoc.APIDoc.Parser().parse(this.text);
-    info(new StandardFormatter().render(model));
+    info(new HTMLFormatter().render(model));
 
-    //this.options.target.innerHTML = new StandardFormatter().render(model);
+    //this.options.target.innerHTML = new HTMLFormatter().render(model);
     return;
 
     var text = this.text;
@@ -301,11 +301,11 @@ OSDoc.APIDoc.Parser.prototype.processLine = function(line) {
     }
 }
 
-function Gaps() {
+function RopeWriter() {
     this.blocks = [];
 }
 
-Gaps.prototype = {
+RopeWriter.prototype = {
     append: function() {
         var blocks = this.blocks;
         for (var i = 0; i < arguments.length; i++) {
@@ -326,11 +326,11 @@ Gaps.prototype = {
     }
 }
 
-function StandardFormatter() {}
+function HTMLFormatter() {}
 
-StandardFormatter.prototype = {
+HTMLFormatter.prototype = {
     render: function(model) {
-        var writer = this.writer = new Gaps;
+        var writer = this.writer = new RopeWriter;
         model.definitions.each(this.definition.bind(this));
         return writer.toString();
     },
@@ -352,20 +352,32 @@ StandardFormatter.prototype = {
 
     functionDefinition: function(defn) {
         var writer = this.writer;
-        writer.append(OSDoc.inlineFormat(defn.docs.join('\n')), '\n');
+        this.doc(defn);
         if (defn.container.name)
-            writer.append(defn.getNamespace(), '.', defn.name, ' = function(', defn.parameters.join(', '), ')\n');
+            writer.append(this.qualifiedName(defn), ' = function(', defn.parameters.join(', '), ')\n');
         else
             writer.append('function ', defn.name, '(', defn.parameters.join(', '), ')\n');
     },
 
     variableDefinition: function(defn) {
         var writer = this.writer;
-        writer.append(OSDoc.inlineFormat(defn.docs.join('\n')), '\n');
+        this.doc(defn);
         if (defn.container.name)
             writer.append('var ', defn.getNamespace(), '.', defn.name, ';');
         else
             writer.append('var ', defn.name, ';');
+    },
+
+    qualifiedName: function(defn) {
+        return [defn.getNamespace(), '.', defn.name].join('');
+    },
+
+    doc: function(defn) {
+        var writer = this.writer;
+        defn.docs.each(function(block) {
+            new CommentFormatter().render(block, writer);
+        });
+        //writer.append(OSDoc.inlineFormat(defn.docs.join('\n')), '\n');
     }
 }
 
@@ -383,6 +395,10 @@ OrderedDict.prototype = {
 }
 
 Function.K = function(x) {return function() {return x}};
+
+/*
+ * Domain Model
+ */
 
 function FunctionDefinition(name, params, options) {
     options = options || {};
@@ -429,11 +445,9 @@ Model.prototype = {
         if (value) throw "duplicate definition";
         defn.container = this;
         this.definitions.push(defn);
-        info('define', defn);
     },
 
     findOrMake: function(name) {
-        info('fm', name);
         var parts = /(.+?)\.(.+)/(name);
         if (parts)
             return this.findOrMake(parts[1]).findOrMake(parts[2]);
@@ -451,7 +465,149 @@ Model.prototype = {
     }
 }
 
-// re-implementation.  this replaces what's above
+function makeEnum(words) {
+    var types = {};
+    words = words.split(/\s+/);
+    words.each(function(word) {
+        types[word] = word;
+    });
+    return types;
+}
+
+/*
+ * Doc Blocks
+ */
+
+var DocBlockTypes = makeEnum('equivalence formatted output paragraph signature');
+
+function CommentParser() {
+    this.reset();
+}
+
+CommentParser.rules = (function() {
+    var rules = [
+            /\s*::\s*(.*)/, DocBlockTypes.signature,
+            /^>>\s*(.*)/, DocBlockTypes.output,
+            /^==\s*(.*)/, DocBlockTypes.equivalence,
+            /^\s+(.*)/, DocBlockTypes.formatted,
+            /^\s*$/, this.endBlock,
+            /(.*)/, paragraphLine
+    ];
+    return rules;
+    function paragraphLine(line) {
+        this.createOrAdd(DocBlockTypes.paragraph).append(line);
+    }
+    function endBlock() {
+        this.endBlock();
+    }
+})();
+
+CommentParser.prototype = {
+    toString: function() {return 'dbp'},
+
+    parseLine: function(line) {
+        var rules = CommentParser.rules;
+        for (var i = 0; i < rules.length; ) {
+            var item = rules[i++],
+                action = rules[i++],
+                match = item(line);
+            if (match) {
+                if (typeof action == 'function')
+                    action.apply(this, match.slice(1));
+                else {
+                    this.createOrAdd(action).append(line);
+                }
+                break;
+            }
+        }
+        if (!match)
+            throw "no match";
+    },
+
+    createOrAdd: function(type) {
+        var block = this.block;
+        info('create', type, 'previous is', (block||{}).type);
+        if ((block||{}).type != type) {
+            var lines = [];
+            this.block = block = {type:type, lines:lines, append:lines.push.bind(lines)}
+            this.blocks.push(block);
+        }
+        return block;
+    },
+
+    endBlock: function() {
+        info('clear');
+        this.block = null;
+    },
+
+    reset: function() {
+        this.blocks = [];
+        this.block = null;
+    }
+}
+
+/*
+ * DocBlock Formatter
+ */
+
+function CommentFormatter() {}
+
+Function.prototype.hoisted = function() {
+    var fn = this;
+    return function(lines) {
+        var thisObj = this,
+            args = [].slice.call(arguments, 1);
+        lines.each(function(line) {
+            fn.apply(thisObj, [line].concat(args));
+        });
+    }
+}
+
+CommentFormatter.byType = {
+    equivalence: function(text, writer) {
+        var html = OSDoc.toMathHTML(text).replace(/==/, '=<sub class="def">def</sub> ')
+        writer.append('<pre class="equivalence">', html, '</pre>');
+    }.hoisted(),
+
+    formatted: function(line, writer) {
+        writer.append('<pre>&nbsp;&nbsp;', line.escapeHTML(), '</pre>');
+    }.hoisted(),
+
+    output: function(text, writer) {
+        var match = text.match(/\s*(.*)\s*->\s*(.*?)\s*$/),
+            input = match ? match[1].replace(/\s+$/,'') : text,
+            output = match && match[2],
+            test = (match
+                    ? {text: input, expect: output}
+                    : {text: input});
+        writer.append(test);
+        var line = (match
+                    ? ['<kbd>', input.escapeHTML(), '</kbd>',
+                       ' <samp>&rarr; ', output.escapeHTML(), '</samp>'].join('')
+                    : '<kbd>' + text.escapeHTML() + '</kbd>');
+        writer.append('<div class="io">', line, '<div class="clear"> </div></div>');
+    }.hoisted(),
+
+    paragraph: function(lines, writer) {
+        writer.append('<p>', OSDoc.inlineFormat(lines.join(' ')), '</p>');
+    },
+
+    signature: function(line, writer) {
+        writer.append('<pre>&nbsp;&nbsp;', line.escapeHTML(), '</pre>');
+    }.hoisted()
+}
+
+CommentFormatter.prototype.render = function(block, writer) {
+    var fn = CommentFormatter.byType[block.type];
+    if (!fn)
+        throw "no formatter for " + block.type;
+    fn.call(this, block.lines, writer);
+}
+
+/*
+ * Parser
+ */
+
 OSDoc.APIDoc.Parser.prototype.parse = function(text) {
     var id = '[a-zA-Z_$][a-zA-Z_$0=9]*';
     var machine = new StateMachineParser({
@@ -467,38 +623,29 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
                     /var\s+(#{id})\s*=.*/, defvar,
                         /(#{id}(?:\.#{id})*)\.(#{id})\s*=\s*function\s*\((.*?)\).*/, classMethod,
                         /\/\/.*/, null
-//             'Name...prototype = function', method,
-//             'Name...prototype=', member,
-//             'Name...=function', classMethod,
-//             'Name...=', property
             ],
             apidocBlock: [
                     / ?\* ?(.*?)\*\/\s*/, [apidocLine, 'initial'],
-                    / ?\* ?(.*)/, apidocLine,
                     /(.*?)\*\/\s*/, [apidocLine, 'initial'],
+                    / ?\* ?(.*)/, apidocLine,
                     /(.*)/, apidocLine
             ],
             blockComment: [
                     /\*\//, 'initial'
             ]
         }});
-    var model = new Model;
-    var blocks = [], lines;
+    var model = new Model,
+        docParser = new CommentParser;
     machine.parse(text);
     return model;
 
     function getDocs() {
-        if (lines) {
-            blocks.push(lines.join('\n'));
-            lines = null;
-        }
-        var cd = (blocks);
-        blocks = [];
-        return cd;
+        var docs = docParser.blocks;
+        docParser.reset();
+        return docs;
     }
     function apidocLine(s) {
-        lines = lines || [];
-        lines.push(s.strip());
+        docParser.parseLine(s);
     }
     function defun(name, args) {
         model.define(new FunctionDefinition(name, args, {docs: getDocs()}));
@@ -516,6 +663,10 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
     }
 }
 
+/*
+ * StateMachineParser
+ */
+
 // stateTable :: {String => [Rule]}, where
 //   Rule is an alternating list of Regex|String, RHS
 //   RHS is a Function (an action) or a String (the name of a state)
@@ -527,6 +678,12 @@ function StateMachineParser(options) {
         var value = stateTables[key];
         typeof value == 'function' || (this.tables[key] = makeStateTable(value, tokens));
     }
+}
+
+StateMachineParser.prototype.parseLines = function(lines) {
+    var state = 'initial';
+    lines.each(function(line) {
+    });
 }
 
 StateMachineParser.prototype.parse = function(string) {

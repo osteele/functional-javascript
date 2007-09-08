@@ -1,11 +1,29 @@
-Milestones:
-- render ::, ==, etc.
+Basic functionality:
+- figure out single vs. multiline
+- render ::, >>, ==, indent, parbreak
+- normalize stuff in comments
 - sections
 - Functional
-- integrate w/ jsdoc
-- other libraries
+- staging
+- doctest
+
+Code cleanup:
+- hoist parsing for comment types: signature
 - remove dead code
-- update namespace (is protodoc free?)
+- rename -> protodoc
+- use standard class mechanism
+- use builders
+- hoist statemachine initialiation
+
+Completion:
+- test on other libraries
+- docs
+
+Later:
+- optimize statemachine scanner
+- make parsers, builders, renderers, paragraph formatter configurable
+- clean up format vs. render
+- pass in logger
 
 ObjectDefinition {properties, functions, methods}
 FunctionDefinition {source, docstring, parameters, doc}
@@ -23,18 +41,13 @@ C.prototype.x = {
 
 - prototype, scriptaculous, protoscript, yui, jquery, client and server-side libraries, ...
 
-New features:
-- document object slots
-- recognize class definitions
-- recognize nested class definition
-- hide private functions
 
 Release checklist:
 - w/out prototype
 - test in other browsers
-- rename to protodoc
 
 Future:
+- document object slots
 - pluggable formatters
 - command-line version
 - roll up class definitions
