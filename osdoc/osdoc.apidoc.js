@@ -29,7 +29,7 @@ OSDoc.APIDoc = function(options) {
 OSDoc.APIDoc.prototype.load = function(url) {
     this.options.target && (this.options.target.innerHTML = OSDoc.loadingHeader);
     new Ajax.Request(
-        url,
+        url+'?ts='+new Date().getTime(),
         {method: 'GET',
          onSuccess: Functional.compose(this.parse.bind(this), '_.responseText').reporting()});
     return this;
@@ -331,16 +331,21 @@ function StandardFormatter() {}
 StandardFormatter.prototype = {
     render: function(model) {
         var gaps = this.gaps = new Gaps;
-        info('ab', model.definitions);
         model.definitions.each(this.definition.bind(this));
         return gaps.toString();
     },
 
     definition: function(defn) {
+        if (defn.onlyModel) {
+            defn.definitions.each(this.definition.bind(this));
+            return;
+        }
         var a = this.gaps;
         this.gaps.append(OSDoc.inlineFormat(defn.docs.join('\n')), '\n');
-        this.gaps.append(defn.name);
-        a.append('(', defn.parameters, ')\n');
+        if (defn.container.name)
+            a.append(defn.container.name, '.', defn.name, ' = function(', defn.parameters.join(', '), ')\n');
+        else
+            a.append('function ', defn.name, '(', defn.parameters.join(', '), ')\n');
     }
 }
 
@@ -361,7 +366,11 @@ function FunctionDefinition(name, params, options) {
     options = options || {};
     this.name = name;
     this.parameters = params.split(/,/).select(pluck('length'));
-    this.docs = options.docs;
+    this.docs = options.docs||[];
+    // FIXME
+    this.define = Model.prototype.define;
+    this.findOrMake = Model.prototype.findOrMake;
+    this.definitions = [];
 }
 
 FunctionDefinition.prototype = {
@@ -370,16 +379,33 @@ FunctionDefinition.prototype = {
     }
 }
 
-function Model() {
+function Model(name) {
+    this.name = name;
     this.definitions = [];
+    this.docs = [];
+    this.onlyModel = true;
     //new OrderedDict;
 }
 
 Model.prototype = {
     define: function(defn) {
+        var value = this.definitions.detect(function(defn) {
+            return defn.name == name;
+        });
+        if (value) throw "duplicate definition";
         defn.container = this;
         this.definitions.push(defn);
         info('define', defn);
+    },
+
+    findOrMake: function(name) {
+        info('fm', name);
+        var value = this.definitions.detect(function(defn) {
+            return defn.name == name;
+        });
+        if (!value)
+            this.define(value = new Model(name));
+        return value;
     }
 }
 
@@ -396,16 +422,17 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
                     /\/\*\*/, 'apidocBlock',
                     /\/\*/, 'block-comment',
                     /function (#{id})\s*\((.*?)\).*/, defun,
-                    /var\s+(#{id})\s*=/, defvar
+                    /var\s+(#{id})\s*=/, defvar,
+                        /(#{id})\.(#{id})\s*=\s*function\s*\((.*?)\).*/, classMethod,
 //             'Name...prototype = function', method,
 //             'Name...prototype=', member,
 //             'Name...=function', classMethod,
 //             'Name...=', property
             ],
             apidocBlock: [
-                    / ?\* ?(.*?)\*\//, [apidocLine, 'initial'],
+                    / ?\* ?(.*?)\*\/\s*/, [apidocLine, 'initial'],
                     / ?\* ?(.*)/, apidocLine,
-                    /(.*?)\*\//, [apidocLine, 'initial'],
+                    /(.*?)\*\/\s*/, [apidocLine, 'initial'],
                     /(.*)/, apidocLine
             ],
             blockComment: [
@@ -419,10 +446,8 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
     function apidocLine(s) {
         lines = lines || [];
         lines.push(s.strip());
-        info('-> //', apidocLine, arguments);
     }
     function defun(name, args) {
-        info('-> defun', name, args);
         if (lines) {
             blocks.push(lines.join('\n'));
             lines = null;
@@ -430,10 +455,18 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
         model.define(new FunctionDefinition(name, args, {docs: blocks}));
         blocks = [];
     }
+    function classMethod(namespace, name, args) {
+        if (lines) {
+            blocks.push(lines.join('\n'));
+            lines = null;
+        }
+        var container = model.findOrMake(namespace);
+        container.define(new FunctionDefinition(name, args, {docs: blocks}));
+        blocks = [];
+    }
     function defvar() {}
     function method() {}
     function member() {}
-    function classMethod() {}
     function property() {}
 }
 
@@ -466,6 +499,7 @@ StateMachineParser.prototype.parse = function(string) {
 }
 
 function makeStateTable(ruleList, tokens) {
+    var debugParser = false;
     var rules = [];
     if (ruleList.length & 1)
         throw "makeStateTable requires an even number of arguments";
@@ -490,20 +524,20 @@ function makeStateTable(ruleList, tokens) {
         for (var i = 0, re, m; rule = rules[i]; i++) {
             var re = rule.re;
             gr = rule;
-            info('trying', rule.source, 'at', pos, 'on', string.slice(pos));
+            debugParser && info('trying', rule.source, 'at', pos, 'on', string.slice(pos));
             re.lastIndex = pos;
             if ((m = re(string)) && m[0].length) {
                 if (!(re.lastIndex-m[0].length == pos )) {
                     //info('!=', re.lastIndex, m[0].length, pos);
                     continue;
                 }
-                info('match', rule);
+                debugParser && info('match', rule);
                 rule.action && rule.action.apply(m[0], m.slice(1));
                 return {pos: re.lastIndex, state: rule.target};
             }
             //info('failed', re.toSource(), string.slice(0, 80).toSource(), m);
         }
-        throw "no match at " + string.slice(pos,pos+80).toSource();
+        throw "no match at " + string.slice(pos,pos+80);
     }
     function process(rule, rhs) {
         switch (typeof rhs) {
