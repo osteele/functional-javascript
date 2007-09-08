@@ -293,6 +293,43 @@ OSDoc.APIDoc.Parser.prototype.processLine = function(line) {
     }
 }
 
+function OrderedDict() {
+    this.hash = {};
+    this.keys = [];
+}
+
+OrderedDict.prototype = {
+    add: function(key, value) {
+        if (!(key in this.hash))
+            this.keys.push(key);
+        this.hash[key] = value;
+    }
+}
+
+function FunctionDefinition(name, params, options) {
+    options = options || {};
+    this.name = name;
+    this.params = params.split(/,/).select(pluck('length'));
+    this.docs = options.docs;
+}
+
+FunctionDefinition.prototype = {
+    toString: function() {
+        return ['function ', this.name, '()'].join('');
+    }
+}
+
+function Model() {
+    this.definitions = new OrderedDict;
+}
+
+Model.prototype = {
+    define: function(defn) {
+        defn.container = this;
+        info('define', defn);
+    }
+}
+
 // re-implementation.  this replaces what's above
 OSDoc.APIDoc.Parser.prototype.parse = function(text) {
     this.records = [];
@@ -302,32 +339,43 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
             id: id,
         },
         states: {
-        initial: [
-            '///(.*)', apidocLine,
-            '/\\*\\*', 'block-apidoc',
-            /\/\*/, 'block-comment',
-            /function (#{id})\b/, defun,
-            'var\\s+(#{id})\\s+=', defvar
+            initial: [
+                    /\/\/\/(.*)/, apidocLine,
+                    /\/\*\*/, 'block-apidoc',
+                    /\/\*/, 'block-comment',
+                    /function (#{id})\s*\((.*?)\).*/, defun,
+                    /var\s+(#{id})\s*=/, defvar
 //             'Name...prototype = function', method,
 //             'Name...prototype=', member,
 //             'Name...=function', classMethod,
 //             'Name...=', property
-        ],
-        apidocBlock: [
-            '(.*?)*', [apidocLine, 'initial'],
-                /.*/, apidocLine
-        ],
-        blockComment: [
-            /\*\//, 'initial'
-        ]
+            ],
+            apidocBlock: [
+                    /(.*?)/, [apidocLine, 'initial'],
+                    /.*/, apidocLine
+            ],
+            blockComment: [
+                    /\*\//, 'initial'
+            ]
         }});
+    var model = new Model;
+    var blocks = [], lines;
     machine.parse(text);
     return this.records;
-    function apidocLine() {
+    function apidocLine(s) {
+        lines = lines || [];
+        lines.push(s.strip());
         info('-> //', apidocLine, arguments);
     }
-    function defun() {
-        info('-> defun', arguments);
+    function defun(name, args) {
+        info('-> defun', name, args);
+        info(model);
+        if (lines) {
+            blocks.push(lines.join('\n'));
+            lines = null;
+        }
+        model.define(new FunctionDefinition(name, args, {docs: blocks}));
+        blocks = [];
     }
     function defvar() {}
     function method() {}
@@ -361,71 +409,64 @@ StateMachineParser.prototype.parse = function(string) {
         var r = this.tables[state](string, pos);
         state = r.state || state;
         pos = r.pos;
-        info('set', pos, 'out of', string.length);
+        //info('set', pos, 'out of', string.length);
     }
 }
 
-function makeStateTable(rules, tokens) {
-    var sources = [];
-    var patterns = [];
-    var actions = [];
-    var targets = [];
-    if (rules.length & 1)
+function makeStateTable(ruleList, tokens) {
+    var rules = [];
+    if (ruleList.length & 1)
         throw "makeStateTable requires an even number of arguments";
-    for (var i = 0, j = 0; i < rules.length; ) {
-        var pattern = rules[i++],
-            rhs = rules[i++],
+    for (var i = 0; i < ruleList.length; ) {
+        var pattern = ruleList[i++],
+            rhs = ruleList[i++],
             src = pattern;
         if (src instanceof RegExp) {
             src = pattern.toSource();
             src = src.slice(1, src.lastIndexOf('/'));
         }
         src = src.replace(/#{(.+?)}/g, function(s, m) {return tokens[m] || s});
-        sources[j] = src;
-        patterns[j] = new RegExp(src, 'g');
-        info(sources[j], patterns[j]);
-        process(rhs);
-        j++;
+        rules.push({
+            source: src,
+            re: new RegExp(src, 'g')
+        });
+        process(rules[rules.length-1], rhs);
     }
     // String -> {state, position}
     return function(string, pos) {
-        info('parsing', '"'+string+'"', 'at', pos);
-        info('parsing', '"', string.slice(pos), '"');
-        for (var i = 0, re, m; re = patterns[i]; i++) {
+        //info('parsing', '"'+string+'"', 'at', pos);
+        //info('parsing', '"', string.slice(pos), '"');
+        for (var i = 0, re, m; rule = rules[i]; i++) {
+            var re = rule.re;
+            gr = rule;
+            //info('trying', rule.source, 'at', pos, 'on', string.slice(pos));
             re.lastIndex = pos;
-            info('trying', sources[i], 'at', pos, 'on', string.slice(pos));
-            if ((m = re.exec(string)) && m[0].length) {
+            if ((m = re(string)) && m[0].length) {
                 if (!(re.lastIndex-m[0].length == pos )) {
                     info('!=', re.lastIndex, m[0].length, pos);
                     continue;
                 }
-                info('success with', sources[i]);
-                actions[i] && actions[i].apply(null, m);
+                //info('success with', rule.source);
+                rule.action && rule.action.apply(m[0], m.slice(1));
                 //info(pos, re.lastIndex, m[0].length);
-                return {pos: re.lastIndex, state: targets[i]};
+                return {pos: re.lastIndex, state: rule.target};
             }
             //info('failed', re.toSource(), string.slice(0, 80).toSource(), m);
         }
-            info('failed', re, m);
-            gs = [sources, patterns, actions, targets];
-            gs=string;
-            gp=pos;
-            gres=sources[3];
-            gre=patterns[3];
         throw "no match at " + string.slice(pos,pos+80).toSource();
     }
-    function process(rhs) {
+    function process(rule, rhs) {
         switch (typeof rhs) {
         case 'function':
-            if (actions[j]) throw "duplicate targets";
-            actions[j] = rhs;
+            if (rule.action) throw "duplicate targets";
+            rule.action = rhs;
             break;
         case 'string':
-            if (targets[j]) throw "duplicate targets";
-            targets[j] = rhs;
+            if (rule.target) throw "duplicate targets";
+            rule.target = rhs;
             break;
         default:
-            rhs && map(process, rhs);
+            rhs && rhs.each(process.bind(this, rule));
         }
     }
 }

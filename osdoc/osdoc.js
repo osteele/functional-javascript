@@ -1,4 +1,4 @@
-/* 
+/*
  * Author: Oliver Steele
  * Copyright: Copyright 2007 by Oliver Steele.  All rights reserved.
  * License: MIT License
@@ -104,3 +104,12 @@ Function.prototype.delayed = function(ms) {
 }
 
 OSDoc.load();
+
+// Array.prototype.forEach = Array.prototype.forEach || function(fn, thisObject) {
+//     var len = this.length;
+//     for (var i = 0 ; i < len; i++)
+//         if (typeof this[i] != 'undefined')
+//             fn.call(thisObject, this[i], i, this);
+// }
+
+// Array.prototype.each = Array.prototype.each || Array.prototype.forEach;

@@ -21,6 +21,12 @@ base:
 ^Name... = function -> {classMethod}
 ^Name... = -> {classMember}
 
+var x = new Y;
+function C() {}
+C.prototype.x = {
+  match: function(args) ...
+  },?s\*$
+
 block apidoc:
 (.*?)*/ -> {apidocline} base
 .* -> {apidocline}
