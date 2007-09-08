@@ -1,4 +1,14 @@
-refactor as state machine:
+- refactor as state machine
+- make a model
+- add formatters
+
+ObjectDefinition {properties, functions, methods}
+FunctionDefinition {source, docstring, parameters, doc}
+StringSlice {source, start, end, doc: [DocBlock]}
+DocString {blocks: [DocBlock]}
+DocBlock = DocBlock.Text | DocBlock.Definition | DocBlock.Test
+
+http://osteele.dev/sources/javascript/osdoc/?source=test.js
 
 base:
 ///(.*) -> {apidocline}
@@ -22,13 +32,29 @@ refactor within apidoc as comment
 
 base:
 
+make a model of the world: list of globals, where each global has members
+SortedHash is a hash that can be iterated over in order as well as accessed
+randomly.  It's a hash with add(), keys(), get(), forEach().
+
+Tests:
+- functional
+- self
+- prototype, scriptaculous, protoscript, yui, jquery, client and server-side libraries, ...
 
 New features:
 - document object slots
+- recognize class definitions
 - recognize nested class definition
 - hide private functions
+
+Release:
+- remove dependendency on prototype
+- rename to protodoc?
+- command-line version
+
+Future:
 - roll up class definitions
 - recognize subclasses
 - show inline docs
 - add ToC
-- remove prototype dependency?
+- remove prototype dependency
