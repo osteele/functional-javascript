@@ -47,7 +47,7 @@ OSDoc.APIDoc.prototype.updateTarget = function(stage) {
     if (!this.options.target) return;
     var model = new OSDoc.APIDoc.Parser().parse(this.text),
         html = new HTMLFormatter().render(model);
-    info(html);
+    //info(html||'no output');
     this.options.target.innerHTML = html;
 
     //this.options.target.innerHTML = new HTMLFormatter().render(model);
@@ -128,7 +128,7 @@ HTMLFormatter.prototype = {
 
     definition: function(defn) {
         if (defn.onlyModel)
-            this.namespace(defn);
+            this.members(defn);
         else if (defn instanceof FunctionDefinition)
             this.functionDefinition(defn);
         else if (defn instanceof VariableDefinition)
@@ -137,7 +137,7 @@ HTMLFormatter.prototype = {
             throw "unknown definition";
     },
 
-    namespace: function(defn) {
+    members: function(defn) {
         defn.definitions.each(this.definition.bind(this));
     },
 
@@ -147,28 +147,27 @@ HTMLFormatter.prototype = {
         if (defn.container.name)
             writer.append(this.qualifiedName(defn), ' = function(');
         else
-            writer.append('function ', defn.name, '(');
+            writer.append('function ', this.qualifiedName(defn), '(');
         writer.append('<span class="params">', defn.parameters.join(', '), '</span>)\n');
         this.doc(defn);
         writer.append('</div>');
+        this.members(defn);
     },
 
     variableDefinition: function(defn) {
         var writer = this.writer;
         writer.append('<div class="record">');
-        if (defn.container.name)
-            writer.append('var ', defn.getNamespace(), '.', defn.name, ';');
-        else
-            writer.append('var ', defn.name, ';');
+        writer.append('var ', this.qualifiedName(defn), ';');
         this.doc(defn);
         writer.append('</div>');
+        this.members(defn);
     },
 
     qualifiedName: function(defn) {
-        var namespace = defn.getNamespace(),
+        var path = defn.path.slice(0,defn.path.length-1),
             name = ['<span class="name">', defn.name, '</span>'];
-        return namespace
-            ? ['<span name="target">', namespace, '.</span>', name]
+        return path.length
+            ? ['<span name="target">', path.join('.'), '.</span>', name]
             : name;
     },
 
@@ -186,17 +185,21 @@ function FunctionDefinition(name, params, options) {
     options = options || {};
     this.name = name;
     this.docs = options.docs||[];
+    this.path = null;
     this.parameters = params.split(/,/).select(pluck('length'));
     // FIXME
-    this.define = Model.prototype.define;
+    this.add = Model.prototype.add;
     this.findOrMake = Model.prototype.findOrMake;
-    this.getNamespace = function() {return this.container.getNamespace()};
     this.definitions = [];
 }
 
 FunctionDefinition.prototype = {
     toString: function() {
         return ['function ', this.name, '()'].join('');
+    },
+
+    getQualifier: function() {
+        return this.container && this.container.path;
     }
 }
 
@@ -204,15 +207,17 @@ function VariableDefinition(name, options) {
     options = options || {};
     this.name = name;
     this.docs = options.docs||[];
+    this.path = null;
     // FIXME
-    this.define = Model.prototype.define;
+    this.add = Model.prototype.add;
     this.findOrMake = Model.prototype.findOrMake;
-    this.getNamespace = function() {return this.container.getNamespace()};
+    this.getQualifier = function() {return this.container && this.container.path};
     this.definitions = [];
 }
 
 function Model(name) {
     this.name = name;
+    this.path = name ? [name] : [];
     this.definitions = [];
     this.docs = [];
     this.onlyModel = true;
@@ -220,12 +225,13 @@ function Model(name) {
 }
 
 Model.prototype = {
-    define: function(defn) {
+    add: function(defn) {
         var value = this.definitions.detect(function(defn) {
             return defn.name == name;
         });
         if (value) throw "duplicate definition";
         defn.container = this;
+        defn.path = this.path.concat([defn.name]);
         this.definitions.push(defn);
     },
 
@@ -237,13 +243,8 @@ Model.prototype = {
             return defn.name == name;
         });
         if (!value)
-            this.define(value = new Model(name));
+            this.add(value = new Model(name));
         return value;
-    },
-
-    getNamespace: function() {
-        var container = this.container;
-        return container && container.name ? container.getNamespace() + '.' + this.name : this.name;
     }
 }
 
@@ -331,7 +332,6 @@ Function.prototype.hoisted = function() {
 
 CommentFormatter.byType = {
     equivalence: function(text, writer) {
-        info('t', text);
         var html = OSDoc.toMathHTML(text).replace(/==/, '=<sub class="def">def</sub> ')
         writer.append('<pre class="equivalence">', html, '</pre>');
     }.hoisted(),
@@ -396,20 +396,22 @@ CommentFormatter.prototype = {
 
 OSDoc.APIDoc.Parser.prototype.parse = function(text) {
     var id = '[a-zA-Z_$][a-zA-Z_$0=9]*';
-    var machine = new StateMachineParser({
+    var parser = new StateMachineParser({
         tokens: {
             id: id,
         },
         states: {
             initial: [
-                    /\/\/\/(.*)/, apidocLine,
+                    /\/\/\/ ?(.*)/, apidocLine,
                     /\/\*\*/, 'apidocBlock',
-                    /\/\*/, 'block-comment',
+                    /\/\*/, 'blockComment',
                     /function (#{id})\s*\((.*?)\).*/, defun,
                     /var\s+(#{id})\s*=.*/, defvar,
                         /(#{id}(?:\.#{id})*)\.(#{id})\s*=\s*function\s*\((.*?)\).*/, classMethod,
                         /\/\/.*/, null,
-                        /(?:.)/, null
+                        // non-blank line wipes api
+                        /\s*$/, null,
+                        /.*/, getDocs
             ],
             apidocBlock: [
                     / ?\* ?(.*?)\*\/\s*/, [apidocLine, 'initial'],
@@ -418,13 +420,16 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
                     /(.*)/, apidocLine
             ],
             blockComment: [
-                    /\*\//, 'initial'
+                    /\*\//, 'initial',
+                    /\*/, null,
+                    /[^\*]+/, null
             ]
         }});
-    var model = new Model,
+    var globals = new Model,
         docParser = new CommentParser;
-    machine.parse(text);
-    return model;
+    parser.parse(text);
+    info(globals);
+    return globals;
 
     function getDocs() {
         var docs = docParser.blocks;
@@ -434,19 +439,19 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
     function apidocLine(s) {
         docParser.parseLine(s);
     }
-    function defun(name, args) {
-        model.define(new FunctionDefinition(name, args, {docs: getDocs()}));
-    }
-    function classMethod(namespace, name, args) {
-        var container = model.findOrMake(namespace);
-        container.define(new FunctionDefinition(name, args, {docs: getDocs()}));
+    function defun(name, params) {
+        globals.add(new FunctionDefinition(name, params, {docs: getDocs()}));
     }
     function defvar(name) {
-        model.define(new VariableDefinition(name, {docs: getDocs()}));
+        globals.add(new VariableDefinition(name, {docs: getDocs()}));
     }
-    function property(namespace, name) {
-        var container = model.findOrMake(namespace);
-        container.define(new VariableDefinition(name, {docs: getDocs()}));
+    function classMethod(path, name, params) {
+        var container = globals.findOrMake(path);
+        container.add(new FunctionDefinition(name, params, {docs: getDocs()}));
+    }
+    function property(path, name) {
+        var container = globals.findOrMake(path);
+        container.add(new VariableDefinition(name, {docs: getDocs()}));
     }
 }
 
@@ -474,6 +479,7 @@ StateMachineParser.prototype.parseLines = function(lines) {
 }
 
 StateMachineParser.prototype.parse = function(string) {
+    var start = new Date().getTime();
     var state = 'initial',
         pos = 0;
     while (pos < string.length) {
@@ -482,10 +488,14 @@ StateMachineParser.prototype.parse = function(string) {
             continue;
         }
         //info('state', state, 'pos', string.slice(pos, pos+40));
-        var r = this.tables[state](string, pos);
+        var table = this.tables[state];
+        if (!table)
+            throw "unknown state: " + state;
+        var r = table(string, pos);
         state = r.state || state;
         pos = r.pos;
     }
+    info('time', new Date().getTime()-start);
 }
 
 function makeStateTable(ruleList, tokens) {
@@ -502,29 +512,50 @@ function makeStateTable(ruleList, tokens) {
             src = src.slice(1, src.lastIndexOf('/'));
         }
         src = src.replace(/#{(.+?)}/g, function(s, m) {return tokens[m] || s});
+        var re = new RegExp('^'+src, 'g'),
+            prefixMatch = /^([^\(\[\\\.\*])|^\\([^swdb])/(src);
+        if (prefixMatch) {
+            var prefixChar = prefixMatch[1] || prefixMatch[2];
+            re = (function(re, src, prefixChar) {
+                return function(string) {
+                    var ix = re.lastIndex = arguments.callee.lastIndex,
+                        match = (string.length > ix && string.charAt(ix) == prefixChar
+                                 && re(string));
+                    if (match)
+                        arguments.callee.lastIndex = re.lastIndex;
+                    return match;
+                }
+            })(re, src, prefixChar);
+        }
         rules.push({
             source: src,
-            re: new RegExp(src, 'g')
+            re: re
         });
         process(rules[rules.length-1], rhs);
     }
     // String -> {state, position}
     return function(string, pos) {
         //info('parsing', '"', string.slice(pos), '"');
+        var base = 0;
+        if (true) {
+            var base = pos;
+            string = string.slice(pos);
+            pos = 0;
+        }
         for (var i = 0, re, m; rule = rules[i]; i++) {
             var re = rule.re;
             gr = rule;
             debugParser && info('trying', rule.source, 'at', pos, 'on', string.slice(pos));
             re.lastIndex = pos;
             if ((m = re(string)) && m[0].length) {
-                if (!(re.lastIndex-m[0].length == pos )) {
+                if (!(re.lastIndex-m[0].length == pos)) {
                     //info('!=', re.lastIndex, m[0].length, pos);
                     continue;
                 }
                 debugParser && info('match', rule);
-                rule.action && info(rule.action, m);
+                //rule.action && info(rule.action, m);
                 rule.action && rule.action.apply(m[0], m.slice(1));
-                return {pos: re.lastIndex, state: rule.target};
+                return {pos: base+re.lastIndex, state: rule.target};
             }
             //info('failed', re.toSource(), string.slice(0, 80).toSource(), m);
         }
