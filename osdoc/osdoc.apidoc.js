@@ -192,44 +192,6 @@ HTMLFormatter.prototype = {
  * Domain Model
  */
 
-function FunctionDefinition(name, params, options) {
-    options = options || {};
-    this.name = name;
-    this.docs = options.docs||[];
-    this.path = null;
-    this.parameters = params.split(/,/).select(pluck('length'));
-    // FIXME
-    this.add = Model.prototype.add;
-    this.findOrMake = Model.prototype.findOrMake;
-    this.definitions = [];
-}
-
-FunctionDefinition.prototype = {
-    toString: function() {
-        return ['function ', this.name, '()'].join('');
-    },
-
-    getQualifier: function() {
-        return this.container && this.container.path;
-    }
-}
-
-function VariableDefinition(name, options) {
-    options = options || {};
-    this.name = name;
-    this.docs = options.docs||[];
-    this.path = null;
-    // FIXME
-    this.add = Model.prototype.add;
-    this.findOrMake = Model.prototype.findOrMake;
-    this.getQualifier = function() {return this.container && this.container.path};
-    this.definitions = [];
-}
-
-function SectionBlock(docs) {
-    this.docs = docs;
-}
-
 function Model(name) {
     this.name = name;
     this.path = name ? [name] : [];
@@ -244,7 +206,10 @@ Model.prototype = {
         var value = this.definitions.detect(function(defn) {
             return defn.name == name;
         });
-        if (value) throw "duplicate definition";
+        if (value) {
+            info(this, value.toSource(), defn);
+            throw "duplicate definition: " + defn.name
+        };
         defn.container = this;
         defn.path = this.path.concat([defn.name]);
         this.definitions.push(defn);
@@ -262,6 +227,53 @@ Model.prototype = {
         return value;
     }
 }
+
+function subclass(a, b) {
+    return Object.extend(Object.extend({}, a.prototype), b);
+    //return Object.extend(b,a);
+}
+
+var VariableDefinition = Class.create();
+VariableDefinition.prototype = subclass(Model, {
+    initialize: function(name, options) {
+        options = options || {};
+        this.name = name;
+        this.docs = options.docs||[];
+        this.path = null;
+        // FIXME
+        this.definitions = [];
+    },
+
+    getQualifier: function() {
+        return this.container && this.container.path;
+    }
+});
+
+var FunctionDefinition = Class.create();
+FunctionDefinition.prototype = subclass(VariableDefinition, {
+    initialize: function(name, params, options) {
+        options = options || {};
+        this.name = name;
+        this.docs = options.docs||[];
+        this.path = null;
+        this.parameters = params.split(/,/).select(pluck('length'));
+        // FIXME
+        this.definitions = [];
+    },
+
+    toString: function() {
+        return ['function ', this.name, '()'].join('');
+    },
+
+    getQualifier: function() {
+        return this.container && this.container.path;
+    }
+});
+
+function SectionBlock(docs) {
+    this.docs = docs;
+}
+
 
 /*
  * Comments
@@ -409,12 +421,12 @@ CommentFormatter.prototype = {
             function(block) {
                 this.renderBlock(block, writer);
             }.bind(this));
-//         writer.append('<div class="description">');
+        writer.append('<div class="description">');
         blocks.reject(function(b){return b.type==CommentBlockTypes.signature}).each(
             function(block) {
                 this.renderBlock(block, writer);
             }.bind(this));
-//         writer.append('</div>');
+        writer.append('</div>');
     },
 
     renderBlock: function(block, writer) {
@@ -593,7 +605,7 @@ function makeStateTable(ruleList, tokens) {
                     continue;
                 }
                 debugParser && info('match', rule);
-                rule.action && info(rule.action, m);
+                //rule.action && info(rule.action, m);
                 rule.action && rule.action.apply(m[0], m.slice(1));
                 return {pos: base+re.lastIndex, state: rule.target};
             }

@@ -22,7 +22,7 @@
 .osdoc.docs .target {color:gray}
 .osdoc.docs .type .label {font-family:serif}
 .osdoc.docs .description {color:#444; line-height:1.2em}
-.osdoc.docs .description p {margin-top:25em; margin-bottom:.25em}
+.osdoc.docs .description p {margin-top:.25em; margin-bottom:.25em}
 .osdoc.docs .description pre {font-family:monospace; line-height:1.2em}
 .osdoc.docs .description .equivalence {font-size:small; font-family:serif; margin-bottom:.25ex}
 .osdoc.docs sub {font-size: x-small; font-family:serif}
