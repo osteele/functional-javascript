@@ -1,15 +1,18 @@
 Basic functionality:
-- figure out single vs. multiline
-- render ::, >>, ==, indent, parbreak
-- normalize stuff in comments
+- ellipses
 - sections
 - Functional
-- staging
+- @nodoc
+- staged rendering
 - doctest
 
+Fix HTML:
+- record -> definition
+- target -> namespace?
+
 Code cleanup:
+- single vs. multiline
 - hoist parsing for comment types: signature
-- remove dead code
 - rename -> protodoc
 - use standard class mechanism
 - use builders
@@ -43,8 +46,9 @@ C.prototype.x = {
 
 
 Release checklist:
-- w/out prototype
 - test in other browsers
+- remove the cache-busting?
+- test w/out prototype?
 
 Future:
 - document object slots

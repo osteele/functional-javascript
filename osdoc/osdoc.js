@@ -80,7 +80,7 @@ OSDoc.inlineFormat = function(html, variables) {
 }
 
 OSDoc.toMathHTML = function(text) {
-    return '<span class="math">' + text.replace(/[a-z]/gi, function(w) {
+    return '<span class="math">' + text.replace(/[a-z]+/gi, function(w) {
         return '<var>'+w+'</var>';
     }).replace(/<\/var>(?:(\d+)|_\{(.*?)\})/g, function(_, sub, sub2) {
         return '</var><sub>' + (sub || sub2) + '</sub>';

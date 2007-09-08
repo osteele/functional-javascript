@@ -45,8 +45,10 @@ OSDoc.APIDoc.prototype.parse = function(text) {
 
 OSDoc.APIDoc.prototype.updateTarget = function(stage) {
     if (!this.options.target) return;
-    var model = new OSDoc.APIDoc.Parser().parse(this.text);
-    info(new HTMLFormatter().render(model));
+    var model = new OSDoc.APIDoc.Parser().parse(this.text),
+        html = new HTMLFormatter().render(model);
+    info(html);
+    this.options.target.innerHTML = html;
 
     //this.options.target.innerHTML = new HTMLFormatter().render(model);
     return;
@@ -110,6 +112,11 @@ RopeWriter.prototype = {
     }
 }
 
+
+/*
+ * HTML Formatter
+ */
+
 function HTMLFormatter() {}
 
 HTMLFormatter.prototype = {
@@ -136,32 +143,38 @@ HTMLFormatter.prototype = {
 
     functionDefinition: function(defn) {
         var writer = this.writer;
-        this.doc(defn);
+        writer.append('<div class="record">');
         if (defn.container.name)
-            writer.append(this.qualifiedName(defn), ' = function(', defn.parameters.join(', '), ')\n');
+            writer.append(this.qualifiedName(defn), ' = function(');
         else
-            writer.append('function ', defn.name, '(', defn.parameters.join(', '), ')\n');
+            writer.append('function ', defn.name, '(');
+        writer.append('<span class="params">', defn.parameters.join(', '), '</span>)\n');
+        this.doc(defn);
+        writer.append('</div>');
     },
 
     variableDefinition: function(defn) {
         var writer = this.writer;
-        this.doc(defn);
+        writer.append('<div class="record">');
         if (defn.container.name)
             writer.append('var ', defn.getNamespace(), '.', defn.name, ';');
         else
             writer.append('var ', defn.name, ';');
+        this.doc(defn);
+        writer.append('</div>');
     },
 
     qualifiedName: function(defn) {
-        return [defn.getNamespace(), '.', defn.name].join('');
+        var namespace = defn.getNamespace(),
+            name = ['<span class="name">', defn.name, '</span>'];
+        return namespace
+            ? ['<span name="target">', namespace, '.</span>', name]
+            : name;
     },
 
     doc: function(defn) {
         var writer = this.writer;
-        defn.docs.each(function(block) {
-            new CommentFormatter().render(block, writer);
-        });
-        //writer.append(OSDoc.inlineFormat(defn.docs.join('\n')), '\n');
+        new CommentFormatter().render(defn.docs, writer);
     }
 }
 
@@ -270,10 +283,11 @@ CommentParser.prototype = {
                 action = rules[i++],
                 match = item(line);
             if (match) {
+                //info(action, match.slice(1));
                 if (typeof action == 'function')
                     action.apply(this, match.slice(1));
                 else {
-                    this.createOrAdd(action).append(line);
+                    this.createOrAdd(action).append(match[1]);
                 }
                 break;
             }
@@ -284,7 +298,6 @@ CommentParser.prototype = {
 
     createOrAdd: function(type) {
         var block = this.block;
-        info('create', type, 'previous is', (block||{}).type);
         if ((block||{}).type != type) {
             var lines = [];
             this.block = block = {type:type, lines:lines, append:lines.push.bind(lines)}
@@ -294,7 +307,6 @@ CommentParser.prototype = {
     },
 
     endBlock: function() {
-        info('clear');
         this.block = null;
     },
 
@@ -303,10 +315,6 @@ CommentParser.prototype = {
         this.block = null;
     }
 }
-
-/*
- * DocBlock Formatter
- */
 
 function CommentFormatter() {}
 
@@ -323,6 +331,7 @@ Function.prototype.hoisted = function() {
 
 CommentFormatter.byType = {
     equivalence: function(text, writer) {
+        info('t', text);
         var html = OSDoc.toMathHTML(text).replace(/==/, '=<sub class="def">def</sub> ')
         writer.append('<pre class="equivalence">', html, '</pre>');
     }.hoisted(),
@@ -338,7 +347,7 @@ CommentFormatter.byType = {
             test = (match
                     ? {text: input, expect: output}
                     : {text: input});
-        writer.append(test);
+        //writer.append(test);
         var line = (match
                     ? ['<kbd>', input.escapeHTML(), '</kbd>',
                        ' <samp>&rarr; ', output.escapeHTML(), '</samp>'].join('')
@@ -350,16 +359,35 @@ CommentFormatter.byType = {
         writer.append('<p>', OSDoc.inlineFormat(lines.join(' ')), '</p>');
     },
 
-    signature: function(line, writer) {
-        writer.append('<pre>&nbsp;&nbsp;', line.escapeHTML(), '</pre>');
-    }.hoisted()
+    signature: function(lines, writer) {
+        var text = (lines.join(' ').escapeHTML().
+                    replace(/-&gt;/g, '&rarr;').replace(/\.\.\./g, '&hellip;').
+                    replace(/(?:(\d+)|_{(.*?)})/g, function(_, sub, sub2) {
+                        return '<sub>'+(sub||sub2)+'</sub>';
+                    }));
+        writer.append('<div class="type"><span class="label">Type:</span> ', text, '</div>');
+    }
 }
 
-CommentFormatter.prototype.render = function(block, writer) {
-    var fn = CommentFormatter.byType[block.type];
-    if (!fn)
-        throw "no formatter for " + block.type;
-    fn.call(this, block.lines, writer);
+CommentFormatter.prototype = {
+    render: function(blocks, writer) {
+        // TODO: sort instead
+        blocks.select(function(b){return b.type==CommentBlockTypes.signature}).each(
+            function(block) {
+                this.renderBlock(block, writer);
+            }.bind(this));
+        blocks.reject(function(b){return b.type==CommentBlockTypes.signature}).each(
+            function(block) {
+                this.renderBlock(block, writer);
+            }.bind(this));
+    },
+
+    renderBlock: function(block, writer) {
+        var fn = CommentFormatter.byType[block.type];
+        if (!fn)
+            throw "no formatter for " + block.type;
+        fn.call(this, block.lines, writer);
+    }
 }
 
 /*
@@ -380,7 +408,8 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
                     /function (#{id})\s*\((.*?)\).*/, defun,
                     /var\s+(#{id})\s*=.*/, defvar,
                         /(#{id}(?:\.#{id})*)\.(#{id})\s*=\s*function\s*\((.*?)\).*/, classMethod,
-                        /\/\/.*/, null
+                        /\/\/.*/, null,
+                        /(?:.)/, null
             ],
             apidocBlock: [
                     / ?\* ?(.*?)\*\/\s*/, [apidocLine, 'initial'],
