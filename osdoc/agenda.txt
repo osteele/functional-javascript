@@ -1,5 +1,5 @@
 Milestones:
-- C.prototype.a = function
+- defvar
 - render ::, ==, etc.
 - sections
 - Functional
@@ -16,31 +16,11 @@ DocBlock = DocBlock.Text | DocBlock.Definition | DocBlock.Test
 
 http://osteele.dev/sources/javascript/osdoc/?source=test.js
 
-base:
-///(.*) -> {apidocline}
-/** -> block-apidoc
-/* -> block-comment
-^function name -> {function}
-^var name -> {var}
-^Name...prototype = function -> {method}
-^Name...prototype = -> {member}
-^Name... = function -> {classMethod}
-^Name... = -> {classMember}
-
 var x = new Y;
 function C() {}
 C.prototype.x = {
   match: function(args) ...
   },?s\*$
-
-block apidoc:
-(.*?)*/ -> {apidocline} base
-.* -> {apidocline}
-
-block comment:
-*/ -> base
-
-refactor within apidoc as comment
 
 - prototype, scriptaculous, protoscript, yui, jquery, client and server-side libraries, ...
 
@@ -53,16 +33,18 @@ New features:
 Release checklist:
 - w/out prototype
 - test in other browsers
-- remove dependendency on prototype
-- rename to protodoc?
+- rename to protodoc
 
 Future:
+- pluggable formatters
 - command-line version
 - roll up class definitions
 - recognize subclasses
 - show inline docs
-- add ToC
-- pluggable comment formatters too?
+- pluggable comment formatters
 - ToC
 - command-line
 - other parsers
+- show source
+- frames
+- option to show all comments

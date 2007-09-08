@@ -343,7 +343,7 @@ StandardFormatter.prototype = {
         var a = this.gaps;
         this.gaps.append(OSDoc.inlineFormat(defn.docs.join('\n')), '\n');
         if (defn.container.name)
-            a.append(defn.container.name, '.', defn.name, ' = function(', defn.parameters.join(', '), ')\n');
+            a.append(defn.getNamespace(), '.', defn.name, ' = function(', defn.parameters.join(', '), ')\n');
         else
             a.append('function ', defn.name, '(', defn.parameters.join(', '), ')\n');
     }
@@ -362,6 +362,8 @@ OrderedDict.prototype = {
     }
 }
 
+Function.K = function(x) {return function() {return x}};
+
 function FunctionDefinition(name, params, options) {
     options = options || {};
     this.name = name;
@@ -370,6 +372,7 @@ function FunctionDefinition(name, params, options) {
     // FIXME
     this.define = Model.prototype.define;
     this.findOrMake = Model.prototype.findOrMake;
+    this.getNamespace = function() {return this.container.getNamespace()};
     this.definitions = [];
 }
 
@@ -400,12 +403,20 @@ Model.prototype = {
 
     findOrMake: function(name) {
         info('fm', name);
+        var parts = /(.+?)\.(.+)/(name);
+        if (parts)
+            return this.findOrMake(parts[1]).findOrMake(parts[2]);
         var value = this.definitions.detect(function(defn) {
             return defn.name == name;
         });
         if (!value)
             this.define(value = new Model(name));
         return value;
+    },
+    
+    getNamespace: function() {
+        var container = this.container;
+        return container && container.name ? container.getNamespace() + '.' + this.name : this.name;
     }
 }
 
@@ -423,7 +434,7 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
                     /\/\*/, 'block-comment',
                     /function (#{id})\s*\((.*?)\).*/, defun,
                     /var\s+(#{id})\s*=/, defvar,
-                        /(#{id})\.(#{id})\s*=\s*function\s*\((.*?)\).*/, classMethod,
+                        /(#{id}(?:\.#{id})*)\.(#{id})\s*=\s*function\s*\((.*?)\).*/, classMethod,
 //             'Name...prototype = function', method,
 //             'Name...prototype=', member,
 //             'Name...=function', classMethod,
@@ -532,6 +543,7 @@ function makeStateTable(ruleList, tokens) {
                     continue;
                 }
                 debugParser && info('match', rule);
+                rule.action && info(rule.action, m);
                 rule.action && rule.action.apply(m[0], m.slice(1));
                 return {pos: re.lastIndex, state: rule.target};
             }
