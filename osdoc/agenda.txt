@@ -1,5 +1,4 @@
 Milestones:
-- defvar
 - render ::, ==, etc.
 - sections
 - Functional

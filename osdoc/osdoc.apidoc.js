@@ -37,7 +37,7 @@ OSDoc.APIDoc.prototype.load = function(url) {
 
 /// Parse +text+.  If +options.target+ is specified, update it.
 OSDoc.APIDoc.prototype.parse = function(text) {
-    gf = this.parse.bind(this, text);
+    gf = this.updateTarget.bind(this, 0);
     this.text = OSDoc.stripHeader(text);
     this.updateTarget(this.options.staged && 0);
     return this;
@@ -330,22 +330,42 @@ function StandardFormatter() {}
 
 StandardFormatter.prototype = {
     render: function(model) {
-        var gaps = this.gaps = new Gaps;
+        var writer = this.writer = new Gaps;
         model.definitions.each(this.definition.bind(this));
-        return gaps.toString();
+        return writer.toString();
     },
 
     definition: function(defn) {
-        if (defn.onlyModel) {
-            defn.definitions.each(this.definition.bind(this));
-            return;
-        }
-        var a = this.gaps;
-        this.gaps.append(OSDoc.inlineFormat(defn.docs.join('\n')), '\n');
-        if (defn.container.name)
-            a.append(defn.getNamespace(), '.', defn.name, ' = function(', defn.parameters.join(', '), ')\n');
+        if (defn.onlyModel)
+            this.namespace(defn);
+        else if (defn instanceof FunctionDefinition)
+            this.functionDefinition(defn);
+        else if (defn instanceof VariableDefinition)
+            this.variableDefinition(defn);
         else
-            a.append('function ', defn.name, '(', defn.parameters.join(', '), ')\n');
+            throw "unknown definition";
+    },
+
+    namespace: function(defn) {
+        defn.definitions.each(this.definition.bind(this));
+    },
+
+    functionDefinition: function(defn) {
+        var writer = this.writer;
+        writer.append(OSDoc.inlineFormat(defn.docs.join('\n')), '\n');
+        if (defn.container.name)
+            writer.append(defn.getNamespace(), '.', defn.name, ' = function(', defn.parameters.join(', '), ')\n');
+        else
+            writer.append('function ', defn.name, '(', defn.parameters.join(', '), ')\n');
+    },
+
+    variableDefinition: function(defn) {
+        var writer = this.writer;
+        writer.append(OSDoc.inlineFormat(defn.docs.join('\n')), '\n');
+        if (defn.container.name)
+            writer.append('var ', defn.getNamespace(), '.', defn.name, ';');
+        else
+            writer.append('var ', defn.name, ';');
     }
 }
 
@@ -367,8 +387,8 @@ Function.K = function(x) {return function() {return x}};
 function FunctionDefinition(name, params, options) {
     options = options || {};
     this.name = name;
-    this.parameters = params.split(/,/).select(pluck('length'));
     this.docs = options.docs||[];
+    this.parameters = params.split(/,/).select(pluck('length'));
     // FIXME
     this.define = Model.prototype.define;
     this.findOrMake = Model.prototype.findOrMake;
@@ -380,6 +400,17 @@ FunctionDefinition.prototype = {
     toString: function() {
         return ['function ', this.name, '()'].join('');
     }
+}
+
+function VariableDefinition(name, options) {
+    options = options || {};
+    this.name = name;
+    this.docs = options.docs||[];
+    // FIXME
+    this.define = Model.prototype.define;
+    this.findOrMake = Model.prototype.findOrMake;
+    this.getNamespace = function() {return this.container.getNamespace()};
+    this.definitions = [];
 }
 
 function Model(name) {
@@ -413,7 +444,7 @@ Model.prototype = {
             this.define(value = new Model(name));
         return value;
     },
-    
+
     getNamespace: function() {
         var container = this.container;
         return container && container.name ? container.getNamespace() + '.' + this.name : this.name;
@@ -433,8 +464,9 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
                     /\/\*\*/, 'apidocBlock',
                     /\/\*/, 'block-comment',
                     /function (#{id})\s*\((.*?)\).*/, defun,
-                    /var\s+(#{id})\s*=/, defvar,
+                    /var\s+(#{id})\s*=.*/, defvar,
                         /(#{id}(?:\.#{id})*)\.(#{id})\s*=\s*function\s*\((.*?)\).*/, classMethod,
+                        /\/\/.*/, null
 //             'Name...prototype = function', method,
 //             'Name...prototype=', member,
 //             'Name...=function', classMethod,
@@ -454,31 +486,34 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
     var blocks = [], lines;
     machine.parse(text);
     return model;
+
+    function getDocs() {
+        if (lines) {
+            blocks.push(lines.join('\n'));
+            lines = null;
+        }
+        var cd = (blocks);
+        blocks = [];
+        return cd;
+    }
     function apidocLine(s) {
         lines = lines || [];
         lines.push(s.strip());
     }
     function defun(name, args) {
-        if (lines) {
-            blocks.push(lines.join('\n'));
-            lines = null;
-        }
-        model.define(new FunctionDefinition(name, args, {docs: blocks}));
-        blocks = [];
+        model.define(new FunctionDefinition(name, args, {docs: getDocs()}));
     }
     function classMethod(namespace, name, args) {
-        if (lines) {
-            blocks.push(lines.join('\n'));
-            lines = null;
-        }
         var container = model.findOrMake(namespace);
-        container.define(new FunctionDefinition(name, args, {docs: blocks}));
-        blocks = [];
+        container.define(new FunctionDefinition(name, args, {docs: getDocs()}));
     }
-    function defvar() {}
-    function method() {}
-    function member() {}
-    function property() {}
+    function defvar(name) {
+        model.define(new VariableDefinition(name, {docs: getDocs()}));
+    }
+    function property(namespace, name) {
+        var container = model.findOrMake(namespace);
+        container.define(new VariableDefinition(name, {docs: getDocs()}));
+    }
 }
 
 // stateTable :: {String => [Rule]}, where
