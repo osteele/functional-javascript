@@ -1,5 +1,7 @@
 /// ^ Higher-order functions
 
-/** Fn docs */
+/** Fn docs
+ * another line
+ */
 Functional.compose = function(/*fn...*/) {
 }

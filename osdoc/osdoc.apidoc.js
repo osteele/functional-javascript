@@ -27,9 +27,12 @@ OSDoc.APIDoc = function(options) {
 
 /// Load +url+ and parse its contents.
 OSDoc.APIDoc.prototype.load = function(url) {
+    var bustCache = true;
     this.options.target && (this.options.target.innerHTML = OSDoc.loadingHeader);
+    if (bustCache)
+        url += '?ts='+new Date().getTime();
     new Ajax.Request(
-        url+'?ts='+new Date().getTime(),
+        url,
         {method: 'GET',
          onSuccess: Functional.compose(this.parse.bind(this), '_.responseText').reporting()});
     return this;
@@ -49,9 +52,8 @@ OSDoc.APIDoc.prototype.updateTarget = function(stage) {
         html = new HTMLFormatter({headingLevel:this.options.headingLevel}).render(model);
     //info(html||'no output');
     this.options.target.innerHTML = html;
-
-    //this.options.target.innerHTML = new HTMLFormatter().render(model);
-    return;
+    this.options.onSuccess();
+    return this;
 
     var text = this.text;
     switch (stage) {
@@ -63,7 +65,7 @@ OSDoc.APIDoc.prototype.updateTarget = function(stage) {
         this.options.target.innerHTML = OSDoc.processingHeader + this.toHTML(true);
         break;
     default:
-        this.records = this.records || (new OSDoc.APIDoc.Parser).parse(text);
+        this.records = this.records || new OSDoc.APIDoc.Parser().parse(text);
         this.options.target.innerHTML = this.toHTML();
         this.options.onSuccess();
         return this;
@@ -72,20 +74,14 @@ OSDoc.APIDoc.prototype.updateTarget = function(stage) {
     return this;
 }
 
-OSDoc.APIDoc.prototype.toHTML = function(fast) {
-    var spans = [];
-    var self = this;
-    this.records.each(function(rec) {
-        spans.push(rec.toHTML(fast).replace(/(<\/?h)(\d)([\s>])/g, function(_, left, n, right) {
-            return [left, n.charCodeAt(0) - 49 + self.options.headingLevel, right].join('');
-        }));
-    });
-    return spans.join('\n');
-}
-
 OSDoc.APIDoc.Parser = function(options) {
     this.options = options;
 }
+
+
+/*
+ * A RopeWriter accumulates strings with deferred concatenatation.
+ */
 
 function RopeWriter() {
     this.blocks = [];
@@ -130,12 +126,12 @@ HTMLFormatter.prototype = {
     },
 
     definition: function(defn) {
-        if (defn.onlyModel)
-            this.members(defn);
-        else if (defn instanceof FunctionDefinition)
+        if (defn instanceof FunctionDefinition)
             this.functionDefinition(defn);
         else if (defn instanceof VariableDefinition)
             this.variableDefinition(defn);
+        else if (defn instanceof Model)
+            this.members(defn);
         else if (defn instanceof SectionBlock)
             this.section(defn);
         else
@@ -192,16 +188,14 @@ HTMLFormatter.prototype = {
  * Domain Model
  */
 
-function Model(name) {
-    this.name = name;
-    this.path = name ? [name] : [];
-    this.definitions = [];
-    this.docs = [];
-    this.onlyModel = true;
-    //new OrderedDict;
-}
+var Model = Base.extend({
+    constructor: function(name) {
+        this.name = name;
+        this.path = name ? [name] : [];
+        this.definitions = [];
+        this.docs = [];
+    },
 
-Model.prototype = {
     add: function(defn) {
         var value = this.definitions.detect(function(defn) {
             return defn.name == name;
@@ -226,22 +220,18 @@ Model.prototype = {
             this.add(value = new Model(name));
         return value;
     }
-}
+});
 
-function subclass(a, b) {
-    return Object.extend(Object.extend({}, a.prototype), b);
-    //return Object.extend(b,a);
-}
-
-var VariableDefinition = Class.create();
-VariableDefinition.prototype = subclass(Model, {
-    initialize: function(name, options) {
+var VariableDefinition = Model.extend({
+    constructor: function(name, options) {
         options = options || {};
-        this.name = name;
+        this.base(name);
         this.docs = options.docs||[];
         this.path = null;
-        // FIXME
-        this.definitions = [];
+    },
+
+    toString: function() {
+        return ['var ', this.name].join('');
     },
 
     getQualifier: function() {
@@ -249,16 +239,11 @@ VariableDefinition.prototype = subclass(Model, {
     }
 });
 
-var FunctionDefinition = Class.create();
-FunctionDefinition.prototype = subclass(VariableDefinition, {
-    initialize: function(name, params, options) {
+var FunctionDefinition = VariableDefinition.extend({
+    constructor: function(name, params, options) {
         options = options || {};
-        this.name = name;
-        this.docs = options.docs||[];
-        this.path = null;
+        this.base(name, options);
         this.parameters = params.split(/,/).select(pluck('length'));
-        // FIXME
-        this.definitions = [];
     },
 
     toString: function() {
@@ -270,6 +255,8 @@ FunctionDefinition.prototype = subclass(VariableDefinition, {
     }
 });
 
+// A comment block that isn't associated with any particular
+// language element.
 function SectionBlock(docs) {
     this.docs = docs;
 }
@@ -437,6 +424,7 @@ CommentFormatter.prototype = {
     }
 }
 
+
 /*
  * Parser
  */
@@ -450,8 +438,9 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
         states: {
             initial: [
                     /\/\/\/ ?(.*)/, docLine,
-                    /\/\*\*[ \t]*/, 'apidocBlock',
-                    /\/\*/, 'blockComment',
+                    /\/\*\*(.|\n)*?\*\//, docBlock,
+//                    /\/\*\*[ \t]*/, 'apidocBlock',
+//                    /\/\*/, 'blockComment',
                     /function (#{id})\s*\((.*?)\).*/, defun,
                     /var\s+(#{id})\s*=.*/, defvar,
                         /(#{id}(?:\.#{id})*)\.(#{id})\s*=\s*function\s*\((.*?)\).*/, classMethod,
@@ -465,11 +454,13 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
                     /(.*?)\*\/\s*/, [docLine, 'initial'],
                     / ?\* ?(.*)/, docLine,
                     /(.*)/, docLine
+                    ///\n/, null
             ],
             blockComment: [
                     /\*\//, 'initial',
                     /\*/, null,
                     /[^\*]+/, null
+                    ///\n/, null
             ]
         }});
     var globals = new Model,
@@ -481,6 +472,9 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
         var docs = docParser.blocks;
         docParser.reset();
         return docs;
+    }
+    function docBlock(s) {
+        s.split('\n').each(docLine);
     }
     function docLine(s) {
         docParser.parseLine(s);
@@ -511,16 +505,17 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
  * StateMachineParser
  */
 
-// stateTable :: {String => [Rule]}, where
-//   Rule is an alternating list of Regex|String, RHS
-//   RHS is a Function (an action) or a String (the name of a state)
+// stateTable :: {String => [Rule]} where
+//   [Rule] is an alternating list of (Regex|String, RHS)*
+//   RHS is a Function (representing an action) or a String (the name of a state)
 function StateMachineParser(options) {
     var tokens = options.tokens;
     var stateTables = options.states;
     this.tables = {};
     for (var key in stateTables) {
         var value = stateTables[key];
-        typeof value == 'function' || (this.tables[key] = makeStateTable(value, tokens));
+        if (typeof value != 'function')
+            this.tables[key] = StateMachineParser.makeStateTable(value, tokens);
     }
 }
 
@@ -535,23 +530,23 @@ StateMachineParser.prototype.parse = function(string) {
     var state = 'initial',
         pos = 0;
     while (pos < string.length) {
-        if (string.charAt(pos) == '\n') {
-            pos++;
-            continue;
-        }
         //info('state', state, 'pos', string.slice(pos, pos+40));
         var table = this.tables[state];
         if (!table)
             throw "unknown state: " + state;
         var r = table(string, pos);
         state = r.state || state;
+        if (pos == r.pos)
+            throw "failure to advance";
         pos = r.pos;
     }
-    info('time', new Date().getTime()-start);
+    //console.info('time', new Date().getTime()-start);
 }
 
-function makeStateTable(ruleList, tokens) {
-    var debugParser = false;
+StateMachineParser.makeStateTable = function(ruleList, tokens) {
+    var trace = {tries:false, matches:true, actions:true},
+        debug = {doublecheck:false},
+        testPrefix = true;
     var rules = [];
     if (ruleList.length & 1)
         throw "makeStateTable requires an even number of arguments";
@@ -565,14 +560,19 @@ function makeStateTable(ruleList, tokens) {
         }
         src = src.replace(/#{(.+?)}/g, function(s, m) {return tokens[m] || s});
         var re = new RegExp('^'+src, 'g'),
-            prefixMatch = /^([^\(\[\\\.\*])|^\\([^swdb])/(src);
-        if (prefixMatch) {
+            prefixMatch = /^([^\(\[\\\.\*])|^\\([^swdbnt])/(src);
+        if (testPrefix && prefixMatch) {
             var prefixChar = prefixMatch[1] || prefixMatch[2];
             re = (function(re, src, prefixChar) {
                 return function(string) {
                     var ix = re.lastIndex = arguments.callee.lastIndex,
                         match = (string.length > ix && string.charAt(ix) == prefixChar
                                  && re(string));
+                    if (debug.doublecheck && !match && re(string)) {
+                        var msg = "RE didn't match but string did";
+                        console.error(msg, src, re, string);
+                        throw msg;
+                    }
                     if (match)
                         arguments.callee.lastIndex = re.lastIndex;
                     return match;
@@ -596,22 +596,23 @@ function makeStateTable(ruleList, tokens) {
         }
         for (var i = 0, re, m; rule = rules[i]; i++) {
             var re = rule.re;
-            gr = rule;
-            debugParser && info('trying', rule.source, 'at', pos, 'on', string.slice(pos));
+            trace.tries && console.info('trying', rule.source, 'at', pos, 'on', string.slice(pos, pos+40));
             re.lastIndex = pos;
             if ((m = re(string)) && m[0].length) {
                 if (!(re.lastIndex-m[0].length == pos)) {
                     //info('!=', re.lastIndex, m[0].length, pos);
                     continue;
                 }
-                debugParser && info('match', rule);
-                //rule.action && info(rule.action, m);
+                trace.matches && console.info('match', rule);
+                trace.actions && rule.action && console.info(rule.action, m);
                 rule.action && rule.action.apply(m[0], m.slice(1));
                 return {pos: base+re.lastIndex, state: rule.target};
             }
             //info('failed', re.toSource(), string.slice(0, 80).toSource(), m);
         }
-        throw "no match at " + string.slice(pos,pos+80);
+        // throw the variables into a global, so that we can debug against them
+        gTrace = [rules, string, pos, string.slice(pos, pos+80)];
+        throw "no match at " + string.slice(pos, pos+80);
     }
     function process(rule, rhs) {
         switch (typeof rhs) {

@@ -20,6 +20,7 @@ Code cleanup:
 - parsing positions
 
 Completion:
+- autoinclude Base
 - test on other libraries
 - docs
 
