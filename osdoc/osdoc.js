@@ -35,7 +35,7 @@ OSDoc.load = function() {
     Functional.install();
     var src = map('.src', document.getElementsByTagName('script')).grep(/\bosdoc\.js/)[0];
     if (!src) return;
-    var modules = Functional.K([_,'examples,apidoc,doctest']).guard('!')(src.match(/\?.*load=([a-z,]*)/))[1].split(',');
+    var modules = Functional.K([_,'utils,examples,apidoc,doctest']).guard('!')(src.match(/\?.*load=([a-z,]*)/))[1].split(',');
     modules.include('doctest') && modules.unshift('apidoc');
     map('a -> b -> a+"osdoc."+b+".js"'.call(null, src.replace(/[^/]*$/,'')), modules).each(OSDoc.require);
 }

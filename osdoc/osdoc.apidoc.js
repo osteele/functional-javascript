@@ -176,7 +176,7 @@ HTMLFormatter.prototype = {
     },
 
     qualifiedName: function(defn) {
-        var path = defn.path.slice(0,defn.path.length-1),
+        var path = defn.path.slice(0, defn.path.length-1),
             name = ['<span class="name">', defn.name, '</span>'];
         return path.length
             ? ['<span name="target">', path.join('.'), '.</span>', name]
@@ -188,6 +188,7 @@ HTMLFormatter.prototype = {
         this.commentFormatter.render(defn.docs, writer);
     }
 }
+
 
 /*
  * Domain Model
@@ -206,8 +207,8 @@ var Model = Base.extend({
             return defn.name == name;
         });
         if (value) {
-            info(this, value.toSource(), defn);
-            throw "duplicate definition: " + defn.name
+            //info(this, value.toSource(), defn);
+            throw "duplicate definition: " + defn.name;
         };
         defn.container = this;
         defn.path = this.path.concat([defn.name]);
@@ -373,23 +374,20 @@ CommentFormatter.byType = {
     }.hoisted(),
 
     heading: function(title, writer, block) {
-        var tagName = 'h' + ((this.options.headingLevel||1)-1 + block.level);
+        var tagName = ['h', ((this.options.headingLevel||1)-1 + block.level)];
         writer.append('<', tagName, '>', title, '</', tagName, '>');
     },
 
     output: function(text, writer) {
         var match = text.match(/\s*(.*)\s*->\s*(.*?)\s*$/),
             input = match ? match[1].replace(/\s+$/,'') : text,
-            output = match && match[2],
-            test = (match
-                    ? {text: input, expect: output}
-                    : {text: input});
-        //writer.append(test);
+            output = match && match[2];
         var line = (match
                     ? ['<kbd>', input.escapeHTML(), '</kbd>',
-                       ' <samp>&rarr; ', output.escapeHTML(), '</samp>'].join('')
+                       ' <samp>&rarr; ', output.escapeHTML(), '</samp>']
                     : '<kbd>' + text.escapeHTML() + '</kbd>');
-        writer.append('<div class="io">', line, '<div class="clear"> </div></div>');
+        writer.append('<div class="io">', line,
+                      '<div class="clear"></div></div>');
     }.hoisted(),
 
     paragraph: function(lines, writer) {

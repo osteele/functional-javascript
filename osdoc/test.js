@@ -4,6 +4,7 @@
  * such as `x+1` and `x -> x+1` to be used in some contexts as functions.
  */
 
+/// ^ h1
 
 /// `Functional` is the namespace for higher-order functions.
 var Functional = window.Functional || {};
