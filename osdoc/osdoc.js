@@ -55,28 +55,32 @@ OSDoc.toString = function(value) {
 OSDoc.loadingHeader = '<p class="processing">Loading...</p>';
 OSDoc.processingHeader = '<p class="processing">Formatting...</p>';
 
-// Return a string for use in the preview.
+/// Return a string for use in the preview.
 OSDoc.previewText = function(text) {
     return OSDoc.processingHeader + '<pre>' + text.escapeHTML() + '</pre>';
 }
 
-// Remove the first comment, on the assumption that it's a file header.
+/// Remove the comment at the top of the file if it contains the text
+/// 'copyright', because it's probably boilerplate
 OSDoc.stripHeader = function(text) {
-    return text.replace(/^\s*\/\*[^*](?:.|\n)*?\*\/[ \t]*/, '');
+    return text.replace(/^\s*\/\*[^*](?:.|\n)*?\*\/[ \t]*/,
+                        function(s) {
+                            return /copyright/i(s) ? '' : s;
+                        });
 }
 
 OSDoc.inlineFormat = function(html, variables) {
-    html = html.replace(/\[(https?:.*?)\]/, '<a href="$1">$1</a>');
-    html = html.replace(/\*(\w+?)\*/g, '<em>$1</em>');
-    html = html.replace(/\$(.+?)\$/g, OSDoc.toMathHTML.compose('_ s -> s'));
-    html = html.replace(/\`(.+?)\`/g, variables
-                        ? function(_, str) {
-                            if (variables[str])
-                                return '<var>'+str+'</var>';
-                            return '<code>'+str+'</code>';
-                        }
-                        : '<code>$1</code>');
-    return html;
+    return (html.replace(/\[(https?:.*?)\]/, '<a href="$1">$1</a>')
+            .replace(/\*(\w+?)\*/g, '<em>$1</em>')
+            .replace(/\$(.+?)\$/g, OSDoc.toMathHTML.compose('_ s -> s'))
+            .replace(/\`(.+?)\`/g, variables
+                     ? function(_, str) {
+                         if (variables[str])
+                             return '<var>'+str+'</var>';
+                         return '<code>'+str+'</code>';
+                     }
+                     : '<code>$1</code>')
+           );
 }
 
 OSDoc.toMathHTML = function(text) {
@@ -87,36 +91,6 @@ OSDoc.toMathHTML = function(text) {
     }).replace(/\.\.\./g, '&hellip;') + '</span>';
 }
 
-
-/*
- * Utilities
- */
-
-Function.prototype.reporting = function() {
-    var fn = this;
-    return function() {
-        try {
-            fn.apply(this, arguments);
-        } catch (e) {
-            window.console && console.info(e);
-            throw e;
-        }
-    }
-}
-
-Function.prototype.delayed = function(ms) {
-    window.setTimeout(this.reporting(), ms);
-}
-
-// Array.prototype.forEach = Array.prototype.forEach || function(fn, thisObject) {
-//     var len = this.length;
-//     for (var i = 0 ; i < len; i++)
-//         if (typeof this[i] != 'undefined')
-//             fn.call(thisObject, this[i], i, this);
-// }
-
-// Array.prototype.each = Array.prototype.each || Array.prototype.forEach;
-
 function makeEnum(words) {
     var types = {};
     words = words.split(/\s+/);
@@ -126,8 +100,9 @@ function makeEnum(words) {
     return types;
 }
 
+
 /*
- * Finally
+ * Finally:
  */
 
 OSDoc.load();
