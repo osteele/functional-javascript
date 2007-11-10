@@ -23,6 +23,7 @@ Completion:
 - docs
 
 Later:
+- sections are always added in the last container
 - optimize statemachine scanner
 - make parsers, builders, renderers, paragraph formatter configurable
 - clean up format vs. render

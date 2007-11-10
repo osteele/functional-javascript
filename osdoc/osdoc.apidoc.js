@@ -91,7 +91,7 @@ HTMLFormatter.prototype = {
     },
 
     definition: function(defn) {
-        if (!options.all && !defn.docs.length && !defn.definitions.length) return;
+        if (!this.options.all && !defn.docs.length && !defn.definitions.length) return;
         if (defn instanceof FunctionDefinition)
             this.functionDefinition(defn);
         else if (defn instanceof VariableDefinition)
@@ -442,6 +442,7 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
             ]
         }});
     var globals = new Model,
+        lastContainer = globals,
         docParser = new CommentParser;
     parser.parse(text);
     return globals;
@@ -461,7 +462,7 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
     function section() {
         var docs = getDocs();
         if (docs.length)
-            globals.add(new SectionBlock(docs));
+            lastContainer.add(new SectionBlock(docs));
     }
     function defun(name, params) {
         globals.add(new FunctionDefinition(name, params, {docs: getDocs()}));
@@ -470,11 +471,11 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
         globals.add(new VariableDefinition(name, {docs: getDocs()}));
     }
     function classMethod(path, name, params) {
-        var container = globals.findOrMake(path);
+        var container = lastContainer = globals.findOrMake(path);
         container.add(new FunctionDefinition(name, params, {docs: getDocs()}));
     }
     function property(path, name) {
-        var container = globals.findOrMake(path);
+        var container = lastContainer = globals.findOrMake(path);
         container.add(new VariableDefinition(name, {docs: getDocs()}));
     }
 }

@@ -910,7 +910,7 @@ String.prototype.lambda = function() {
  * functions, to some callers.
  */
 
-/*
+/**
  * Coerce the string to a function and then apply it.
  * >> 'x+1'.apply(null, [2]) -> 3
  * >> '/'.apply(null, [2, 4]) -> 0.5
