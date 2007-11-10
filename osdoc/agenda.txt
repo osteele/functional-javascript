@@ -1,3 +1,6 @@
+- extra vspace for <p>, <pre>, <div>
+- remove extra <pre/>
+
 Basic functionality:
 - sections
 - Functional

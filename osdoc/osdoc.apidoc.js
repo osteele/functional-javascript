@@ -117,7 +117,7 @@ RopeWriter.prototype = {
  */
 
 function HTMLFormatter(options) {
-    this.options = options||{};
+    this.options = options || {};
     this.commentFormatter = new CommentFormatter(options);
 }
 
@@ -393,7 +393,9 @@ CommentFormatter.byType = {
     }.hoisted(),
 
     paragraph: function(lines, writer) {
-        writer.append('<p>', OSDoc.inlineFormat(lines.join(' ')), '</p>');
+        writer.append('<p class="description">',
+                      OSDoc.inlineFormat(lines.join(' ')),
+                      '</p>');
     },
 
     signature: function(lines, writer) {
@@ -449,8 +451,10 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
                         /(#{id}(?:\.#{id})*)\.(#{id})\s*=\s*function\s*\((.*?)\).*/, classMethod,
                         // /\/\/.*/, null,
                         // /\s*$/, section,
-                        /\n/, section,
-                        /.*/, section
+                        /\n\n/, section,
+                        /.*\n/, null,
+                        // solitary chars on the last line:
+                        /./, null
             ],
             apidocBlock: [
                     / ?\* ?(.*?)\*\/\s*/, [docLine, 'initial'],
@@ -477,7 +481,6 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
         return docs;
     }
     function docBlock(s) {
-        //console.info('"', s.replace(/\n/g, '\\n'), '"');
         s = s.replace(/^ \* /gm, '');
         s.split('\n').each(docLine);
     }
@@ -496,7 +499,6 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
         globals.add(new VariableDefinition(name, {docs: getDocs()}));
     }
     function classMethod(path, name, params) {
-        console.info(name, getDocs());
         var container = globals.findOrMake(path);
         container.add(new FunctionDefinition(name, params, {docs: getDocs()}));
     }
@@ -618,7 +620,7 @@ StateMachineParser.makeStateTable = function(ruleList, tokens) {
         }
         // throw the variables into a global, so that we can debug against them
         gTrace = [rules, string, pos, string.slice(pos, pos+80)];
-        throw "no match at " + string.slice(pos, pos+80);
+        throw "no match at " + string.slice(pos, pos+80).debugInspect();
     }
     function process(rule, rhs) {
         switch (typeof rhs) {
@@ -634,4 +636,11 @@ StateMachineParser.makeStateTable = function(ruleList, tokens) {
             rhs && rhs.each(process.bind(this, rule));
         }
     }
+}
+
+// used in debugging
+String.prototype.debugInspect = function() {
+    var m = {'\b':'b', '\f':'f', '\n':'n', '\t':'t'};
+    return '"' + this.replace(/([\"\\\n\t\b\f])/g, function(s) {
+        return '\\' + (m[s]||s)}) + '"';
 }
