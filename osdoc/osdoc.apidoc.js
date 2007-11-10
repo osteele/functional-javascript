@@ -402,23 +402,21 @@ CommentFormatter.byType = {
                     replace(/(?:(\d+)|_{(.*?)})/g, function(_, sub, sub2) {
                         return '<sub>'+(sub||sub2)+'</sub>';
                     }));
-        writer.append('<div class="type"><span class="label">Type:</span> ', text, '</div>');
+        writer.append('<div class="type"><span class="label">Type:</span> ',
+                      text, '</div>');
     }
 }
 
 CommentFormatter.prototype = {
     render: function(blocks, writer) {
-        // TODO: sort instead
-        blocks.select(function(b){return b.type==CommentBlockTypes.signature}).each(
-            function(block) {
-                this.renderBlock(block, writer);
-            }.bind(this));
-        writer.append('<div class="description">');
-        blocks.reject(function(b){return b.type==CommentBlockTypes.signature}).each(
-            function(block) {
-                this.renderBlock(block, writer);
-            }.bind(this));
-        writer.append('</div>');
+        blocks.each(function(block) {
+            isComment(block) && writer.append('<div class="description">');
+            this.renderBlock(block, writer);
+            isComment(block) && writer.append('</div>');
+        }.bind(this));
+        function isComment(block) {
+            return block.type == CommentBlockTypes.signature;
+        }
     },
 
     renderBlock: function(block, writer) {
@@ -443,7 +441,7 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
         states: {
             initial: [
                     /\/\/\/ ?(.*)/, docLine,
-                    /\/\*\*\s*((?:.|\n)*?)\*\//, docBlock,
+                    /\/\*\* *((?:.|\n)*?)\*\//, docBlock,
 //                    /\/\*\*[ \t]*/, 'apidocBlock',
 //                    /\/\*/, 'blockComment',
                     /function (#{id})\s*\((.*?)\).*/, defun,
@@ -498,6 +496,7 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
         globals.add(new VariableDefinition(name, {docs: getDocs()}));
     }
     function classMethod(path, name, params) {
+        console.info(name, getDocs());
         var container = globals.findOrMake(path);
         container.add(new FunctionDefinition(name, params, {docs: getDocs()}));
     }
