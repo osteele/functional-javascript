@@ -5,15 +5,6 @@
  * Source: http://osteele.com/javascripts/osdoc
  */
 
-function makeEnum(words) {
-    var types = {};
-    words = words.split(/\s+/);
-    words.each(function(word) {
-        types[word] = word;
-    });
-    return types;
-}
-
 Function.prototype.reporting = function() {
     var fn = this;
     return function() {

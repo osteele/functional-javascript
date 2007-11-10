@@ -50,7 +50,6 @@ OSDoc.APIDoc.prototype.updateTarget = function(stage) {
     if (!this.options.target) return;
     var model = new OSDoc.APIDoc.Parser().parse(this.text),
         html = new HTMLFormatter({headingLevel:this.options.headingLevel}).render(model);
-    //info(html||'no output');
     this.options.target.innerHTML = html;
     this.options.onSuccess();
     return this;
@@ -92,6 +91,7 @@ HTMLFormatter.prototype = {
     },
 
     definition: function(defn) {
+        if (!options.all && !defn.docs.length && !defn.definitions.length) return;
         if (defn instanceof FunctionDefinition)
             this.functionDefinition(defn);
         else if (defn instanceof VariableDefinition)
@@ -452,7 +452,7 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
         return docs;
     }
     function docBlock(s) {
-        s = s.replace(/^ \* /gm, '');
+        s = s.replace(/^  ?\* /gm, '');
         s.split('\n').each(docLine);
     }
     function docLine(s) {

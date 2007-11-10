@@ -1,9 +1,4 @@
-- extra vspace for <p>, <pre>, <div>
-- remove extra <pre/>
-
 Basic functionality:
-- sections
-- Functional
 - ellipses
 - @nodoc
 - staged rendering
@@ -33,22 +28,9 @@ Later:
 - clean up format vs. render
 - pass in logger
 
-ObjectDefinition {properties, functions, methods}
-FunctionDefinition {source, docstring, parameters, doc}
-StringSlice {source, start, end, doc: [DocBlock]}
-DocString {blocks: [DocBlock]}
-DocBlock = DocBlock.Text | DocBlock.Definition | DocBlock.Test
-
+Testing:
 http://osteele.dev/sources/javascript/osdoc/?source=test.js
-
-var x = new Y;
-function C() {}
-C.prototype.x = {
-  match: function(args) ...
-  },?s\*$
-
 - prototype, scriptaculous, protoscript, yui, jquery, client and server-side libraries, ...
-
 
 Release checklist:
 - test in other browsers
