@@ -88,9 +88,12 @@ function RopeWriter() {
 }
 
 RopeWriter.prototype = {
+    // Takes any number of string-representable values, or Arrays that
+    // recursively contain such objects.
     append: function() {
-        var blocks = this.blocks;
-        for (var i = 0; i < arguments.length; i++) {
+        var blocks = this.blocks,
+            len = arguments.length;
+        for (var i = 0; i < len; i++) {
             var block = arguments[i];
             if (block instanceof Array)
                 this.append.apply(this, block);
@@ -149,8 +152,10 @@ HTMLFormatter.prototype = {
             writer.append(this.qualifiedName(defn), ' = function(');
         else
             writer.append('function ', this.qualifiedName(defn), '(');
-        writer.append('<span class="params">', defn.parameters.join(', '), '</span>)\n');
-        writer.append('</div>');
+        writer.append('<span class="params">',
+                      defn.parameters.join(', '),
+                      '</span>)\n',
+                      '</div>');
         this.doc(defn);
         writer.append('</div>');
         this.members(defn);
@@ -158,9 +163,9 @@ HTMLFormatter.prototype = {
 
     variableDefinition: function(defn) {
         var writer = this.writer;
-        writer.append('<div class="record"><div class="signature">');
-        writer.append('var ', this.qualifiedName(defn), ';');
-        writer.append('</div>');
+        writer.append('<div class="record"><div class="signature">',
+                      'var ', this.qualifiedName(defn), ';',
+                      '</div>');
         this.doc(defn);
         writer.append('</div>');
         this.members(defn);
@@ -438,7 +443,7 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
         states: {
             initial: [
                     /\/\/\/ ?(.*)/, docLine,
-                    /\/\*\*(.|\n)*?\*\//, docBlock,
+                    /\/\*\*\s*((?:.|\n)*?)\*\//, docBlock,
 //                    /\/\*\*[ \t]*/, 'apidocBlock',
 //                    /\/\*/, 'blockComment',
                     /function (#{id})\s*\((.*?)\).*/, defun,
@@ -474,6 +479,8 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
         return docs;
     }
     function docBlock(s) {
+        //console.info('"', s.replace(/\n/g, '\\n'), '"');
+        s = s.replace(/^ \* /gm, '');
         s.split('\n').each(docLine);
     }
     function docLine(s) {
@@ -544,7 +551,7 @@ StateMachineParser.prototype.parse = function(string) {
 }
 
 StateMachineParser.makeStateTable = function(ruleList, tokens) {
-    var trace = {tries:false, matches:true, actions:true},
+    var trace = {tries:false, matches:false, actions:false},
         debug = {doublecheck:false},
         testPrefix = true;
     var rules = [];
