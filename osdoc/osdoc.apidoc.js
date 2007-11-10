@@ -147,8 +147,14 @@ HTMLFormatter.prototype = {
     },
 
     doc: function(defn) {
-        var writer = this.writer;
-        this.commentFormatter.render(defn.docs, writer);
+        var writer = this.writer,
+            formatter = this.commentFormatter,
+             blocks = defn.docs;
+        blocks = blocks.select(isSignature).concat(blocks.reject(isSignature));
+        formatter.render(blocks, writer);
+        function isSignature(block) {
+            return block.type == CommentBlockTypes.signature;
+        }
     }
 }
 
