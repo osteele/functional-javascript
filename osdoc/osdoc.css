@@ -23,7 +23,8 @@
 .osdoc.docs .type .label {font-family:serif}
 .osdoc.docs .description {color:#444; line-height:1.2em}
 .osdoc.docs .description {margin-top:.25em; margin-bottom:.25em}
-.osdoc.docs .record pre {font-family:monospace; line-height:1.3em}
+.osdoc.docs .record pre {font-family:monospace; line-height:1.2em}
+.osdoc.docs .record io {line-height:1.2em}
 .osdoc.docs .record .equivalence {font-size:small; font-family:serif; margin-bottom:.25ex; padding-left:10pt}
 .osdoc.docs sub {font-size: x-small; font-family:serif}
 .osdoc.docs sub.def {font-size: x-small; font-style:italic}

@@ -1,6 +1,3 @@
-Basic functionality:
-- ellipses
-
 Fix HTML:
 - record -> definition
 - target -> namespace?

@@ -118,7 +118,7 @@ HTMLFormatter.prototype = {
         else
             writer.append('function ', this.qualifiedName(defn), '(');
         writer.append('<span class="params">',
-                      defn.parameters.join(', '),
+                      defn.parameters.join(', ').replace(/\/\*(.*?)\*\//g, '<i>$1</i>'),
                       '</span>)\n',
                       '</div>');
         this.doc(defn);
