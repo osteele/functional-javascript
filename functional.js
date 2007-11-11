@@ -10,9 +10,7 @@
  *
  *
  * This file defines some higher-order methods and functions for
- * functional and function-level programming.  It also defines "string
- * lambdas", that allow strings such as `x+1` and `x -> x+1` to be used
- * in some contexts as functions.
+ * functional and function-level programming.
  */
 
 // rhino compatibility

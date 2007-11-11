@@ -1,6 +1,3 @@
-This release:
-- add caching version
-
 Future:
-- clone to separate repository
-- test in console
+- test in rhino
+
