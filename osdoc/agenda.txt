@@ -1,6 +1,5 @@
 Basic functionality:
 - ellipses
-- staged rendering
 
 Fix HTML:
 - record -> definition

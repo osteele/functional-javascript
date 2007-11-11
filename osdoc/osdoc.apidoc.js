@@ -49,26 +49,27 @@ OSDoc.APIDoc.prototype.parse = function(text) {
 
 OSDoc.APIDoc.prototype.updateTarget = function(stage) {
     if (!this.options.target) return;
-    var model = this.model = new OSDoc.APIDoc.Parser().parse(this.text),
-        html = new HTMLFormatter({headingLevel:this.options.headingLevel}).render(model);
-    this.options.target.innerHTML = html;
-    this.options.onSuccess();
-    return this;
 
-    var text = this.text;
+    var text = this.text,
+        options = this.options,
+        formatOptions = {headingLevel:options.headingLevel};
     switch (stage) {
     case 0:
         this.options.target.innerHTML = OSDoc.previewText(text);
         break;
     case 1:
-        this.records = this.records || new OSDoc.APIDoc.Parser(this.options).parse(text);
-        this.options.target.innerHTML = OSDoc.processingHeader + this.toHTML(true);
-        break;
+        formatOptions.quicker = true;
+    case 2:
+        formatOptions.quick = true;
     default:
-        this.records = this.records || new OSDoc.APIDoc.Parser().parse(text);
-        this.options.target.innerHTML = this.toHTML();
+        var model = this.model = this.model || new OSDoc.APIDoc.Parser(options).parse(text),
+            formatter = new HTMLFormatter(formatOptions),
+            html = formatter.render(model);
+        this.options.target.innerHTML = html;
+        if (stage <= 2) break;
         this.options.onSuccess();
         return this;
+        break;
     }
     this.updateTarget.bind(this).saturate(stage+1).delayed(10);
     return this;
@@ -350,7 +351,7 @@ CommentParser.prototype = {
 }
 
 function CommentFormatter(options) {
-    this.options = options||{};
+    this.options = options || {};
 }
 
 Function.prototype.hoisted = function() {
@@ -393,7 +394,7 @@ CommentFormatter.byType = {
 
     paragraph: function(lines, writer) {
         writer.append('<p class="description">',
-                      OSDoc.inlineFormat(lines.join(' ')),
+                      this.options.quick ? lines : OSDoc.inlineFormat(lines.join(' ')),
                       '</p>');
     },
 
@@ -410,7 +411,10 @@ CommentFormatter.byType = {
 
 CommentFormatter.prototype = {
     render: function(blocks, writer) {
+        var self = this;
         blocks.each(function(block) {
+            if (self.options.quicker)
+                return writer.append(block.lines);
             isComment(block) && writer.append('<div class="description">');
             this.renderBlock(block, writer);
             isComment(block) && writer.append('</div>');
