@@ -1,8 +1,6 @@
 This release:
 - fix Array.slice technique
 - add caching version
-- jsmin version
-- different download options
 
 Future:
 - clone to separate repository

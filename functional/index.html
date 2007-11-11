@@ -4,8 +4,8 @@
     <title>Functional Javascript</title>
     <script type="text/javascript" src="/javascripts/prototype.js"></script>
     <script type="text/javascript" src="../gradients.js"></script>
-    <script type="text/javascript" src="functional.js"></script>
-    <script type="text/javascript" src="to-function.js"></script>
+    <script type="text/javascript" src="functional.min.js"></script>
+<!--     <script type="text/javascript" src="to-function.js"></script> -->
     <script type="text/javascript" src="../osdoc/Base.js"></script>
     <script type="text/javascript" src="../osdoc/osdoc.js"></script>
     <script type="text/javascript" src="evaluator.js"></script>
@@ -48,7 +48,9 @@
       <input type="checkbox" id="header-toggle" value="on" checked="checked"/> header
       | <a href="http://osteele.com/archives/2007/07/functional-javascript">announcement</a>
       | <a href="http://code.google.com/p/functional-javascript/">project page</a>
-      | <a href="functional.js">view/download source</a>
+      | download:
+      <a href="functional.min.js.gz">runnable (<3K min gz)</a>
+      | <a href="functional.src.gz">source</a>
     </div>
     <div id="ie-warning" style="display:none">
       <a class="close" href="#">close</a>
@@ -76,7 +78,7 @@
       as <code>'x -> x+1'</code>, <code>'x+1'</code>, or
       <code>'+1'</code> as synonyms for the more verbose
       <code>function(x) {return x+1}</code>.</p>
-      
+
       <div style="float:left; margin-right:5em">
         <p><dfn>Functional</dfn> supports <a href="http://en.wikipedia.org/wiki/Higher-order_programming">higher-order programming</a>:</p>
         <pre class="example">
@@ -104,12 +106,12 @@
       </div>
       <div style="clear:left"> </div>
       </div>
-      
+
       <div id="evaluator" style="display:none">
         <p>Try it!  Enter an expression below, or click on a line of
         code (from the examples above or the documentation below) to
         copy it here.</p>
-	<div class="content">
+        <div class="content">
         <div class="input-column">
           <pre class="transcript"></pre>
           <textarea class="current" rows="1" cols="40">map('1+', [2, 3])</textarea><br/>
@@ -127,11 +129,11 @@
           <input class="toggle" type="checkbox"/>show <span class="count"> </span>
           <input class="clear" type="button" value="clear"/>
         </div>
-	</div>
+        </div>
       </div>
       <hr/>
     </div>
-    
+
     <div id="noscript">
       <span class="initial">You either have JavaScript turned off or
       you're using an unsupported browser.  Either way, </span>
