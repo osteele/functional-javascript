@@ -11,11 +11,51 @@
  * Inspired by Tim Peter's wonderful doctest for Python.
  */
 
-OSDoc.APIDoc.prototype.runTests = function() {
+Model.prototype.getTests = function(options) {
+    var includeChildren = (options||{}).children,
+        tests = [];
+    visit(this);
+    return tests;
+    function visit(model) {
+        model.docs.select(function(b){return b.type==CommentBlockTypes.output}).each(function(block) {
+            block.lines.each(function(line) {
+                var match = line.match(/(.+)\s*->\s*(.*?)\s*$/);
+                if (!match) return;
+                var input = match[1],
+                    result = match[2],
+                    test = {definition:model, text:input, line:line, expect:result};
+                test[result == 'error' ? 'error' : 'expect'] = result;
+                tests.push(test);
+            });
+        });
+        includeChildren && model.definitions.each(function(defn) {
+            defn instanceof Model && visit(defn);
+        });
+    }
+}
+
+Model.prototype.getTestText = function() {
+    var lines = [];
+    this.eachDefinition(function(defn) {
+        var tests = defn.getTests();
+        tests.length && lines.push('// ' + defn.name);
+        tests.each(function(test) {
+            if (test.expect) {
+                lines.push('console.info(' + test.text.toString() + ');');
+                lines.push(['assertEquals(', test.expect, ', ', test.text, ');'].join(''));
+            } else
+                lines.push(test.text);
+        });
+        tests.length && lines.push('');
+    });
+    return lines.join('\n').replace(/^/mg, '    ');
+}
+
+Model.prototype.runTests = function() {
     var tests = [],
         failures = [];
     OSDoc.testScope = {};
-    this.model.getTests({children:true}).each(function(test) {
+    this.getTests({children:true}).each(function(test) {
         var defn = test.definition;
         tests.push(test);
         var text = test.text.replace(/^\s*var\s+/, 'OSDoc.testScope.');
@@ -23,7 +63,7 @@ OSDoc.APIDoc.prototype.runTests = function() {
         var result, error;
         try {
             with (OSDoc.testScope)
-                result = eval(text);
+               result = eval(text);
         } catch (e) {
             error = e;
         }
@@ -43,7 +83,7 @@ OSDoc.APIDoc.prototype.runTests = function() {
         window.console && console.info(message);
         lines.push(failure.defn.name + ': ' + message);
     });
-    return this.testResults = {
+    return {
         tests: tests,
         failure: failures,
         success: !failures.length,
@@ -56,19 +96,11 @@ OSDoc.APIDoc.prototype.runTests = function() {
     };
 }
 
+
 OSDoc.APIDoc.prototype.getTestText = function() {
-    var lines = [];
-    this.model.eachDefinition(function(defn) {
-        var tests = defn.getTests();
-        tests.length && lines.push('// ' + defn.name);
-        tests.each(function(test) {
-            if (test.expect) {
-                lines.push('console.info(' + test.text.toString() + ');');
-                lines.push(['assertEquals(', test.expect, ', ', test.text, ');'].join(''));
-            } else
-                lines.push(test.text);
-        });
-        tests.length && lines.push('');
-    });
-    return lines.join('\n').replace(/^/mg, '    ');
+    return this.model.getTestText();
+}
+
+OSDoc.APIDoc.prototype.runTests = function() {
+    return this.testResults = this.model.runTests();
 }

@@ -23,14 +23,13 @@ OSDoc.APIDoc = function(options) {
                     onSuccess: Functional.I};
     for (var name in options||{})
         this.options[name] = options[name];
-    ga = this;
 };
 
 /// Load +url+ and parse its contents.
 OSDoc.APIDoc.prototype.load = function(url) {
-    var bustCache = true;
-    this.options.target && (this.options.target.innerHTML = OSDoc.loadingHeader);
-    if (bustCache)
+    var options = this.options;
+    options.target && (options.target.innerHTML = OSDoc.loadingHeader);
+    if (options.bustCache)
         url += '?ts='+new Date().getTime();
     new Ajax.Request(
         url,
@@ -41,7 +40,6 @@ OSDoc.APIDoc.prototype.load = function(url) {
 
 /// Parse +text+.  If +options.target+ is specified, update it.
 OSDoc.APIDoc.prototype.parse = function(text) {
-    gf = this.updateTarget.bind(this, 0);
     this.text = OSDoc.stripHeader(text);
     this.updateTarget(this.options.staged && 0);
     return this;
@@ -174,12 +172,13 @@ var Model = Base.extend({
     },
 
     add: function(defn) {
-        var value = this.definitions.detect(function(defn) {
-            return defn.name == name;
-        });
-        if (value) {
+        var name = defn.name,
+            value = this.definitions.detect(function(defn) {
+                return defn.name == name;
+            });
+        if (defn instanceof Model && value) {
             //info(this, value.toSource(), defn);
-            throw "duplicate definition: " + defn.name;
+            throw "duplicate definition in " + this + ": " + defn.name;
         };
         defn.container = this;
         defn.path = this.path.concat([defn.name]);
@@ -207,27 +206,6 @@ var Model = Base.extend({
             if (defn instanceof Model)
                 defn.eachDefinition(fn);
         });
-    },
-
-    getTests: function(options, tests) {
-        var self = this,
-            includeChildren = (options||{}).children,
-            tests = arguments[1] || [];
-        this.docs.select(function(b){return b.type==CommentBlockTypes.output}).each(function(block) {
-            block.lines.each(function(line) {
-                var match = line.match(/(.+)\s*->\s*(.*?)\s*$/);
-                if (!match) return;
-                var input = match[1],
-                    result = match[2],
-                    test = {definition:self, text:input, line:line, expect:result};
-                test[result == 'error' ? 'error' : 'expect'] = result;
-                tests.push(test);
-            });
-        });
-        includeChildren && this.definitions.each(function(defn) {
-            defn instanceof Model && defn.getTests(options, tests);
-        });
-        return tests;
     }
 });
 
@@ -489,7 +467,7 @@ OSDoc.APIDoc.Parser.prototype.parse = function(text) {
         return docs;
     }
     function docBlock(s) {
-        s = s.replace(/^  ?\* /gm, '');
+        s = s.replace(/^  ?\*(?: |$)/gm, '');
         s.split('\n').each(docLine);
     }
     function docLine(s) {

@@ -17,7 +17,7 @@ var OSDoc = window.OSDoc || {};
 OSDoc.checkRequirements = function() {
     if (!window.Prototype || parseFloat(Prototype.Version) < 1.5)
         throw "OSDoc requires the Prototype JavaScript framework version >= 1.5";
-    if (!window.Function)
+    if (!window.Functional)
         throw "OSDoc requires the Functional JavaScript library";
 }
 
@@ -37,7 +37,7 @@ OSDoc.load = function() {
     if (!src) return;
     var modules = Functional.K([_,'utils,examples,apidoc,doctest']).guard('!')(src.match(/\?.*load=([a-z,]*)/))[1].split(',');
     modules.include('doctest') && modules.unshift('apidoc');
-    map('a -> b -> a+"osdoc."+b+".js"'.call(null, src.replace(/[^/]*$/,'')), modules).each(OSDoc.require);
+    map('a -> b -> a+"osdoc."+b+".js"'.call(null, src.replace(/[^\/]*$/,'')), modules).each(OSDoc.require);
 }
 
 OSDoc.toString = function(value) {
@@ -105,4 +105,4 @@ function makeEnum(words) {
  * Finally:
  */
 
-OSDoc.load();
+OSDoc.loaded || OSDoc.load();

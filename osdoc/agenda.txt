@@ -1,6 +1,6 @@
 Next:
 - clone to separate repository
-- rename jsdoc, if it's available
+- rename -> protodoc, if it's available
 
 Fix HTML:
 - record -> definition
@@ -9,8 +9,6 @@ Fix HTML:
 Code cleanup:
 - single vs. multiline
 - hoist parsing for comment types: signature
-- rename -> protodoc
-- use standard class mechanism
 - use builders
 - hoist statemachine initialiation
 - parsing positions
@@ -21,7 +19,6 @@ Completion:
 - docs
 
 Later:
-- move test construction to doctest.js
 - sections are always added in the last container (fix for roll-up)
 - optimize statemachine scanner
 - make parsers, builders, renderers, paragraph formatter configurable
@@ -41,13 +38,12 @@ Future:
 - @nodoc
 - document object slots
 - pluggable formatters
-- command-line version
+- pluggable comment formatters
+- xml output format
 - roll up class definitions
 - recognize subclasses
 - show inline docs
-- pluggable comment formatters
 - ToC
-- command-line
 - other parsers
 - show source
 - frames
