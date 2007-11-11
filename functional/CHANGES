@@ -1,11 +1,11 @@
  * Version: 1.0.2 (2007-11-11)
+New features:
+- Rhino compatibility.  (Credit: raganwald)
 Optimizations:
 - More efficient Array.slice.  (Credit: Dean Edwards)
-Bug fixes:
-- Fixed for rhino.  (Credit: raganwald)
+- Memoize Function.lambda.  (Credit: henrah)
 Packaging changes:
 - Added jsmin version.
--
 - Moved to-string.js to separate file.
 - Reformatted for new version of osdoc.
 

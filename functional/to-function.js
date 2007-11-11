@@ -49,10 +49,12 @@
  * >> 'point.x'.lambda()({x:1, y:2}) -> 1
  * >> '({x:1, y:2})[key]'.lambda()('x') -> 1
  *
- * Implicit parameter detection mistakenly looks inside regular expression literals
- * for variable names.  It also doesn't know to ignore JavaScript keywords and bound
- * variables.  (The only way you can get these last two is with a function literal
- * inside the string.  This is outside the intended use case for string lambdas.)
+ * Implicit parameter detection mistakenly looks inside regular expression
+ * literals for variable names.  It also doesn't know to ignore JavaScript
+ * keywords and bound variables.  (The only way you can get these last two is
+ * with a function literal inside the string.  This is outside the intended use
+ * case for string lambdas.)
+ *
  * Use `_` (to define a unary function) or `->`, if the string contains anything
  * that looks like a free variable but shouldn't be used as a parameter, or
  * to specify parameters that are ordered differently from their first
@@ -67,9 +69,9 @@
  * >> '[].slice.call(arguments, 0)'.call(null,1,2) -> [1, 2]
  */
 String.prototype.lambda = function() {
-    var params = [];
-    var expr = this;
-    var sections = expr.ECMAsplit(/\s*->\s*/m);
+    var params = [],
+        expr = this,
+        sections = expr.ECMAsplit(/\s*->\s*/m);
     if (sections.length > 1) {
         while (sections.length) {
             expr = sections.pop();
@@ -80,8 +82,8 @@ String.prototype.lambda = function() {
         params = '_';
     } else {
         // test whether an operator appears on the left (or right), respectively
-        var leftSection = expr.match(/^\s*(?:[+*\/%&|\^\.=<>]|!=)/m);
-        var rightSection = expr.match(/[+\-*\/%&|\^\.=<>!]\s*$/m);
+        var leftSection = expr.match(/^\s*(?:[+*\/%&|\^\.=<>]|!=)/m),
+            rightSection = expr.match(/[+\-*\/%&|\^\.=<>!]\s*$/m);
         if (leftSection || rightSection) {
             if (leftSection) {
                 params.push('$1');
@@ -92,9 +94,10 @@ String.prototype.lambda = function() {
                 expr = expr + '$2';
             }
         } else {
-            // `replace` removes symbols that are capitalized, follow '.', precede
-            // ':', are 'this' or 'arguments'; and also the insides of strings
-            // (by a crude test).  `match` extracts the remaining symbols.
+            // `replace` removes symbols that are capitalized, follow '.',
+            // precede ':', are 'this' or 'arguments'; and also the insides of
+            // strings (by a crude test).  `match` extracts the remaining
+            // symbols.
             var vars = this.replace(/(?:\b[A-Z]|\.[a-zA-Z_$])[a-zA-Z_$\d]*|[a-zA-Z_$][a-zA-Z_$\d]*\s*:|this|arguments|'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g, '').match(/([a-z_$][a-z_$\d]*)/gi) || []; // '
             for (var i = 0, v; v = vars[i++]; )
                 params.indexOf(v) >= 0 || params.push(v);
@@ -103,6 +106,19 @@ String.prototype.lambda = function() {
     return new Function(params, 'return (' + expr + ')');
 }
 
+/// Turn on caching for `string` -> `Function` conversion.
+String.prototype.lambda.cache = function() {
+    var proto = String.prototype,
+        cache = {},
+        uncached = proto.lambda,
+        cached = function() {
+	        var key = '#' + this; // avoid hidden properties on Object.prototype
+	        return cache[key] || (cache[key] = uncached.call(this));
+        };
+    cached.cached = function(){};
+    cached.uncache = function(){proto.lambda = uncached};
+    proto.lambda = cached;
+}
 
 /**
  * ^^ Duck-Typing

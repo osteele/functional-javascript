@@ -6,3 +6,10 @@ contexts as functions.
 It is licensed under the MIT License.
 
 For more details, see http://osteele.com/javascripts/functional .
+
+Credits:
+- Oliver Steele -- primary author
+- Dean Edwards -- Array.slice suggestion
+- henrah -- Function.lambda memoization
+- Raganwald -- Rhino compatibility
+
