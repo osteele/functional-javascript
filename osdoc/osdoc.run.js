@@ -8,8 +8,9 @@
 var window = {};
 window.OSDoc = {loaded:true};
 window.Prototype = {Version:1.5};
-load('../functional/functional.js');
 load('../collection-utils.js');
+load('../functional/functional.js');
+load('../functional/to-function.js');
 load('Base.js')
 load('osdoc.js');
 load('osdoc.utils.js');

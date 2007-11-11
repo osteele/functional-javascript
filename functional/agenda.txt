@@ -1,11 +1,9 @@
 This release:
+- fix Array.slice technique
 - add caching version
 - jsmin version
-- download everything
+- different download options
 
-Next:
+Future:
 - clone to separate repository
-- fix Array.slice technique
-- run in console
-- move lambda strings to separate file
-- add processes.js
+- test in console

@@ -11,7 +11,7 @@ Function.prototype.reporting = function() {
         try {
             fn.apply(this, arguments);
         } catch (e) {
-            window.console && console.info(e);
+            window.console && console.error(e);
             throw e;
         }
     }

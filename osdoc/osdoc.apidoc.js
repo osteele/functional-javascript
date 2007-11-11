@@ -27,15 +27,25 @@ OSDoc.APIDoc = function(options) {
 
 /// Load +url+ and parse its contents.
 OSDoc.APIDoc.prototype.load = function(url) {
-    var options = this.options;
+    var self = this,
+        options = this.options,
+        count = arguments.length,
+        results = new Array(count);
     options.target && (options.target.innerHTML = OSDoc.loadingHeader);
-    if (options.bustCache)
-        url += '?ts='+new Date().getTime();
-    new Ajax.Request(
-        url,
-        {method: 'GET',
-         onSuccess: Functional.compose(this.parse.bind(this), '_.responseText').reporting()});
+    Array.prototype.slice.call(arguments, 0).each(function(url, ix) {
+        if (options.bustCache)
+            url += (/\?/(url) ? '&' : '?') + 'ts=' + new Date().getTime();
+        new Ajax.Request(
+            url,
+            {method: 'GET',
+             onSuccess: receive.reporting().bind(this, ix)});
+    });
     return this;
+    function receive(ix, response) {
+        results[ix] = response.responseText;
+        if (!--count)
+            self.parse(results.join(''));
+    }
 }
 
 /// Parse +text+.  If +options.target+ is specified, update it.
