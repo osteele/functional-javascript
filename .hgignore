@@ -1,5 +1,7 @@
 syntax: glob
 \.DS_Store
 \#*\#
+.\#*
 
 functional/functional.min.js*
+functional/*.tgz

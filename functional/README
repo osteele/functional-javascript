@@ -1,0 +1,8 @@
+Functional defines higher-order methods and functions for functional
+and function-level programming.  It also defines "string lambdas",
+that allow strings such as `x+1` and `x -> x+1` to be used in some
+contexts as functions.
+
+It is licensed under the MIT License.
+
+For more details, see http://osteele.com/javascripts/functional .

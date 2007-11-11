@@ -6,12 +6,13 @@
  * Source: http://osteele.com/javascripts/functional/functional.js
  * Changes: http://osteele.com/javascripts/functional/CHANGES
  * Created: 2007-07-11
- * Modified: 2007-07-22
  * Version: 1.0.2
  *
- * This file defines some higher-order methods and functions for functional and
- * function-level programming.  It also defines "string lambdas", that allow strings
- * such as `x+1` and `x -> x+1` to be used in some contexts as functions.
+ *
+ * This file defines some higher-order methods and functions for
+ * functional and function-level programming.  It also defines "string
+ * lambdas", that allow strings such as `x+1` and `x -> x+1` to be used
+ * in some contexts as functions.
  */
 
 // rhino compatibility
@@ -290,9 +291,9 @@ Functional.lambda = function(object) {
  * >> invoke('toString')(123) -> "123"
  */
 Functional.invoke = function(methodName/*, arguments*/) {
-    var args = [].slice.call(arguments, 1);
+    var args = Array.slice(arguments, 1);
     return function(object) {
-        return object[methodName].apply(object, [].slice.call(arguments, 1).concat(args));
+        return object[methodName].apply(object, Array.slice(arguments, 1).concat(args));
     }
 }
 
@@ -363,7 +364,7 @@ Functional._attachMethodDelegates = function(methods) {
         Functional[name] = Functional[name] || (function(name) {
             var fn = methods[name];
             return function(object) {
-                return fn.apply(Function.toFunction(object), [].slice.call(arguments, 1));
+                return fn.apply(Function.toFunction(object), Array.slice(arguments, 1));
             }
         })(name);
 }
@@ -382,9 +383,9 @@ Functional.__initalFunctionState = Functional._startRecordingMethodChanges(Funct
  */
 Function.prototype.bind = function(object/*, args...*/) {
     var fn = this;
-    var args = [].slice.call(arguments, 1);
+    var args = Array.slice(arguments, 1);
     return function() {
-        return fn.apply(object, args.concat([].slice.call(arguments, 0)));
+        return fn.apply(object, args.concat(Array.slice(arguments, 0)));
     }
 }
 
@@ -399,7 +400,7 @@ Function.prototype.bind = function(object/*, args...*/) {
  */
 Function.prototype.saturate = function(/*args*/) {
     var fn = this;
-    var args = [].slice.call(arguments, 0);
+    var args = Array.slice(arguments, 0);
     return function() {
         return fn.apply(this, args);
     }
@@ -431,7 +432,7 @@ Function.prototype.saturate = function(/*args*/) {
 Function.prototype.aritize = function(n) {
     var fn = this;
     return function() {
-        return fn.apply(this, [].slice.call(arguments, 0, n));
+        return fn.apply(this, Array.slice(arguments, 0, n));
     }
 }
 
@@ -453,9 +454,9 @@ Function.prototype.aritize = function(n) {
  */
 Function.prototype.curry = function(/*args...*/) {
     var fn = this;
-    var args = [].slice.call(arguments, 0);
+    var args = Array.slice(arguments, 0);
     return function() {
-        return fn.apply(this, args.concat([].slice.call(arguments, 0)));
+        return fn.apply(this, args.concat(Array.slice(arguments, 0)));
     };
 }
 
@@ -467,9 +468,9 @@ Function.prototype.curry = function(/*args...*/) {
  */
 Function.prototype.rcurry = function(/*args...*/) {
     var fn = this;
-    var args = [].slice.call(arguments, 0);
+    var args = Array.slice(arguments, 0);
     return function() {
-        return fn.apply(this, [].slice.call(arguments, 0).concat(args));
+        return fn.apply(this, Array.slice(arguments, 0).concat(args));
     };
 }
 
@@ -479,9 +480,9 @@ Function.prototype.rcurry = function(/*args...*/) {
  */
 Function.prototype.ncurry = function(n/*, args...*/) {
     var fn = this;
-    var largs = [].slice.call(arguments, 1);
+    var largs = Array.slice(arguments, 1);
     return function() {
-        var args = largs.concat([].slice.call(arguments, 0));
+        var args = largs.concat(Array.slice(arguments, 0));
         if (args.length < n) {
             args.unshift(n);
             return fn.ncurry.apply(fn, args);
@@ -496,9 +497,9 @@ Function.prototype.ncurry = function(n/*, args...*/) {
  */
 Function.prototype.rncurry = function(n/*, args...*/) {
     var fn = this;
-    var rargs = [].slice.call(arguments, 1);
+    var rargs = Array.slice(arguments, 1);
     return function() {
-        var args = [].slice.call(arguments, 0).concat(rargs);
+        var args = Array.slice(arguments, 0).concat(rargs);
         if (args.length < n) {
             args.unshift(n);
             return fn.rncurry.apply(fn, args);
@@ -535,13 +536,13 @@ _ = Function._ = {};
 Function.prototype.partial = function(/*args*/) {
     var fn = this;
     var _ = Function._;
-    var args = [].slice.call(arguments, 0);
+    var args = Array.slice(arguments, 0);
     //substitution positions
     var subpos = [], value;
     for (var i = 0; i < arguments.length; i++)
         arguments[i] == _ && subpos.push(i);
     return function() {
-        var specialized = args.concat([].slice.call(arguments, subpos.length));
+        var specialized = args.concat(Array.slice(arguments, subpos.length));
         for (var i = 0; i < Math.min(subpos.length, arguments.length); i++)
             specialized[subpos[i]] = arguments[i];
         for (var i = 0; i < specialized.length; i++)
@@ -598,7 +599,7 @@ Function.S = function(f, g) {
     f = Function.toFunction(f);
     g = Function.toFunction(g);
     return function() {
-        return f.apply(this, [g.apply(this, arguments)].concat([].slice.call(arguments, 0)));
+        return f.apply(this, [g.apply(this, arguments)].concat(Array.slice(arguments, 0)));
     }
 }
 
@@ -618,7 +619,7 @@ Function.S = function(f, g) {
 Function.prototype.flip = function() {
     var fn = this;
     return function() {
-        var args = [].slice.call(arguments, 0);
+        var args = Array.slice(arguments, 0);
         args = args.slice(1,2).concat(args.slice(0,1)).concat(args.slice(2));
         return fn.apply(this, args);
     }
@@ -637,8 +638,8 @@ Function.prototype.flip = function() {
 Function.prototype.uncurry = function() {
     var fn = this;
     return function() {
-        var f1 = fn.apply(this, [].slice.call(arguments, 0, 1));
-        return f1.apply(this, [].slice.call(arguments, 1));
+        var f1 = fn.apply(this, Array.slice(arguments, 0, 1));
+        return f1.apply(this, Array.slice(arguments, 1));
     }
 }
 
@@ -676,7 +677,7 @@ Function.prototype.prefilterAt = function(index, filter) {
     filter = Function.toFunction(filter);
     var fn = this;
     return function() {
-        var args = [].slice.call(arguments, 0);
+        var args = Array.slice(arguments, 0);
         args[index] = filter.call(this, args[index]);
         return fn.apply(this, args);
     }
@@ -697,7 +698,7 @@ Function.prototype.prefilterSlice = function(filter, start, end) {
     start = start || 0;
     var fn = this;
     return function() {
-        var args = [].slice.call(arguments, 0);
+        var args = Array.slice(arguments, 0);
         var e = end < 0 ? args.length + end : end || args.length;
         args.splice.apply(args, [start, (e||args.length)-start].concat(filter.apply(this, args.slice(start, e))));
         return fn.apply(this, args);
@@ -815,3 +816,11 @@ delete Functional.__initalFunctionState;
 
 // In case to-function.js isn't loaded.
 Function.toFunction = Function.toFunction || Functional.K;
+
+if (!Array.slice) { // mozilla already supports this
+    Array.slice = (function(slice) {
+        return function(object) {
+            return slice.apply(object, slice.call(arguments, 1));
+        };
+    })(Array.prototype.slice);
+}

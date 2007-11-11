@@ -1,6 +1,7 @@
 MIN = 'functional.min.js'
 PACKAGE = 'functional-1.0.2.tgz'
-SOURCES = %w[CHANGES MIT-LICENSE examples.js functional.js to-function.js]
+SOURCES = %w[CHANGES MIT-LICENSE README]
+SOURCES += %w[examples.js functional.js to-function.js Rakefile]
 
 task :default => [MIN+'.gz', PACKAGE]
 

@@ -1,12 +1,19 @@
- * Version: 1.0.2 (2007-11-10)
-Fixed for rhino.  (Credit: raganwald)
-Reformatted for new version of osdoc.
+ * Version: 1.0.2 (2007-11-11)
+Optimizations:
+- More efficient Array.slice.  (Credit: Dean Edwards)
+Bug fixes:
+- Fixed for rhino.  (Credit: raganwald)
+Packaging changes:
+- Added jsmin version.
+-
+- Moved to-string.js to separate file.
+- Reformatted for new version of osdoc.
 
  * Version: 1.0.1 (2007-07-22)
-Added `equal`.
-Added qualifiers to internal use of `map`.
+- Added `equal`.
+- Added qualifiers to internal use of `map`.
 
  * Version: 1.0 2007-07-21
-Public release.
+- Public release.
 
  * Created: 2007-07-11

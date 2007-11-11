@@ -3,10 +3,7 @@
  * Copyright: Copyright 2007 by Oliver Steele.  All rights reserved.
  * License: MIT License
  * Homepage: http://osteele.com/javascripts/functional
- * Source: http://osteele.com/javascripts/functional/functional.js
- * Changes: http://osteele.com/javascripts/functional/CHANGES
  * Created: 2007-07-11
- * Modified: 2007-07-22
  * Version: 1.0.2
  *
  *
@@ -129,7 +126,8 @@ String.prototype.apply = function(thisArg, args) {
  * >> '/'.call(null, 2, 4) -> 0.5
  */
 String.prototype.call = function() {
-    return this.toFunction().apply(arguments[0], [].slice.call(arguments, 1));
+    return this.toFunction().apply(arguments[0],
+                                   Array.prototype.slice.call(arguments, 1));
 }
 
 /// ^^ Coercion
