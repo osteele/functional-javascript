@@ -24,7 +24,7 @@ function initialize() {
     initializeTestLinks();
     ieMode();
     if (navigator.appName != 'Microsoft Internet Explorer')
-        $$('#header pre').each('_.innerHTML = OSDoc.unindent(_.innerHTML)'.lambda());
+        $$('#header pre').each('_.innerHTML = OSUtils.unindent(_.innerHTML)'.lambda());
     resetGradients();
     Event.observe(window, 'resize', scheduleGradientReset);
 }

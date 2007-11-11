@@ -5,8 +5,8 @@ SOURCES = %w[CHANGES MIT-LICENSE README] +
 
 task :default => [MIN+'.gz', PACKAGE]
 
-task :publish do
-  sh "rsync -avzP . osteele.com:osteele.com/sources/javascript/functional --delete"
+task :publish => :default do
+  sh "rsync -avz . osteele.com:osteele.com/sources/javascript/functional --delete"
 end
 
 file PACKAGE => SOURCES do |t|
