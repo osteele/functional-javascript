@@ -1,3 +1,7 @@
+ * Version: 1.0.2 (2007-11-10)
+Fixed for rhino.  (Credit: raganwald)
+Reformatted for new version of osdoc.
+
  * Version: 1.0.1 (2007-07-22)
 Added `equal`.
 Added qualifiers to internal use of `map`.

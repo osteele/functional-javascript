@@ -1,4 +1,4 @@
-/* 
+/*
  * Author: Oliver Steele
  * Copyright: Copyright 2007 by Oliver Steele.  All rights reserved.
  * License: MIT License
@@ -7,13 +7,15 @@
  * Changes: http://osteele.com/javascripts/functional/CHANGES
  * Created: 2007-07-11
  * Modified: 2007-07-22
- * Version: 1.0.1
+ * Version: 1.0.2
  *
  * This file defines some higher-order methods and functions for functional and
  * function-level programming.  It also defines "string lambdas", that allow strings
  * such as `x+1` and `x -> x+1` to be used in some contexts as functions.
  */
 
+// rhino compatibility
+typeof window == 'undefined' && (window = {});
 
 /// `Functional` is the namespace for higher-order functions.
 var Functional = window.Functional || {};
@@ -76,9 +78,9 @@ Functional.sequence = function(/*fn...*/) {
  * == map(f, [x1, x2...]) = [f(x, 0), f(x2, 1), ...]
  * :: (a ix -> boolean) [a] -> [a]
  * >> map('1+', [1,2,3]) -> [2, 3, 4]
- * 
+ *
  * If `object` is supplied, it is the object of the call.
- * 
+ *
  * The fusion rule:
  * >> map('+1', map('*2', [1,2,3])) -> [3, 5, 7]
  * >> map(compose('+1', '*2'), [1,2,3]) -> [3, 5, 7]
@@ -235,7 +237,7 @@ Functional.every = function(fn, sequence, object) {
  */
 Functional.not = function(fn) {
     fn = Function.toFunction(fn);
-    return function() {  
+    return function() {
         return !fn.apply(null, arguments);
     }
 }
@@ -413,11 +415,11 @@ Function.prototype.saturate = function(/*args*/) {
  * >> '[a,b]'.lambda().aritize(1)(1,2) -> [1, undefined]
  * >> '+'.lambda()(1,2)(3) -> error
  * >> '+'.lambda().ncurry(2).aritize(1)(1,2)(3) -> 4
- * 
+ *
  * `aritize` is useful to remove optional arguments from a function that
  * is passed to a higher-order function that supplies *different* optional
  * arguments.
- * 
+ *
  * For example, many implementations of `map` and other collection
  * functions, including those in this library, call the function argument
  *  with both the collection element
@@ -438,14 +440,14 @@ Function.prototype.aritize = function(n) {
  * applies the underlying function to $args ++ arg2$.
  * :: (a... b... -> c) a... -> (b... -> c)
  * == f.curry(args1...)(args2...) == f(args1..., args2...)
- * 
+ *
  * Note that, unlike in languages with true partial application such as Haskell,
  * `curry` and `uncurry` are not inverses.  This is a repercussion of the
  * fact that in JavaScript, unlike Haskell, a fully saturated function is
  * not equivalent to the value that it returns.  The definition of `curry`
  * here matches semantics that most people have used when implementing curry
  * for procedural languages.
- * 
+ *
  * This implementation is adapted from
  * [http://www.coryhudson.com/blog/2007/03/10/javascript-currying-redux/].
  */
@@ -515,16 +517,16 @@ _ = Function._ = {};
 /**
  * Returns a function $f$ such that $f(args2)$ is equivalent to
  * the underlying function applied to a combination of $args$ and $args2$.
- * 
+ *
  * `args` is a partially-specified argument: it's a list with "holes",
  * specified by the special value `_`.  It is combined with $args2$ as
  * follows:
- * 
+ *
  * From left to right, each value in $args2$ fills in the leftmost
  * remaining hole in `args`.  Any remaining values
  * in $args2$ are appended to the result of the filling-in process
  * to produce the combined argument list.
- * 
+ *
  * If the combined argument list contains any occurrences of `_`, the result
  * of the application of $f$ is another partial function.  Otherwise, the
  * result is the same as the result of applying the underlying function to
@@ -581,13 +583,13 @@ Functional.constfn = Functional.K;
  * Returns a function that applies the first function to the
  * result of the second, but passes all its arguments too.
  * == S(f, g)(args...) == f(g(args...), args...)
- * 
+ *
  * This is useful for composing functions when each needs access
  * to the arguments to the composed function.  For example,
  * the following function multiples its last two arguments,
  * and adds the first to that.
  * >> Function.S('+', '_ a b -> a*b')(2,3,4) -> 14
- * 
+ *
  * Curry this to get a version that takes its arguments in
  * separate calls:
  * >> Function.S.curry('+')('_ a b -> a*b')(2,3,4) -> 14
@@ -608,7 +610,7 @@ Function.S = function(f, g) {
  * == f.flip()(a, b, c...) == f(b, a, c...)
  * :: (a b c...) -> (b a c...)
  * >> ('a/b'.lambda()).flip()(1,2) -> 2
- * 
+ *
  * For more general derangements, you can also use `prefilterSlice`
  * with a string lambda:
  * >> '100*a+10*b+c'.lambda().prefilterSlice('a b c -> [b, c, a]')(1,2,3) -> 231
@@ -629,7 +631,7 @@ Function.prototype.flip = function() {
  * == f.uncurry(a, b...) == f(a)(b...)
  * :: (a -> b -> c) -> (a, b) -> c
  * >> 'a -> b -> a/b'.lambda().uncurry()(1,2) -> 0.5
- * 
+ *
  * Note that `uncurry` is *not* the inverse of `curry`.
  */
 Function.prototype.uncurry = function() {
@@ -642,7 +644,7 @@ Function.prototype.uncurry = function() {
 
 /**
  * ^^ Filtering
- * 
+ *
  * Filters intercept a value before it is passed to a function, and apply the
  * underlying function to the modified value.
  */
@@ -709,7 +711,7 @@ Function.prototype.prefilterSlice = function(filter, start, end) {
  * to the result of the application of `fn`.
  * == f.compose(g)(args...) == f(g(args...))
  * >> '1+'.lambda().compose('2*')(3) -> 7
- * 
+ *
  * Note that, unlike `Functional.compose`, the `compose` method on
  * function only takes a single argument.
  * == Functional.compose(f, g) == f.compose(g)
@@ -729,7 +731,7 @@ Function.prototype.compose = function(fn) {
  * == f.sequence(g)(args...) == g(f(args...))
  * == f.sequence(g) == g.compose(f)
  * >> '1+'.lambda().sequence('2*')(3) -> 8
- * 
+ *
  * Note that, unlike `Functional.compose`, the `sequence` method on
  * function only takes a single argument.
  * == Functional.sequence(f, g) == f.sequence(g)
@@ -747,7 +749,7 @@ Function.prototype.sequence = function(fn) {
  * Returns a function that is equivalent to the underlying function when
  * `guard` returns true, and otherwise is equivalent to the application
  * of `otherwise` to the same arguments.
- * 
+ *
  * `guard` and `otherwise` default to `Functional.I`.  `guard` with
  * no arguments therefore returns a function that applies the
  * underlying function to its value only if the value is true,
@@ -793,12 +795,12 @@ Function.prototype.traced = function(name) {
 
 /**
  * ^^ Function methods as functions
- * 
+ *
  * In addition to the functions defined above, every method defined
  * on `Function` is also available as a function in `Functional`, that
  * coerces its first argument to a `Function` and applies
  * the remaining arguments to this.
- * 
+ *
  * A few examples make this clearer:
  * == curry(fn, args...) == fn.curry(args...)
  * >> Functional.flip('a/b')(1, 2) -> 2
@@ -816,15 +818,15 @@ delete Functional.__initalFunctionState;
 /**
  * Turns a string that contains a JavaScript expression into a
  * `Function` that returns the value of that expression.
- * 
+ *
  * If the string contains a `->`, this separates the parameters from the body:
  * >> 'x -> x + 1'.lambda()(1) -> 2
  * >> 'x y -> x + 2*y'.lambda()(1, 2) -> 5
  * >> 'x, y -> x + 2*y'.lambda()(1, 2) -> 5
- * 
+ *
  * Otherwise, if the string contains a `_`, this is the parameter:
  * >> '_ + 1'.lambda()(1) -> 2
- * 
+ *
  * Otherwise if the string begins or ends with an operator or relation,
  * prepend or append a parameter.  (The documentation refers to this type
  * of string as a "section".)
@@ -835,19 +837,19 @@ delete Functional.__initalFunctionState;
  * e.g. `-2*x` as a section).  On the other hand, a string that either begins
  * or ends with `/` is a section, so an expression that begins or ends with a
  * regular expression literal needs an explicit parameter.
- * 
+ *
  * Otherwise, each variable name is an implicit parameter:
  * >> 'x + 1'.lambda()(1) -> 2
  * >> 'x + 2*y'.lambda()(1, 2) -> 5
  * >> 'y + 2*x'.lambda()(1, 2) -> 5
- * 
+ *
  * Implicit parameter detection ignores strings literals, variable names that
  * start with capitals, and identifiers that precede `:` or follow `.`:
  * >> map('"im"+root', ["probable", "possible"]) -> ["improbable", "impossible"]
  * >> 'Math.cos(angle)'.lambda()(Math.PI) -> -1
  * >> 'point.x'.lambda()({x:1, y:2}) -> 1
  * >> '({x:1, y:2})[key]'.lambda()('x') -> 1
- * 
+ *
  * Implicit parameter detection mistakenly looks inside regular expression literals
  * for variable names.  It also doesn't know to ignore JavaScript keywords and bound
  * variables.  (The only way you can get these last two is with a function literal
@@ -856,11 +858,11 @@ delete Functional.__initalFunctionState;
  * that looks like a free variable but shouldn't be used as a parameter, or
  * to specify parameters that are ordered differently from their first
  * occurrence in the string.
- * 
+ *
  * Chain `->`s to create a function in uncurried form:
  * >> 'x -> y -> x + 2*y'.lambda()(1)(2) -> 5
  * >> 'x -> y -> z -> x + 2*y+3*z'.lambda()(1)(2)(3) -> 14
- * 
+ *
  * `this` and `arguments` are special:
  * >> 'this'.call(1) -> 1
  * >> '[].slice.call(arguments, 0)'.call(null,1,2) -> [1, 2]
@@ -905,7 +907,7 @@ String.prototype.lambda = function() {
 
 /**
  * ^^ Duck-Typing
- * 
+ *
  * Strings support `call` and `apply`.  This duck-types them as
  * functions, to some callers.
  */
@@ -928,7 +930,7 @@ String.prototype.call = function() {
     return this.toFunction().apply(arguments[0], [].slice.call(arguments, 1));
 }
 
-/// ^^ Coercion 
+/// ^^ Coercion
 
 /**
  * Returns a `Function` that perfoms the action described by this

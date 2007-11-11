@@ -1,4 +1,9 @@
-Angeda:
+This release:
+- add caching version
+- jsmin version
+- download everything
+
+Next:
 - clone to separate repository
 - fix Array.slice technique
 - run in console
