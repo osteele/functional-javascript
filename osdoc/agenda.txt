@@ -1,8 +1,6 @@
 Basic functionality:
 - ellipses
-- @nodoc
 - staged rendering
-- doctest
 
 Fix HTML:
 - record -> definition
@@ -23,7 +21,8 @@ Completion:
 - docs
 
 Later:
-- sections are always added in the last container
+- move test construction to doctest.js
+- sections are always added in the last container (fix for roll-up)
 - optimize statemachine scanner
 - make parsers, builders, renderers, paragraph formatter configurable
 - clean up format vs. render
@@ -39,6 +38,7 @@ Release checklist:
 - test w/out prototype?
 
 Future:
+- @nodoc
 - document object slots
 - pluggable formatters
 - command-line version

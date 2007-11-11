@@ -58,7 +58,7 @@ function initializeTestLinks() {
     });
     Event.observe('write-tests', 'click', function(e) {
         Event.stop(e);
-        var text = gDocs.createTestText();
+        var text = gDocs.getTestText();
         document.write('<pre>'+text.escapeHTML()+'</pre>');
     });
 }

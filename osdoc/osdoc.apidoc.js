@@ -23,6 +23,7 @@ OSDoc.APIDoc = function(options) {
                     onSuccess: Functional.I};
     for (var name in options||{})
         this.options[name] = options[name];
+    ga = this;
 };
 
 /// Load +url+ and parse its contents.
@@ -48,7 +49,7 @@ OSDoc.APIDoc.prototype.parse = function(text) {
 
 OSDoc.APIDoc.prototype.updateTarget = function(stage) {
     if (!this.options.target) return;
-    var model = new OSDoc.APIDoc.Parser().parse(this.text),
+    var model = this.model = new OSDoc.APIDoc.Parser().parse(this.text),
         html = new HTMLFormatter({headingLevel:this.options.headingLevel}).render(model);
     this.options.target.innerHTML = html;
     this.options.onSuccess();
@@ -191,9 +192,41 @@ var Model = Base.extend({
         var value = this.definitions.detect(function(defn) {
             return defn.name == name;
         });
-        if (!value)
-            this.add(value = new Model(name));
+        if (!value) {
+            value = new Model(name);
+            this.add(value);
+        }
         return value;
+    },
+
+    // visitors
+    eachDefinition: function(fn) {
+        fn(this);
+        this.definitions.each(function(defn) {
+            if (defn instanceof Model)
+                defn.eachDefinition(fn);
+        });
+    },
+
+    getTests: function(options, tests) {
+        var self = this,
+            includeChildren = (options||{}).children,
+            tests = arguments[1] || [];
+        this.docs.select(function(b){return b.type==CommentBlockTypes.output}).each(function(block) {
+            block.lines.each(function(line) {
+                var match = line.match(/(.+)\s*->\s*(.*?)\s*$/);
+                if (!match) return;
+                var input = match[1],
+                    result = match[2],
+                    test = {definition:self, text:input, line:line, expect:result};
+                test[result == 'error' ? 'error' : 'expect'] = result;
+                tests.push(test);
+            });
+        });
+        includeChildren && this.definitions.each(function(defn) {
+            defn instanceof Model && defn.getTests(options, tests);
+        });
+        return tests;
     }
 });
 
@@ -201,7 +234,7 @@ var VariableDefinition = Model.extend({
     constructor: function(name, options) {
         options = options || {};
         this.base(name);
-        this.docs = options.docs||[];
+        this.docs = options.docs || [];
         this.path = null;
     },
 
@@ -216,7 +249,6 @@ var VariableDefinition = Model.extend({
 
 var FunctionDefinition = VariableDefinition.extend({
     constructor: function(name, params, options) {
-        options = options || {};
         this.base(name, options);
         this.parameters = params.split(/,/).select(pluck('length'));
     },
