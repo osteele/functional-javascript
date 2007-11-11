@@ -1,3 +1,7 @@
+Next:
+- clone to separate repository
+- rename jsdoc, if it's available
+
 Fix HTML:
 - record -> definition
 - target -> namespace?

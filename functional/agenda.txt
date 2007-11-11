@@ -1,0 +1,6 @@
+Angeda:
+- clone to separate repository
+- fix Array.slice technique
+- run in console
+- move lambda strings to separate file
+- add processes.js
