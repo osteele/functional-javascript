@@ -1,4 +1,4 @@
-/* 
+/*
  * Author: Oliver Steele
  * Copyright: Copyright 2007 by Oliver Steele.  All rights reserved.
  * License: MIT License
@@ -7,7 +7,6 @@
  * Modified: 2007-07-21
  */
 
-var info = window.console && console.info || function(){};
 var gEval;
 
 // debugging references

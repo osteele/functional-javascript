@@ -1,11 +1,12 @@
 MIN = 'functional.min.js'
 PACKAGE = 'functional-1.0.2.tgz'
 SOURCES = %w[CHANGES MIT-LICENSE README] +
-  %w[examples.js functional.js to-function.js Rakefile]
+  %w[examples.js functional.js to-function.js Rakefile] +
+  [MIN]
 
 task :default => [MIN+'.gz', PACKAGE]
 
-task :publish => :default do
+task :publish => [PACKAGE, 'functional.min.js.gz'] do
   sh "rsync -avz . osteele.com:osteele.com/sources/javascript/functional --delete"
 end
 
