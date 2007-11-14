@@ -1,0 +1,29 @@
+/* Copyright 2007 by Oliver Steele.  Released under the MIT License. */
+
+body {padding:0pt 10pt 0 10pt; color:#222; background:#fff}
+h1 {text-align:center;margin-bottom:2pt}
+h2 .download {font-size: small}
+.navbar {font-size:medium; color:gray;text-align:center;margin-bottom:5pt}
+.navbar a {}
+p, pre {line-height:1.25em; margin-top:0}
+a {color:#888}
+a:hover {color:blue}
+samp {color:blue}
+kbd {cursor:pointer}
+kbd:hover {color:#080}
+.docs  {padding-right:5em}
+#header p {margin:0pt 20pt 0pt 20pt; padding-top:5pt}
+#intro {padding-top:10pt;position:relative}
+#header pre.example {margin-left: 4em}
+#footer {color:#888; margin-top:2em; padding-top:2px; border-top:1px solid; font-size:small; text-align:center}
+#intro {margin-bottom:5px}
+#intro p {padding: 5px}
+#evaluator .content {margin-left:10px;padding-bottom:5px}
+#evaluator p {text-align:center; padding:5px; padding-top:10px;font-family:sans-serif}
+#evaluator .input-column {background:white}
+#evaluator .output-column {background:white}
+#evaluator samp {color: black}
+table {background:#f9f9f9}
+#ie-warning {font-size:large;background:#f66;position:relative;padding:5px 10px 1px 10px;max-width:550px}
+#ie-warning .close {text-align:right;display:block;font-size:x-large;margin-bottom:.5em}
+#ie-warning a {color:blue}

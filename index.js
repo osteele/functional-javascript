@@ -1,23 +1,18 @@
-/*
- * Author: Oliver Steele
- * Copyright: Copyright 2007 by Oliver Steele.  All rights reserved.
- * License: MIT License
- * Homepage: http://osteele.com/javascripts/functional
- * Created: 2007-07-11
- * Modified: 2007-07-21
- */
+/* Copyright 2007 by Oliver Steele.  Available under the MIT License. */
 
-var gEval;
-
-// debugging references
-var gExamples, gDocs;
+var gAPIViewer,
+    gEval;
 
 function initialize() {
     $('noscript').innerHTML = $('noscript').innerHTML.replace(
             /<span.*?<\/span>/,
         'If this message remains on the screen,');
-    gExamples = new OSDoc.Examples({onSuccess: noteCompletion.saturate('examples'), target: $('examples')}).load('examples.js');
-    gDocs = new OSDoc.APIDoc({onSuccess: noteCompletion.saturate('docs'), target: $('docs')}).load('functional.js', 'to-function.js');
+    new OSDoc.ExampleViewer().load('examples.js', {
+        onSuccess: noteCompletion.saturate('examples'),
+        target: 'examples'});
+    gAPIViewer = new OSDoc.APIViewer().load('functional.js', 'to-function.js', {
+        onSuccess: noteCompletion.saturate('docs'),
+        target: 'docs'});
     gEval = new Evaluator('#evaluator', {onUpdate: showEvaluator});
     initializeHeaderToggle();
     initializeTestLinks();
@@ -52,12 +47,12 @@ function initializeHeaderToggle() {
 function initializeTestLinks() {
     Event.observe('run-tests', 'click', function(e) {
         Event.stop(e);
-        var results = gDocs.runTests();
+        var results = gAPIViewer.runTests();
         alert(results.toHTML());
     });
     Event.observe('write-tests', 'click', function(e) {
         Event.stop(e);
-        var text = gDocs.getTestText();
+        var text = gAPIViewer.getTestText();
         document.write('<pre>'+text.escapeHTML()+'</pre>');
     });
 }
@@ -71,7 +66,7 @@ function noteCompletion(flag) {
         var inputs = $$('kbd');
         gEval.makeClickable(inputs);
         if (window.location.search.match(/[\?&]test\b/)) {
-            var results = gDocs.runTests();
+            var results = gAPIViewer.runTests();
             alert(results.toHTML());
         }
         scheduleGradientReset();
