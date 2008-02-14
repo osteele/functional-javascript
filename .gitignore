@@ -1,8 +1,9 @@
-syntax: glob
-\.DS_Store
+.DS_Store
 \#*\#
 .\#*
-*.orig
 
 functional.min.js*
 *.tgz
+
+.hg
+.hgignore
