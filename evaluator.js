@@ -1,10 +1,9 @@
 /* 
  * Author: Oliver Steele
- * Copyright: Copyright 2007 by Oliver Steele.  All rights reserved.
+ * Copyright: Copyright 2007-2008 by Oliver Steele.  All rights reserved.
  * License: MIT License
  * Homepage: http://osteele.com/javascripts/functional
  * Created: 2007-07-15
- * Modified: 2007-07-21
  */
 
 Functional.install();
@@ -74,13 +73,16 @@ Evaluator.prototype.observeElements = function() {
     $(elements.evalButton).click(eval);
 }
 
-Evaluator.prototype.eval = function(text) {
+Evaluator.prototype.eval = function(textOrNode) {
     var elements = this.elements,
         inputElement = elements.input,
         outputElement = elements.output,
         transcriptElements = elements.transcript;
-    if (arguments.length < 1)
-        text = inputElement.value.strip().replace('\n', '');
+    var text = arguments.length < 1
+        ? inputElement.value.strip().replace('\n', '')
+        : typeof textOrNode == 'string'
+        ? textOrNode
+        : $(textOrNode).text()
     inputElement.value = text;
     Evaluator.scope = this.scope = this.scope || {};
     text = text.replace(/^\s*var\s+/, 'Evaluator.scope.');
@@ -113,6 +115,7 @@ Evaluator.prototype.eval = function(text) {
     }
     this.lastRecord = {input: text, output: html};
     this.options.onUpdate && this.options.onUpdate();
+    return value;
 }
 
 Evaluator.toString = function(value) {
