@@ -250,7 +250,8 @@ trace([1, 2, 3].map('x*x'.lambda()).map('x+1'.lambda()));
 
 // Define an `onclick` function that abbreviates `Event.observe(_, 'click', ...)`:
 var onclick = Event.observe.bind(Event).partial(_, 'click');
-// These next three statements are parallel in their effect:
-Event.observe('e1', 'click', function(){alert('1')});
-onclick('e2', function(){alert('2')});
+// These next three statements have the same effect.  Click on a
+// of the buttons to execute the corresponding function.
+Event.observe('e1', 'click', function(){ alert('1'); });
+onclick('e2', function(){ alert('2'); });
 onclick('e3', alert.bind(null).saturate('3'));

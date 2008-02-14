@@ -1,10 +1,9 @@
 /* 
  * Author: Oliver Steele
- * Copyright: Copyright 2007 by Oliver Steele.  All rights reserved.
+ * Copyright: Copyright 2007-2008 by Oliver Steele.  All rights reserved.
  * License: MIT License
  * Homepage: http://osteele.com/javascripts/functional
  * Created: 2007-07-15
- * Modified: 2007-07-21
  */
 
 Functional.install();
@@ -30,61 +29,64 @@ function Evaluator(rootName, options) {
     
     this.lastRecord = null;
     this.observeElements();
-    this.setShowTranscript($F(elements.transcript.toggle));
+    this.setShowTranscript(elements.transcript.toggle.checked);
     $(elements.transcript.controls).hide();
     this.recenterButton();
+    
     function setElements(table, paths) {
         $H(paths).each(function(item) {
-            var path = rootName+' '+item[1];
-            var elt = table[item[0]] = $$(path)[0];
-            elt || console.error("Couldn't find $$('"+path+'")');
+            var path = rootName+' '+item.value;
+            var elt = table[item.key] = $(path)[0];
+            elt || console.error("Couldn't find $('"+path+'")');
         });
     }
 }
 
 Evaluator.prototype.setShowTranscript = function(visible) {
     var elements = this.elements;
-    [elements.transcript.input, elements.transcript.output, elements.transcript.clear].invoke(visible ? 'show' : 'hide');
+    $([elements.transcript.input, elements.transcript.output, elements.transcript.clear]).invoke(visible ? 'show' : 'hide');
     this.transcript = visible;
 }
 
 Evaluator.prototype.observeElements = function() {
-    var elements = this.elements;
-    var transcript = elements.transcript;
-    Event.observe(transcript.toggle, 'click', function() {
-        this.setShowTranscript($F(transcript.toggle));
+    var self = this,
+        eval = this.eval.bind(this).saturate(),
+        elements = this.elements,
+        transcript = elements.transcript;
+    $(transcript.toggle).click(function() {
+        this.setShowTranscript(transcript.toggle.checked);
         this.recenterButton();
     }.bind(this));
-    Event.observe(transcript.clear, 'click', function() {
+    $(transcript.clear).click(function() {
         // should unobserve the vanished elements, but I don't
         // think it matters for interactive use
-        transcript.input.innerHTML = '';
-        transcript.output.innerHTML = '';
-        transcript.count.innerHTML = '';
+        $([transcript.input, transcript.output, transcript.count]).html('');
         transcript.controls.hide();
         this.recenterButton();
     }.bind(this));
-    Event.observe(elements.input, 'keyup', function(e) {
+    $(elements.input).keyup(function(e) {
         if (e.keyCode == 13) {
-            this.eval();
-            Event.stop(e);
+            eval();
+            return false;
         }
     }.bind(this));
-    Event.observe(elements.evalButton, 'click', this.eval.bind(this).saturate());
+    $(elements.evalButton).click(eval);
 }
 
-Evaluator.prototype.eval = function(text) {
-    var elements = this.elements;
-    var inputElement = elements.input;
-    var outputElement = elements.output;
-    var transcriptElements = elements.transcript;
-    if (arguments.length < 1)
-        var text = inputElement.value.strip().replace('\n', '');
+Evaluator.prototype.eval = function(textOrNode) {
+    var elements = this.elements,
+        inputElement = elements.input,
+        outputElement = elements.output,
+        transcriptElements = elements.transcript;
+    var text = arguments.length < 1
+        ? inputElement.value.strip().replace('\n', '')
+        : typeof textOrNode == 'string'
+        ? textOrNode
+        : $(textOrNode).text()
     inputElement.value = text;
     Evaluator.scope = this.scope = this.scope || {};
     text = text.replace(/^\s*var\s+/, 'Evaluator.scope.');
     text = text.replace(/^\s*function\s+([A-Z_$][A-Z_$\d]*)/i, 'Evaluator.scope.$1 = function');
-    var html;
     var value, error;
     try {
         with (Evaluator.scope)
@@ -92,8 +94,8 @@ Evaluator.prototype.eval = function(text) {
     } catch (e) {
         error = e;
     }
-    [elements.root].invoke(error ? 'addClassName' : 'removeClassName', 'error');
-    html = error ? 'Error: ' + error : Evaluator.toString(value).escapeHTML();
+    var html = error ? 'Error: ' + error : Evaluator.toString(value).escapeHTML();
+    $(elements.root).invoke(error ? 'addClass' : 'removeClass', 'error');
     outputElement.innerHTML = html;
     if (this.lastRecord) {
         function update(elt, text) {
@@ -103,18 +105,17 @@ Evaluator.prototype.eval = function(text) {
         var e = document.createElement('div');
         e.innerHTML = '<kbd>' + this.lastRecord.input + '</kbd>';
         transcriptElements.input.appendChild(e);
-        this.makeClickable([e]);
+        this.makeClickable(e);
         update(transcriptElements.output, '<samp>' + this.lastRecord.output + '</samp>');
-        if (this.enableTranscript) {
-            transcriptElements.controls.show();
-            transcriptElements.clear.show();
-        }
+        if (this.enableTranscript)
+            $([transcriptElements.controls, transcriptElements.clear]).show();
         var count = 1 + (parseInt(transcriptElements.count.innerHTML)||0);
         transcriptElements.count.innerHTML = ''+count;
         this.recenterButton();
     }
     this.lastRecord = {input: text, output: html};
     this.options.onUpdate && this.options.onUpdate();
+    return value;
 }
 
 Evaluator.toString = function(value) {
@@ -133,24 +134,22 @@ Evaluator.toString = function(value) {
 // This won't keep up with some display change, but oh well.
 Evaluator.prototype.recenterButton = function() {
     var oc = this.elements.output.parentNode;
-    oc.style.minHeight = Element.getHeight(this.elements.input.parentNode)
+    oc.style.minHeight = $(this.elements.input.parentNode).height()
         - parseInt(oc.style.paddingTop || 0)
         - parseInt(oc.style.paddingBottom || 0)
         + 'px';
     var button = this.elements.evalButton;
-    var heights = map('Element.getHeight(_)', [this.elements.input, this.elements.output, button]);
+    var heights = map('$(_).height()', [this.elements.input, this.elements.output, button]);
     var max = Math.max(heights[0], heights[1]);
     var y = Math.floor((max - heights[2]) / 2) + 10;
     if (this.transcript)
-        y += Element.getHeight(this.elements.transcript.input);
+        y += $(this.elements.transcript.input).height();
     button.style.marginTop = y + 'px';
 }
 
-Evaluator.prototype.makeClickable = function(elements) {
-    function handler(e) {
-        var text = Event.element(e).innerHTML.unescapeHTML();
+Evaluator.prototype.makeClickable = function(elt) {
+    $(elt).click(function() {
+        var text = elt.innerHTML.unescapeHTML();
         gEval.eval(text);
-    }
-    map(Event.observe.bind(Event).partial(_, 'click', handler), elements);
+    });
 }
-

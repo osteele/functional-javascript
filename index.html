@@ -2,14 +2,17 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <title>Functional Javascript</title>
-    <script type="text/javascript" src="/javascripts/prototype-1.6.js"></script>
+    <script type="text/javascript" src="/javascripts/jquery-1.2.1.min.js"></script>
+    <script type="text/javascript" src="/javascripts/jquery.scrollTo-min.js"></script>
+    <script type="text/javascript" src="../collection-utils.js"></script>
     <script type="text/javascript" src="../gradients.js"></script>
     <script type="text/javascript" src="functional.min.js"></script>
-    <script type="text/javascript" src="../osdoc/Base.js"></script>
-    <script type="text/javascript" src="../osdoc/osdoc.js"></script>
+    <script type="text/javascript" src="../protodoc/Base.js"></script>
+    <script type="text/javascript" src="../protodoc/protodoc.js"></script>
+    <script type="text/javascript" src="../protodoc/protodoc.viewer.js"></script>
     <script type="text/javascript" src="evaluator.js"></script>
     <script type="text/javascript" src="index.js"></script>
-    <link rel="stylesheet" type="text/css" href="../osdoc/osdoc.css"/>
+    <link rel="stylesheet" type="text/css" href="../protodoc/protodoc.css"/>
     <link rel="stylesheet" type="text/css" href="styles.css"/>
     <link rel="stylesheet" type="text/css" href="evaluator.css"/>
   </head>
@@ -121,11 +124,11 @@
       <tr>
         <td valign="top">
           <h2>API Documentation <span class="download">(<a href="functional.js">source</a>)</span></h2>
-          <div id="docs" class="osdoc docs">Documentation failed to load.</div>
+          <div id="docs" class="protodoc docs">Documentation failed to load.</div>
         </td>
         <td valign="top">
           <h2>Usage <span class="download">(<a href="examples.js">source</a>)</span></h2>
-          <div id="examples" class="osdoc examples">Examples failed to load.</div>
+          <div id="examples" class="protodoc examples">Examples failed to load.</div>
           <button id="e1">1. Event.observe</button>
           <button id="e2">2. onclick</button>
           <button id="e3">3. specialized alert fn</button>
