@@ -28,8 +28,8 @@ function assertEquals(expect, result) {
 // The content of this function is automatically generated.
 function test() {
     // I
-    console.info(Function.I(1));
-    assertEquals(1, Function.I(1));
+    console.info(Functional.I(1));
+    assertEquals(1, Functional.I(1));
     
     // flip
     console.info(('a/b'.lambda()).flip()(1,2));
@@ -89,10 +89,10 @@ function test() {
     assertEquals(true, every('<10', [1,2,3]));
     
     // not
-    console.info(not(Function.K(true))());
-    assertEquals(false, not(Function.K(true))());
-    console.info(not(Function.K(false))());
-    assertEquals(true, not(Function.K(false))());
+    console.info(not(Functional.K(true))());
+    assertEquals(false, not(Functional.K(true))());
+    console.info(not(Functional.K(false))());
+    assertEquals(true, not(Functional.K(false))());
     
     // invoke
     console.info(invoke('toString')(123));

@@ -13,11 +13,8 @@
  * functional and function-level programming.
  */
 
-// rhino compatibility
-typeof window == 'undefined' && (window = {});
-
 /// `Functional` is the namespace for higher-order functions.
-var Functional = window.Functional || {};
+var Functional = this.Functional || {};
 
 /**
  * This function copies all the public functions in `Functional` except itself
@@ -27,12 +24,12 @@ var Functional = window.Functional || {};
  */
 Functional.install = function(except) {
     var source = Functional,
-        target = window;
+        target = (function() { return this; })();  // References the global object.
     for (var name in source)
         name == 'install'
         || name.charAt(0) == '_'
         || except && name in except
-        || {}[name] // work around Prototype
+        || !source.hasOwnProperty(name) // work around Prototype
         || (target[name] = source[name]);
 }
 
@@ -781,12 +778,21 @@ Function.prototype.guard = function(guard, otherwise) {
  * This is useful for debugging function-level programs.
  */
 Function.prototype.traced = function(name) {
-    var self = this;
+    var self   = this,
+        global = (function() { return this; })(),
+        log    = function() {};
+
+    if (typeof console != 'undefined' && typeof console.info == 'function') {
+      log = console.info;
+    } else if (typeof print == 'function') {
+      log = print;
+    }
+
     name = name || self;
     return function() {
-        window.console && console.info('[', name, 'apply(', this!=window && this, ',', arguments, ')');
+        log('[', name, 'apply(', this!=global && this, ',', arguments, ')');
         var result = self.apply(this, arguments);
-        window.console && console.info(']', name, ' -> ', result);
+        log(']', name, ' -> ', result);
         return result;
     }
 }
