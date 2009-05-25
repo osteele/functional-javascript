@@ -8,8 +8,8 @@ It is licensed under the MIT License.
 For more details, see http://osteele.com/javascripts/functional .
 
 Credits:
-- Oliver Steele -- primary author
+- Oliver Steele -- original author
 - Dean Edwards -- Array.slice suggestion
 - henrah -- Function.lambda memoization
 - Raganwald -- Rhino compatibility
-
+- Jesse Hallett -- Spidermonkey shell compatibiilty
