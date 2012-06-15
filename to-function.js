@@ -75,7 +75,7 @@ String.prototype.lambda = function() {
     if (sections.length > 1) {
         while (sections.length) {
             expr = sections.pop();
-            params = sections.pop().split(/\s*,\s*|\s+/m);
+            params = sections.pop().replace(/^\s*(.*)\s*$/, '$1').split(/\s*,\s*|\s+/m);
             sections.length && sections.push('(function('+params+'){return ('+expr+')})');
         }
     } else if (expr.match(/\b_\b/)) {
