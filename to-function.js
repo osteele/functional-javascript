@@ -95,10 +95,10 @@ String.prototype.lambda = function() {
             }
         } else {
             // `replace` removes symbols that are capitalized, follow '.',
-            // precede ':', are 'this' or 'arguments'; and also the insides of
-            // strings (by a crude test).  `match` extracts the remaining
-            // symbols.
-            var vars = this.replace(/(?:\b[A-Z]|\.[a-zA-Z_$])[a-zA-Z_$\d]*|[a-zA-Z_$][a-zA-Z_$\d]*\s*:|this|arguments|'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g, '').match(/([a-z_$][a-z_$\d]*)/gi) || []; // '
+            // precede ':', are 'true', 'false', 'null', 'undefined', 'this'
+            // or 'arguments'; and also the insides of strings (by a crude test).
+            // `match` extracts the remaining symbols.
+            var vars = this.replace(/(?:\b[A-Z]|\.[a-zA-Z_$])[a-zA-Z_$\d]*|[a-zA-Z_$][a-zA-Z_$\d]*\s*:|true|false|null|undefined|this|arguments|'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g, '').match(/([a-z_$][a-z_$\d]*)/gi) || []; // '
             for (var i = 0, v; v = vars[i++]; )
                 params.indexOf(v) >= 0 || params.push(v);
         }
