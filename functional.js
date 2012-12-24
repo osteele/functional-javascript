@@ -259,7 +259,7 @@ Functional.equal = function(/*fn...*/) {
     return function() {
         var value = args[0].apply(this, arguments);
         for (var i = 1; i < arglen; i++)
-            if (value != args[i].apply(this, args))
+            if (value != args[i].apply(this, arguments))
                 return false;
         return true;
     }
