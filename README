@@ -14,4 +14,5 @@ Credits:
 - Raganwald -- Rhino compatibility
 - Jesse Hallett -- Spidermonkey shell compatibiilty
 - Florian Schäfer -- allow leading and trailing spaces in expressions
+- Angus Croll -- bug fix
  
