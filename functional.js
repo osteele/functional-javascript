@@ -458,7 +458,7 @@ Function.prototype.curry = function(/*args...*/) {
 /*
  * Right curry.  Returns a function that, applied to an argument list $args2$,
  * applies the underlying function to $args2 + args$.
- * == f.curry(args1...)(args2...) == f(args2..., args1...)
+ * == f.rcurry(args1...)(args2...) == f(args2..., args1...)
  * :: (a... b... -> c) b... -> (a... -> c)
  */
 Function.prototype.rcurry = function(/*args...*/) {
